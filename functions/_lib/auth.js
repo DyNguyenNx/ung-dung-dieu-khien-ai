@@ -9,7 +9,9 @@ export const FEATURES = {
   designweb: 'Design Web',
 };
 export const FEATURE_KEYS = Object.keys(FEATURES);
-export const TASK_STATUSES = ['running', 'completed', 'waiting', 'scheduled', 'error'];
+export const TASK_STATUSES = ['running', 'completed', 'waiting', 'scheduled', 'error', 'luna', 'review'];
+// 'luna' = đã gửi brief, đang chờ Thư Ký Mỹ Linh vẽ (Yêu cầu 28).
+// 'review' = Luna đã trả file, chờ anh duyệt.
 
 export function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -136,4 +138,49 @@ export function publicUser(u) {
     deposit_vnd: u.deposit_vnd,
     created_at: u.created_at,
   };
+}
+
+// ---------- Nhiệm vụ Design Web — file Luna trả về (Yêu cầu 28) ----------
+// result_versions lưu JSON mảng [{v, delivered_at, size, note, html}].
+// Trả về cho client CHỈ metadata (không kèm html) để danh sách không phình to;
+// html lấy riêng qua GET /api/tasks/:id/result.
+export function parseVersions(row) {
+  if (!row || !row.result_versions) return [];
+  try {
+    const arr = JSON.parse(row.result_versions);
+    if (!Array.isArray(arr)) return [];
+    return arr.map((v) => ({ v: v.v, delivered_at: v.delivered_at, size: v.size || 0, note: v.note || '' }));
+  } catch {
+    return [];
+  }
+}
+export function parseVersionsFull(row) {
+  if (!row || !row.result_versions) return [];
+  try {
+    const arr = JSON.parse(row.result_versions);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+export function taskExtras(row) {
+  const versions = parseVersions(row);
+  return {
+    has_result: !!(row && row.result_html),
+    result_versions: versions,
+  };
+}
+
+// ---------- Secret của Luna (Yêu cầu 28): so sánh bằng hash, tránh rò rỉ qua timing ----------
+export async function lunaSecretOk(env, request) {
+  const expected = env.LUNA_API_SECRET || '';
+  if (!expected) return false;
+  const given = request.headers.get('X-Luna-Secret') || '';
+  if (!given) return false;
+  const a = await sha256Hex(expected);
+  const b = await sha256Hex(given);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

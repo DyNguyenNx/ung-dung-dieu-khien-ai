@@ -54,10 +54,15 @@ CREATE TABLE IF NOT EXISTS tasks (
   feature TEXT NOT NULL,
   title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'running'
-    CHECK (status IN ('running', 'completed', 'waiting', 'scheduled', 'error')),
+    CHECK (status IN ('running', 'completed', 'waiting', 'scheduled', 'error', 'luna', 'review')),
   progress INTEGER NOT NULL DEFAULT 0,
   payload TEXT,
   result_url TEXT,
+  -- Yêu cầu 28 (cầu nối Thư Ký Mỹ Linh): file HTML Luna trả về.
+  -- result_html = HTML bản mới nhất; result_versions = JSON mảng
+  -- [{v, delivered_at, size, note, html}] (đủ bản để Xem demo / Tải HTML từng bản).
+  result_html TEXT,
+  result_versions TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

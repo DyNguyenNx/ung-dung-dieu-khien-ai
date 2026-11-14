@@ -424,6 +424,12 @@
       .tag.wait{ background:var(--amber-soft); color:var(--amber); }
       .tag.err{ background:var(--red-soft); color:var(--red); }
       .tag.sched{ background:var(--accent-soft); color:var(--navy); }
+      /* Yêu cầu 28: nhiệm vụ Design Web đang chờ Thư Ký Mỹ Linh vẽ. */
+      .tag.luna{ background:var(--hover-lav); color:var(--navy); }
+      /* Dòng ghi chú + nút hành động trong thẻ nhiệm vụ Design Web (Yêu cầu 28). */
+      .t-note{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:6px; }
+      .t-note.err{ color:var(--red); }
+      .t-actions{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
       .no-result{ display:none; padding:16px 6px; font-size:13.5px; color:var(--muted); }
 
       /* Form giao việc mới */
@@ -1222,6 +1228,12 @@
       .rt-head h2 .ic{ color:var(--accent); }
       .rt-ver{ font-size:12px; font-weight:700; color:var(--navy); background:var(--accent-soft); padding:4px 11px; border-radius:999px; }
       .rt-actions{ margin-left:auto; display:flex; gap:9px; flex-wrap:wrap; }
+      /* Yêu cầu 28: Lịch sử phiên bản trong bảng demo — bấm chip để đổi bản đang xem. */
+      .rt-vers{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 20px; border-top:1px solid var(--line); background:var(--card); }
+      .rt-vers[hidden]{ display:none; }
+      .rt-vers-label{ font-size:12.5px; font-weight:700; color:var(--muted); }
+      .rt-ver-chip{ min-height:32px; padding:4px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:12.5px; font-weight:700; cursor:pointer; }
+      .rt-ver-chip[aria-current="true"]{ background:var(--navy); border-color:var(--navy); color:#fff; }
       .rt-frame{ border:0; border-top:1px solid var(--line); width:100%; flex:1; min-height:46dvh; background:var(--card); }
       .rt-edit{ border-top:1px solid var(--line); padding:14px 20px 18px; }
       .rt-edit[hidden]{ display:none; }
@@ -2580,7 +2592,17 @@
                         <label class="seg-pill"><input type="checkbox" id="design-mat-nums" name="chatLieuThat" value="Số liệu thật" /><span>Số liệu thật</span></label>
                         <label class="seg-pill"><input type="checkbox" id="design-mat-quote" name="chatLieuThat" value="Quote khách thật" /><span>Quote khách thật</span></label>
                       </div>
-                      <p class="brief-note" style="margin:8px 0 0;">Thiếu mục nào thì AI để slot và ghi rõ, không bịa số liệu, quote hay logo.</p>
+                      <p class="brief-note" style="margin:8px 0 0;">Không có ảnh khách thì Luna dùng ảnh Google (ảnh thật, không logo/watermark của công ty khác) hoặc tự thiết kế ảnh bằng AI (Leonardo / LightVisual / Grok). Thiếu mục nào khác thì để slot và ghi rõ, không bịa số liệu, quote hay logo.</p>
+                    </div>
+                    <div class="field" id="design-mat-photos-field" hidden>
+                      <label for="design-mat-photos">Ảnh thật của khách — dùng trong thiết kế</label>
+                      <input class="ref-input" id="design-mat-photos" name="anhThatKhach" type="file" accept="image/*" multiple />
+                      <label class="btn-ghost ref-pick" for="design-mat-photos">
+                        <svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                        Đính kèm ảnh thật của khách
+                      </label>
+                      <span class="ref-note">Ảnh thật của khách để dùng trong thiết kế (tối đa 6 ảnh, mỗi ảnh ≤ 5MB) — ảnh sẽ gửi kèm brief sang Telegram cho Thư Ký Mỹ Linh. Khác với ô “Ảnh mẫu / tài liệu tham khảo” bên dưới: ô đó chỉ là ảnh tham khảo phong cách, không phải ảnh dùng trong thiết kế.</span>
+                      <div class="ref-thumbs" id="design-mat-photos-thumbs" hidden aria-live="polite"></div>
                     </div>
                   </div>
                 </div>
@@ -2630,7 +2652,7 @@
 
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ Design Web</h2>
-              <p class="hint">Các dự án thiết kế trang chủ đang làm cho ZA Project, Phúc Thịnh Home và các khách hàng khác. Nhiệm vụ đã hoàn thành có nút “Xem demo” để xem bản thiết kế ngay trong app và gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh.</p>
+              <p class="hint">Các dự án thiết kế trang chủ đang làm cho ZA Project, Phúc Thịnh Home và các khách hàng khác. Giao việc xong, brief tự gửi sang Thư Ký Mỹ Linh qua Telegram — bản vẽ xong chờ anh duyệt rồi mới trả cho nhân viên. Nhiệm vụ đã hoàn thành có nút “Xem demo” để xem bản thiết kế ngay trong app và gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh.</p>
               <ul class="tasks" data-tasks="designweb"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
@@ -2709,7 +2731,7 @@
                   </div>
                   <div class="step todo">
                     <span class="s-dot">4</span>
-                    <div><div class="s-name">Dựng bản thiết kế</div><div class="s-by">Dựng giao diện trang chủ theo màu, font và hướng đã chốt</div></div>
+                    <div><div class="s-name">Dựng bản thiết kế</div><div class="s-by">Thư Ký Mỹ Linh vẽ qua Telegram, kiểm chứng bằng trình duyệt thật</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">5</span>
@@ -3510,6 +3532,16 @@
           var thumbs = field ? field.querySelector(".ref-thumbs") : null;
           if (!thumbs) return;
           var items = [];
+          /* Yêu cầu 28: giữ lại File gốc để gửi kèm khi giao việc (ảnh thật của
+             khách + ảnh tham khảo đi kèm brief sang Telegram). items cũng gắn
+             lên input (_refItems) để collect()/onAssign đọc được, và _refClear
+             để xóa sau khi giao việc xong. */
+          input._refItems = items;
+          input._refClear = function () {
+            items.forEach(function (it) { if (it.url) URL.revokeObjectURL(it.url); });
+            items.length = 0;
+            render();
+          };
           function render() {
             thumbs.innerHTML = "";
             thumbs.hidden = items.length === 0;
@@ -3542,13 +3574,21 @@
             if (!files) return;
             for (var f = 0; f < files.length; f++) {
               if (files[f].type && files[f].type.indexOf("image/") !== 0) continue;
-              items.push({ url: URL.createObjectURL(files[f]), name: files[f].name });
+              items.push({ url: URL.createObjectURL(files[f]), name: files[f].name, file: files[f] });
             }
             input.value = "";
             render();
           });
         }
         for (var r = 0; r < refInputs.length; r++) initRef(refInputs[r]);
+      })();
+
+      /* ===== Design Web: ô "Ảnh thật của khách" chỉ hiện khi tick checkbox "Ảnh thật" (Yêu cầu 28) ===== */
+      (function () {
+        var box = document.getElementById("design-mat-photo");
+        var field = document.getElementById("design-mat-photos-field");
+        if (!box || !field) return;
+        box.addEventListener("change", function () { field.hidden = !box.checked; });
       })();
 
       /* ===== Design Web: "Các mục cần có" — một hàng chip, sửa / đổi thứ tự / xoá / thêm ngay trên chip ===== */
@@ -4317,6 +4357,12 @@
           (AppState.tasks || []).filter(function (t) { return t.status === "error"; }).forEach(function (t) {
             items.push({ kind: "error", title: "Nhiệm vụ gặp lỗi", meta: t.title + " · " + (FEATURE_NAMES[t.feature] || t.feature), go: t.feature });
           });
+          /* Yêu cầu 28: admin thấy chuông khi có bản thiết kế Luna trả về đang chờ duyệt. */
+          if (AppState.me && AppState.me.role === "admin") {
+            (AppState.tasks || []).filter(function (t) { return t.feature === "designweb" && t.status === "review"; }).forEach(function (t) {
+              items.push({ kind: "pending", title: "Bản thiết kế chờ duyệt", meta: t.title + " · " + (t.user_name || ""), go: "designweb" });
+            });
+          }
           return items;
         }
         function refreshNotifs() {
@@ -4572,6 +4618,9 @@
           if (task.status === "waiting") return '<span class="tag wait">Chờ duyệt</span>';
           if (task.status === "scheduled") return '<span class="tag sched">Đã lên lịch</span>';
           if (task.status === "error") return '<span class="tag err">Cần xử lý</span>';
+          /* Yêu cầu 28: trạng thái riêng của Design Web qua cầu nối Luna. */
+          if (task.status === "luna") return '<span class="tag luna">Chờ Thư Ký Mỹ Linh</span>';
+          if (task.status === "review") return '<span class="tag wait">Chờ anh duyệt</span>';
           return '<span class="tag">' + esc(task.status || "") + '</span>';
         }
         function downloadRowHtml(task) {
@@ -4595,17 +4644,56 @@
           vers[vers.length - 1].current = true;
           return vers;
         }
+        /* Yêu cầu 28: bản Luna đã trả — lấy HTML thật từ server theo từng phiên bản
+           (metadata nằm ở task.result_versions, HTML lấy qua /api/tasks/:id/result). */
+        function buildLunaVersions(task) {
+          var vers = (task.result_versions || []).map(function (v) {
+            return { id: v.v, note: v.note || "", doc: "" };
+          });
+          if (!vers.length) vers = [{ id: "v1", note: "", doc: "" }];
+          var chain = Promise.resolve();
+          vers.forEach(function (v) {
+            chain = chain.then(function () {
+              return fetchTaskHtml(task.id, v.id).then(function (html) { v.doc = html; });
+            });
+          });
+          return chain.then(function () {
+            vers[vers.length - 1].current = true;
+            return vers;
+          });
+        }
         function wireDownloadButtons(li, task, full) {
           li.querySelectorAll("[data-dl]").forEach(function (btn) {
             var kind = btn.getAttribute("data-dl");
             btn.addEventListener("click", function () {
+              /* Nhiệm vụ Design Web có file Luna: Xem demo / Tải HTML dùng file thật. */
+              var isLunaTask = task.feature === "designweb" && task.has_result;
               if (kind === "demo") {
-                openOverlay({ title: task.title, data: full, versions: buildVersions(task, full), apiId: task.id });
+                if (isLunaTask) {
+                  btn.disabled = true;
+                  buildLunaVersions(task).then(function (vers) {
+                    openOverlay({ title: task.title, data: full, versions: vers, apiId: task.id, luna: true });
+                  }).catch(function (e) { toast(e.message || "Không mở được bản demo."); })
+                    .then(function () { btn.disabled = false; });
+                } else {
+                  openOverlay({ title: task.title, data: full, versions: buildVersions(task, full), apiId: task.id });
+                }
               } else if (kind === "html") {
-                var vers = buildVersions(task, full);
-                var v = vers[vers.length - 1];
-                saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(task.title) + "-" + v.id + ".html");
-                toast("Đang tải file HTML của bản " + v.id + " về máy…");
+                if (isLunaTask) {
+                  btn.disabled = true;
+                  var vers2 = task.result_versions || [];
+                  var latest = vers2.length ? vers2[vers2.length - 1].v : "";
+                  fetchTaskHtml(task.id, latest).then(function (html) {
+                    saveBlob(new Blob([html], { type: "text/html;charset=utf-8" }), slug(task.title) + "-" + (latest || "v1") + ".html");
+                    toast("Đang tải file HTML của bản " + (latest || "v1") + " về máy…");
+                  }).catch(function (e) { toast(e.message || "Không tải được file HTML."); })
+                    .then(function () { btn.disabled = false; });
+                } else {
+                  var vers = buildVersions(task, full);
+                  var v = vers[vers.length - 1];
+                  saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(task.title) + "-" + v.id + ".html");
+                  toast("Đang tải file HTML của bản " + v.id + " về máy…");
+                }
               } else if (kind === "image") {
                 drawImagePNG(full, function (b) { if (b) { saveBlob(b, slug(task.title) + ".png"); toast("Đang tải hình ảnh về máy…"); } });
               } else {
@@ -4637,12 +4725,87 @@
             side += '<div class="bar"><i style="width:' + (task.progress || 0) + '%"></i></div>';
           } else if (task.status === "completed") {
             side += downloadRowHtml(task);
+          } else if (task.status === "luna") {
+            /* Yêu cầu 28: đã gửi brief, đang chờ Luna vẽ — không thanh tiến độ giả,
+               không nút tải. Gửi lỗi thì hiện nút gửi lại brief. */
+            side += '<div class="t-note">Đã gửi brief — Thư Ký Mỹ Linh đang vẽ…</div>';
+            var sendErr = full.luna && full.luna.sendError;
+            if (sendErr) {
+              side += '<div class="t-note err">Chưa gửi được brief sang Telegram: ' + esc(sendErr) + '</div>';
+              side += '<div class="t-actions"><button type="button" class="btn-ghost btn-sm" data-resend-brief>Gửi lại brief</button></div>';
+            }
+          } else if (task.status === "review") {
+            /* Yêu cầu 28: Luna đã trả file, chờ anh duyệt — nhân viên chưa thấy file. */
+            if (me && me.role === "admin") {
+              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả bản mới — bấm Duyệt để trả cho nhân viên.</div>';
+              side += '<div class="t-actions"><button type="button" class="btn-approve" data-approve-task>Duyệt</button></div>';
+              side += downloadRowHtml(task);
+            } else {
+              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả bản mới — đang chờ anh duyệt.</div>';
+            }
           }
           li.innerHTML =
             '<div><div class="t-name">' + esc(task.title) + '</div><div class="t-meta">' + meta + '</div></div>' +
             '<div class="t-side">' + side + '</div>';
           if (task.status === "completed") wireDownloadButtons(li, task, full);
+          if (task.status === "review" && me && me.role === "admin") wireDownloadButtons(li, task, full);
+          if (task.status === "luna" || task.status === "review") wireLunaButtons(li, task);
           return li;
+        }
+
+        /* ---- Nút Duyệt / Gửi lại brief trên thẻ nhiệm vụ Design Web (Yêu cầu 28) ---- */
+        function refreshTaskItem(li, taskId) {
+          api("/api/tasks/" + taskId).then(function (res) {
+            var fresh = renderTaskItem(res.task);
+            li.replaceWith(fresh);
+            if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+          }).catch(function (e) { toast("Không tải lại được nhiệm vụ: " + e.message); });
+        }
+        function wireLunaButtons(li, task) {
+          var approveBtn = li.querySelector("[data-approve-task]");
+          if (approveBtn) approveBtn.addEventListener("click", function () {
+            approveBtn.disabled = true;
+            api("/api/tasks/" + task.id + "/approve", { method: "POST", body: {} })
+              .then(function () { toast("Đã duyệt — nhân viên đã thấy được file thiết kế."); refreshTaskItem(li, task.id); })
+              .catch(function (e) { toast(e.message || "Không duyệt được."); approveBtn.disabled = false; });
+          });
+          var resendBtn = li.querySelector("[data-resend-brief]");
+          if (resendBtn) resendBtn.addEventListener("click", function () {
+            resendBtn.disabled = true;
+            var fd = null;
+            /* Gửi lại kèm ảnh đã đính kèm lúc giao việc nếu còn giữ trong phiên này. */
+            var kept = li._pendingPhotos;
+            if (kept && (kept.client.length || kept.ref.length)) {
+              fd = new FormData();
+              kept.client.forEach(function (f) { fd.append("clientPhotos", f); });
+              kept.ref.forEach(function (f) { fd.append("refPhotos", f); });
+            }
+            var p = fd ? apiForm("/api/tasks/" + task.id + "/send-brief", fd)
+              : api("/api/tasks/" + task.id + "/send-brief", { method: "POST", body: {} });
+            p.then(function () { toast("Đã gửi lại brief cho Thư Ký Mỹ Linh."); refreshTaskItem(li, task.id); })
+              .catch(function (e) { toast(e.message || "Không gửi lại được brief."); resendBtn.disabled = false; });
+          });
+        }
+        /* POST multipart (FormData) — dùng cho Design Web có ảnh đính kèm. */
+        function apiForm(path, formData) {
+          return fetch(path, { method: "POST", credentials: "same-origin", body: formData })
+            .then(function (res) {
+              return res.json().then(function (data) {
+                if (!res.ok || data.ok === false) {
+                  var e = new Error(data.error || ("Lỗi " + res.status));
+                  e.status = res.status; e.data = data; throw e;
+                }
+                return data;
+              });
+            });
+        }
+        /* Lấy file HTML Luna đã trả về (bản mới nhất hoặc theo version). */
+        function fetchTaskHtml(taskId, version) {
+          var url = "/api/tasks/" + taskId + "/result" + (version ? "?version=" + encodeURIComponent(version) : "");
+          return fetch(url, { credentials: "same-origin" }).then(function (res) {
+            if (!res.ok) throw new Error("Không tải được file thiết kế (lỗi " + res.status + ").");
+            return res.text();
+          });
         }
 
         /* ---- Chay tien do mo phong (v1 chua goi AI that) ---- */
@@ -4768,13 +4931,23 @@
             if (radios.length) { var sp = radios[0].closest("label") ? radios[0].closest("label").querySelector("span") : null; logo = sp ? sp.textContent.trim() : ""; }
             var mats = [];
             ["design-mat-photo", "design-mat-nums", "design-mat-quote"].forEach(function (id) { var el = document.getElementById(id); if (el && el.checked) mats.push(el.value); });
+            /* Yêu cầu 28: số ảnh thật của khách + ảnh tham khảo đã đính kèm (file gốc
+               gửi riêng qua FormData trong onAssign; đây chỉ là metadata để hiển thị). */
+            var matPhotoInput = document.getElementById("design-mat-photos");
+            var matPhotoItems = (matPhotoInput && matPhotoInput._refItems) || [];
+            var refInput = document.getElementById("design-ref");
+            var refItems = (refInput && refInput._refItems) || [];
             d.web = { customer: cust, field: val("design-linhvuc"), color: val("design-color"), font: val("design-font"), ref: val("design-ref-link"), sections: secs, logoPos: logo, note: val("design-note"),
-              audience: val("design-audience"), action: selText("design-action"), materials: mats };
+              audience: val("design-audience"), action: selText("design-action"), materials: mats,
+              clientPhotos: matPhotoItems.length, clientPhotoNames: matPhotoItems.map(function (it) { return it.name; }),
+              refPhotos: refItems.length };
             d.meta = [d.web.field, d.web.color ? "Màu: " + d.web.color : "", secs.length ? secs.length + " mục" : ""].filter(Boolean).join(" · ");
             line("Khách hàng / dự án", cust); line("Lĩnh vực", d.web.field); line("Màu chủ đạo", d.web.color);
             line("Font chữ", d.web.font); line("Website tham khảo", d.web.ref);
             line("Đối tượng xem web", d.web.audience); line("Hành động chính", d.web.action);
             line("Chất liệu thật đã có", mats.join(", "));
+            line("Ảnh thật của khách", matPhotoItems.length ? matPhotoItems.length + " ảnh: " + d.web.clientPhotoNames.join(", ") : (mats.indexOf("Ảnh thật") >= 0 ? "Đã tick nhưng chưa đính kèm ảnh" : "Không có — dùng ảnh Google hoặc AI"));
+            line("Ảnh mẫu / tài liệu tham khảo", refItems.length ? refItems.length + " ảnh" : "");
             line("Các mục cần có", secs.join(", ")); line("Vị trí logo", logo); line("Ghi chú", d.web.note);
           }
           return d;
@@ -4844,6 +5017,7 @@
                   '<button type="button" class="btn-dl" data-rt-dl>Tải HTML</button>' +
                   '<button type="button" class="btn-ghost" data-rt-close>Đóng</button>' +
                 '</div></div>' +
+              '<div class="rt-vers" data-rt-vers hidden></div>' +
               '<iframe class="rt-frame" data-rt-frame title="Bản xem trước thiết kế"></iframe>' +
               '<form class="rt-edit" data-rt-form hidden><label for="rtEditText">Cần sửa những gì?</label>' +
                 '<textarea id="rtEditText" placeholder="Ví dụ: hero đậm màu hơn, thêm mục Bảng giá sau Dịch vụ…"></textarea>' +
@@ -4862,7 +5036,9 @@
           });
           overlay.querySelector("[data-rt-dl]").addEventListener("click", function () {
             if (!overlayTask) return;
-            var v = overlayTask.versions[overlayTask.versions.length - 1];
+            /* Yêu cầu 21: Tải HTML tải đúng phiên bản đang xem. */
+            var idx = (overlayTask.currentVersion == null) ? overlayTask.versions.length - 1 : overlayTask.currentVersion;
+            var v = overlayTask.versions[idx] || overlayTask.versions[overlayTask.versions.length - 1];
             saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(overlayTask.title) + "-" + v.id + ".html");
             toast("Đang tải file HTML của bản " + v.id + " về máy…");
           });
@@ -4871,6 +5047,25 @@
             if (!overlayTask) return;
             var note = overlay.querySelector("#rtEditText").value.trim();
             if (!note) { toast("Hãy ghi rõ chỗ cần sửa trước khi gửi."); return; }
+            /* Yêu cầu 28: nhiệm vụ Luna — gửi yêu cầu chỉnh sửa thật về server để
+               Luna vẽ lại bản mới (không tự sinh bản giả bằng buildWebDoc nữa). */
+            if (overlayTask.luna && overlayTask.apiId) {
+              var submitBtn = overlay.querySelector("[data-rt-form] .btn-run");
+              if (submitBtn) submitBtn.disabled = true;
+              api("/api/tasks/" + overlayTask.apiId + "/revision", { method: "POST", body: { note: note } })
+                .then(function () {
+                  overlay.querySelector("#rtEditText").value = "";
+                  overlay.querySelector("[data-rt-form]").hidden = true;
+                  closeOverlay();
+                  toast("Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — chờ bản mới.");
+                  if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+                  var li = document.querySelector('[data-task-id="' + overlayTask.apiId + '"]');
+                  if (li) refreshTaskItem(li, overlayTask.apiId);
+                })
+                .catch(function (err) { toast(err.message || "Không gửi được yêu cầu chỉnh sửa."); })
+                .then(function () { if (submitBtn) submitBtn.disabled = false; });
+              return;
+            }
             var nv = "v" + (overlayTask.versions.length + 1);
             overlayTask.versions.push({ id: nv, note: note, doc: buildWebDoc(overlayTask.data, nv, note) });
             if (overlayTask.apiId) {
@@ -4887,15 +5082,61 @@
           return overlay;
         }
         function loadOverlayVersion() {
-          var v = overlayTask.versions[overlayTask.versions.length - 1];
+          var vers = overlayTask.versions;
+          var idx = (overlayTask.currentVersion == null) ? vers.length - 1 : overlayTask.currentVersion;
+          if (idx < 0 || idx >= vers.length) idx = vers.length - 1;
+          overlayTask.currentVersion = idx;
+          var v = vers[idx];
           overlay.querySelector("[data-rt-name]").textContent = overlayTask.title;
-          overlay.querySelector("[data-rt-ver]").textContent = "Bản " + v.id + " / " + overlayTask.versions.length + " bản";
+          overlay.querySelector("[data-rt-ver]").textContent = "Bản " + v.id + " / " + vers.length + " bản";
           overlay.querySelector("[data-rt-frame]").srcdoc = v.doc;
+          /* Yêu cầu 28: Lịch sử phiên bản — ghi nhận từng lần Luna trả file,
+             bấm chip để đổi bản đang xem (2 bản trở lên mới hiện). */
+          var versBox = overlay.querySelector("[data-rt-vers]");
+          if (versBox) {
+            versBox.hidden = vers.length < 2;
+            versBox.innerHTML = "";
+            var lab = document.createElement("span");
+            lab.className = "rt-vers-label"; lab.textContent = "Lịch sử phiên bản:";
+            versBox.appendChild(lab);
+            vers.forEach(function (vv, i) {
+              var b = document.createElement("button");
+              b.type = "button"; b.className = "rt-ver-chip";
+              b.textContent = vv.id + (vv.note ? " — " + vv.note : "");
+              b.setAttribute("aria-current", i === idx ? "true" : "false");
+              b.addEventListener("click", function () { overlayTask.currentVersion = i; loadOverlayVersion(); });
+              versBox.appendChild(b);
+            });
+          }
         }
-        function openOverlay(task) { ensureOverlay(); overlayTask = task; loadOverlayVersion(); overlay.hidden = false; }
+        function openOverlay(task) { ensureOverlay(); overlayTask = task; overlayTask.currentVersion = null; loadOverlayVersion(); overlay.hidden = false; }
         function closeOverlay() { if (overlay) overlay.hidden = true; }
 
         /* ---- Tạo nhiệm vụ qua API + chạy tiến độ ---- */
+        /* Giới hạn ảnh đính kèm Design Web (Yêu cầu 28): ảnh thật tối đa 6, ảnh
+           tham khảo tối đa 4, mỗi ảnh ≤ 5MB, chỉ nhận file ảnh. */
+        var MAX_PHOTOS_CLIENT = 6;
+        var MAX_PHOTOS_REF = 4;
+        var MAX_PHOTO_MB = 5;
+        function validatePhotoFiles(items, max, label) {
+          if (items.length > max) return "Tối đa " + max + " " + label + " mỗi nhiệm vụ (đang chọn " + items.length + ").";
+          for (var i = 0; i < items.length; i++) {
+            var f = items[i].file;
+            if (!f) continue;
+            if (f.size > MAX_PHOTO_MB * 1024 * 1024) return "Ảnh “" + (f.name || "không tên") + "” nặng hơn " + MAX_PHOTO_MB + "MB — hãy nén nhỏ lại rồi gửi.";
+          }
+          return "";
+        }
+        function clearRefInputs(form) {
+          /* Chỉ xóa ảnh đính kèm trong đúng form vừa giao (không động màn khác). */
+          var scope = form || document;
+          ["design-mat-photos", "design-ref", "anh-ref"].forEach(function (id) {
+            var inp = scope.querySelector ? scope.querySelector("#" + id) : document.getElementById(id);
+            if (inp && inp._refClear) inp._refClear();
+          });
+          var photoField = document.getElementById("design-mat-photos-field");
+          if (photoField) photoField.hidden = true;
+        }
         function onAssign(form) {
           var scr = form.closest ? form.closest("[data-screen]") : null;
           var key = scr ? scr.getAttribute("data-screen") : "";
@@ -4906,7 +5147,29 @@
           d.ai = feat.aiPrimary;
           var btn = form.querySelector(".btn-run");
           if (btn) btn.disabled = true;
-          api("/api/tasks", { method: "POST", body: { feature: key, title: d.title, payload: d } })
+          /* Yêu cầu 28: Design Web gửi multipart kèm ảnh (file gốc từ initRef),
+             server tạo nhiệm vụ trạng thái 'luna' và gửi brief sang Telegram. */
+          var isDesignWeb = key === "designweb";
+          var matItems = [];
+          var refItems = [];
+          var submitPromise;
+          if (isDesignWeb) {
+            var matInput = document.getElementById("design-mat-photos");
+            matItems = (matInput && matInput._refItems) || [];
+            var refInput = document.getElementById("design-ref");
+            refItems = (refInput && refInput._refItems) || [];
+            var bad = validatePhotoFiles(matItems, MAX_PHOTOS_CLIENT, "ảnh thật của khách")
+              || validatePhotoFiles(refItems, MAX_PHOTOS_REF, "ảnh mẫu / tài liệu tham khảo");
+            if (bad) { toast(bad); if (btn) btn.disabled = false; return; }
+            var fd = new FormData();
+            fd.append("payload", JSON.stringify({ feature: key, title: d.title, payload: d }));
+            matItems.forEach(function (it) { if (it.file) fd.append("clientPhotos", it.file); });
+            refItems.forEach(function (it) { if (it.file) fd.append("refPhotos", it.file); });
+            submitPromise = apiForm("/api/tasks", fd);
+          } else {
+            submitPromise = api("/api/tasks", { method: "POST", body: { feature: key, title: d.title, payload: d } });
+          }
+          submitPromise
             .then(function (res) {
               var task = res.task;
               var list = scr ? scr.querySelector('ul.tasks[data-tasks="' + key + '"]') : null;
@@ -4916,11 +5179,28 @@
                 if (empty) empty.remove();
                 list.insertBefore(li, list.firstChild);
               }
-              runSimulation(li, task, task.payload || d, 0);
-              var q = task.quota;
-              toast("Đã giao việc cho " + feat.aiPrimary + ": " + d.title + (q ? " — " + feat.name + " còn " + q.remaining + " lượt tuần này." : "."));
-              if (q && quotaCache && quotaCache[key]) { quotaCache[key].used = q.used; quotaCache[key].remaining = q.remaining; }
-              if (form.reset) form.reset();
+              if (isDesignWeb) {
+                /* Yêu cầu 28: không chạy thanh tiến độ giả — nhiệm vụ chờ Luna vẽ thật. */
+                var luna = task.luna || (task.payload && task.payload.luna) || {};
+                if (luna.notified === false) {
+                  /* Giữ lại ảnh đã đính kèm để bấm "Gửi lại brief" thử lại trong phiên này. */
+                  li._pendingPhotos = {
+                    client: matItems.map(function (it) { return it.file; }).filter(Boolean),
+                    ref: refItems.map(function (it) { return it.file; }).filter(Boolean)
+                  };
+                  toast("Đã tạo nhiệm vụ nhưng chưa gửi được brief sang Telegram — bấm “Gửi lại brief” trên thẻ nhiệm vụ để thử lại.");
+                } else {
+                  toast("Đã gửi brief cho Thư Ký Mỹ Linh: " + d.title + " — chờ bản vẽ.");
+                  if (form.reset) form.reset();
+                  clearRefInputs(form);
+                }
+              } else {
+                runSimulation(li, task, task.payload || d, 0);
+                var q = task.quota;
+                toast("Đã giao việc cho " + feat.aiPrimary + ": " + d.title + (q ? " — " + feat.name + " còn " + q.remaining + " lượt tuần này." : "."));
+                if (q && quotaCache && quotaCache[key]) { quotaCache[key].used = q.used; quotaCache[key].remaining = q.remaining; }
+                if (form.reset) form.reset();
+              }
               syncStory();
               if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
             })
