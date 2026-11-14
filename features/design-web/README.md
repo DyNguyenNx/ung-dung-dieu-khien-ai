@@ -8,3 +8,6 @@ Khi tách app thành nhiều file thật (bước Cloudflare), toàn bộ HTML/C
 - Form thêm khối "Brief thiết kế — hỏi 1 lần" (đối tượng, hành động chính, tone, chất liệu thật) + "3 núm thiết kế" (biến tấu 5, chuyển động 3, mật độ 4) + dòng chuẩn thiết kế áp dụng.
 - Luồng xử lý đổi 4 → 6 bước: Brief → Viết copy trước → Chọn hướng → Dựng bản → Kiểm tra audit → Anh duyệt & bàn giao.
 - Các trường mới lưu vào `d.web` trong `collect("designweb")` (audience, action, tone, materials, dials); JS hiện số núm nằm trong `initDesignDials()` (kế bên handler form giao việc).
+
+## Cập nhật 14/11/2026 — Yêu cầu 24b: gỡ 3 núm + tone + dòng chuẩn khỏi form
+- Skill chỉ nằm trong bộ nhớ Luna; form chỉ giữ thông tin dự án (đối tượng, hành động chính, chất liệu thật). 3 núm thành mặc định Luna tự áp dụng (biến tấu 5, chuyển động 3, mật độ 4); tone do Luna tự chọn theo brief. Luồng 6 bước giữ nguyên.
