@@ -221,6 +221,24 @@
         display:grid; place-items:center;
         border:2px solid var(--card);
       }
+      .icon-btn .badge[hidden], .rail-btn .tip-badge[hidden]{ display:none; }
+      .notif-wrap{ position:relative; flex:none; }
+      .notif-panel{
+        position:absolute; right:0; top:52px; width:340px; max-width:88vw;
+        background:var(--card); border:1px solid var(--line); border-radius:16px;
+        box-shadow:0 18px 40px rgba(15,23,42,.18); z-index:60; overflow:hidden;
+      }
+      .notif-head{ display:flex; justify-content:space-between; align-items:center; padding:13px 16px; border-bottom:1px solid var(--line); font-size:14.5px; }
+      .notif-count{ font-size:12px; color:var(--red); font-weight:700; }
+      .notif-list{ list-style:none; margin:0; padding:6px; max-height:320px; overflow:auto; }
+      .notif-empty{ padding:18px 12px; text-align:center; color:var(--muted); font-size:13.5px; }
+      .notif-item{ display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; background:none; border:0; padding:10px; border-radius:10px; cursor:pointer; font:inherit; color:var(--ink); }
+      .notif-item:hover{ background:var(--bg-soft, #f6f7fb); }
+      .notif-dot{ width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none; background:var(--amber); }
+      .notif-dot.error{ background:var(--red); }
+      .notif-txt{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+      .notif-txt b{ font-size:13.5px; }
+      .notif-txt span{ font-size:12.5px; color:var(--muted); word-break:break-word; }
       .btn-run{
         border:0; border-radius:999px;
         background:var(--navy); color:#fff;
@@ -1282,7 +1300,7 @@
         </button>
         <button class="rail-btn" type="button" data-go="accounts" data-admin-nav aria-label="Quản lý tài khoản">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span class="tip-badge" aria-hidden="true">3</span>
+          <span class="tip-badge" aria-hidden="true" hidden></span>
           <span class="tip">Quản lý tài khoản</span>
         </button>
         <div class="spacer"></div>
@@ -1307,11 +1325,17 @@
             <span class="uc-id"><span class="uc-name" id="userChipName">—</span><span class="uc-role" id="userChipRole">Admin</span></span>
             <button class="btn-ghost btn-sm" type="button" id="logoutBtn">Đăng xuất</button>
           </div>
-          <span class="live-chip"><span class="live-dot"></span>3 AI đang chạy</span>
-          <button class="icon-btn" type="button" data-toast aria-label="Thông báo, 3 mục chưa đọc">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-            <span class="badge">3</span>
-          </button>
+          <span class="live-chip" id="liveChip"><span class="live-dot"></span>Đang tải số liệu…</span>
+          <div class="notif-wrap">
+            <button class="icon-btn" type="button" id="notifBtn" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span class="badge" id="notifBadge" hidden></span>
+            </button>
+            <div class="notif-panel" id="notifPanel" hidden role="menu" aria-label="Thông báo">
+              <div class="notif-head"><b>Thông báo</b><span class="notif-count" id="notifCount"></span></div>
+              <ul class="notif-list" id="notifList"></ul>
+            </div>
+          </div>
           <button class="btn-run" type="button" data-toast>
             <svg class="ic sm" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 4.5v15l13-7.5z"/></svg>
             Chạy tác vụ
@@ -1432,7 +1456,7 @@
               <h2>
                 <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
                 Tài khoản chờ duyệt
-                <span class="count-chip" id="pendingCount">3 tài khoản</span>
+                <span class="count-chip" id="pendingCount" style="display:none">0 tài khoản</span>
               </h2>
               <p class="hint">Nhân viên tự đăng ký mới — duyệt xong họ mới đăng nhập dùng ứng dụng được. Mục này chỉ Admin thấy.</p>
               <ul class="pending-list" id="pendingList"></ul>
@@ -4070,6 +4094,7 @@
             });
             rebuildStorySelect();
             applyFilter(searchInput.value);
+            refreshNotifs();
           }).catch(function (e) { showToast("Không tải được nhiệm vụ: " + e.message); });
         }
         function rebuildStorySelect() {
@@ -4183,15 +4208,94 @@
               if (!d.recent || !d.recent.length) feed.innerHTML = '<li class="plan-empty">Chưa có hoạt động nào.</li>';
             }
             if (typeof d.pendingCount === "number") {
-              var badge = document.querySelector('[data-nav="accounts"] .tip-badge');
-              if (badge) badge.textContent = d.pendingCount;
+              setBadge(document.querySelector('[data-go="accounts"] .tip-badge'), d.pendingCount);
             }
+            var liveChip = document.getElementById("liveChip");
+            if (liveChip) liveChip.innerHTML = '<span class="live-dot"></span>' + (d.running > 0 ? d.running + " AI đang chạy" : "Không có AI đang chạy");
+            AppState.recentFeed = d.recent || [];
+            refreshNotifs();
             updateDashStats();
             var cur = screenData(currentScreen);
             if (cur) { dockStats.innerHTML = cur.stats; dockDetail.innerHTML = cur.detail; }
             applyFilter(searchInput.value);
           }).catch(function () {});
         }
+
+        /* ---------- Thong bao (chuong): so lieu that tu API, 0 thi an badge ---------- */
+        function setBadge(el, n) {
+          if (!el) return;
+          if (n > 0) { el.hidden = false; el.textContent = n > 99 ? "99+" : String(n); }
+          else { el.hidden = true; el.textContent = ""; }
+        }
+        function notifItems() {
+          var items = [];
+          (AppState.pendingUsers || []).forEach(function (u) {
+            items.push({ kind: "pending", title: "Tài khoản mới chờ duyệt", meta: u.name + " · " + u.email, go: "accounts" });
+          });
+          (AppState.tasks || []).filter(function (t) { return t.status === "error"; }).forEach(function (t) {
+            items.push({ kind: "error", title: "Nhiệm vụ gặp lỗi", meta: t.title + " · " + (FEATURE_NAMES[t.feature] || t.feature), go: t.feature });
+          });
+          return items;
+        }
+        function refreshNotifs() {
+          var items = notifItems();
+          setBadge(document.getElementById("notifBadge"), items.length);
+          setBadge(document.querySelector('[data-go="accounts"] .tip-badge'), (AppState.pendingUsers || []).length);
+          var btn = document.getElementById("notifBtn");
+          if (btn) btn.setAttribute("aria-label", items.length ? "Thông báo, " + items.length + " mục cần chú ý" : "Thông báo");
+          renderNotifPanel();
+        }
+        function renderNotifPanel() {
+          var list = document.getElementById("notifList");
+          var count = document.getElementById("notifCount");
+          if (!list) return;
+          var items = notifItems();
+          if (count) count.textContent = items.length ? items.length + " mục cần chú ý" : "";
+          list.innerHTML = "";
+          if (!items.length) {
+            list.innerHTML = '<li class="notif-empty">Chưa có thông báo nào.</li>';
+            return;
+          }
+          items.forEach(function (it) {
+            var li = document.createElement("li");
+            li.innerHTML = '<button type="button" class="notif-item" data-go-notif="' + it.go + '">' +
+              '<span class="notif-dot ' + it.kind + '"></span>' +
+              '<span class="notif-txt"><b>' + escHtml(it.title) + '</b><span>' + escHtml(it.meta) + '</span></span></button>';
+            list.appendChild(li);
+          });
+        }
+        /* Nut chuong: mo/dong bang thong bao (gan trong IIFE vi renderNotifPanel o day) */
+        (function bindNotifBell() {
+          var notifBtn = document.getElementById("notifBtn");
+          var notifPanel = document.getElementById("notifPanel");
+          if (!notifBtn || !notifPanel) return;
+          notifBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var open = notifPanel.hidden;
+            if (open) renderNotifPanel();
+            notifPanel.hidden = !open;
+            notifBtn.setAttribute("aria-expanded", String(open));
+          });
+          notifPanel.addEventListener("click", function (e) {
+            var b = e.target.closest("[data-go-notif]");
+            if (!b) return;
+            notifPanel.hidden = true;
+            notifBtn.setAttribute("aria-expanded", "false");
+            go(b.getAttribute("data-go-notif"));
+          });
+          document.addEventListener("click", function (e) {
+            if (!notifPanel.hidden && !e.target.closest(".notif-wrap")) {
+              notifPanel.hidden = true;
+              notifBtn.setAttribute("aria-expanded", "false");
+            }
+          });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && !notifPanel.hidden) {
+              notifPanel.hidden = true;
+              notifBtn.setAttribute("aria-expanded", "false");
+            }
+          });
+        })();
 
         /* ---------- Quan ly tai khoan (Admin) ---------- */
         var pendingList = document.getElementById("pendingList");
@@ -4225,8 +4329,9 @@
             SCREENS.accounts.stats = staff.length + " thành viên — " + pending.length + " tài khoản đang chờ duyệt";
             renderPending(pending);
             renderMembers(staff);
-            var badge = document.querySelector('[data-nav="accounts"] .tip-badge');
-            if (badge) badge.textContent = pending.length;
+            AppState.pendingUsers = pending;
+            setBadge(document.querySelector('[data-go="accounts"] .tip-badge'), pending.length);
+            refreshNotifs();
           }).catch(function (e) { showToast("Không tải được danh sách tài khoản: " + e.message); });
         }
         function renderPending(pending) {
@@ -4321,6 +4426,7 @@
           refreshQuota: refreshQuota, loadTasks: loadTasks, refreshDashboard: refreshDashboard,
           loadAdminUsers: loadAdminUsers, approveUser: approveUser, rejectUser: rejectUser,
           lockUser: lockUser, unlockUser: unlockUser, deleteUser: deleteUser,
+          refreshNotifs: refreshNotifs,
           afterTaskChange: afterTaskChange
         };
       })();
