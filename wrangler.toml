@@ -1,0 +1,13 @@
+# Cấu hình local dev cho Cloudflare Pages Functions + D1.
+# Cloudflare Pages khi nối GitHub KHÔNG dùng file này để build/deploy —
+# deploy thật cấu hình D1/binding trên dashboard (xem README.md).
+# File này chỉ để chạy thử ở máy: npx wrangler pages dev --d1=DB
+name = "ung-dung-dieu-khien-ai"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "app-dieu-khien-ai-db"
+# Điền database_id sau khi tạo D1 trên dashboard (cần cho lệnh remote).
+# Chạy local (--local / pages dev --d1) không cần database_id.
+database_id = "REPLACE-ME-AFTER-CREATING-D1"

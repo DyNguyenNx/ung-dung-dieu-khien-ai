@@ -4,7 +4,12 @@ App điều khiển các AI qua API để làm việc: chăm sóc web, chăm só
 
 ## Chạy thử ngay
 
-Mở `index.html` bằng trình duyệt là dùng được. Bản xem trước (demo): bấm "Đăng nhập demo (tài khoản Admin)".
+Mở `index.html` bằng trình duyệt là dùng được (bản này gọi API thật — cần chạy
+qua Cloudflare Pages hoặc `npx wrangler pages dev` để có API).
+
+Đăng ký tài khoản đầu tiên (anh Dy, nguyenduy.nasani@gmail.com) sẽ tự thành
+**Admin** và được kích hoạt ngay. Các tài khoản đăng ký sau mặc định **chờ duyệt** —
+Admin vào mục Quản lý tài khoản để duyệt mới dùng được.
 
 ## Cấu trúc folder (sửa phần nào chỉ vào đúng folder đó)
 
@@ -29,13 +34,40 @@ Mở `index.html` bằng trình duyệt là dùng được. Bản xem trước (
 - Tài khoản mới phải được admin duyệt tay mới dùng được.
 - API key giấu ở phía server khi lên Cloudflare, không để trong trình duyệt.
 
-## Triển khai lên Cloudflare (bước tiếp theo)
+## Backend v1 — Cloudflare Pages Functions + D1 (đã làm xong 14/11/2026)
 
-- Cloudflare Pages (giao diện) + Workers (đăng nhập) + D1 (tài khoản, nhiệm vụ).
-- Nối repo GitHub với Cloudflare Pages: mỗi lần đẩy code mới lên repo thì Cloudflare tự build lại và đăng bản mới, không cần đăng tay.
-- Khi tách app thành nhiều file thật, code từng tính năng chuyển vào đúng folder `features/...` của nó; `config/config.json` giữ nguyên làm nguồn cấu hình.
+- `schema.sql` — 4 bảng: `users`, `sessions`, `user_limits`, `tasks`.
+- `functions/api/` — Auth (`auth/register`, `auth/login`, `auth/logout`, `auth/me`),
+  nhiệm vụ (`tasks`, `tasks/:id`), lượt dùng (`quota`), Dashboard (`dashboard`),
+  quản lý tài khoản (`admin/users`, `admin/users/:id`). Xem chi tiết trong từng file.
+- Mật khẩu hash PBKDF2-SHA256 (100.000 vòng, salt 16 byte), lưu dạng `salt:hash`.
+  Session bằng cookie HttpOnly + SameSite=Lax, hạn 30 ngày; server chỉ lưu SHA-256
+  của token.
+- Mặc định mỗi tài khoản được **1 lượt/tuần cho mỗi tính năng** (tính theo tuần ISO,
+  giờ Việt Nam); Admin setup riêng từng người qua bảng `user_limits`. Admin không bị
+  giới hạn lượt. Hết lượt: API trả 429 + thông báo rõ ràng.
+- Nhiệm vụ v1 vẫn chạy **mô phỏng tiến độ** như bản demo (chưa gọi API AI thật);
+  backend chỉ lo đăng nhập + dữ liệu + giới hạn lượt. API key KHÔNG nằm trong code.
+
+### Chạy thử ở máy (local dev)
+
+```bash
+npx wrangler d1 execute app-dieu-khien-ai-db --local --file=schema.sql
+npx wrangler pages dev --port 8788
+```
+
+### Lên Cloudflare thật (làm 1 lần, trên dashboard)
+
+1. Workers & Pages → D1 → tạo database tên `app-dieu-khien-ai-db` → chạy file
+   `schema.sql` trong mục SQL của database đó.
+2. Pages project `ung-dung-dieu-khien-ai` → Settings → Functions → D1 database
+   bindings → thêm binding tên `DB` trỏ tới database vừa tạo.
+3. Đẩy code lên nhánh main là tự deploy. Kiểm chứng: đăng ký tài khoản đầu tiên
+   (thành Admin) rồi đăng nhập, giao việc, kiểm tra lượt dùng.
 
 ## Lưu ý
 
-- Bản này lưu dữ liệu trong trình duyệt (phiên làm việc). Đăng nhập thật đa người dùng + đồng bộ giữa các máy cần backend Cloudflare (Workers + D1) ở bước tiếp theo.
+- Dữ liệu (tài khoản, nhiệm vụ) lưu trong D1, đồng bộ giữa các máy. Lịch & Kế hoạch
+  và danh sách dự án trong form giao việc vẫn chỉ lưu trong phiên trình duyệt (chưa
+  có bảng riêng ở backend v1).
 - API key thật KHÔNG nằm trong repo này. Key đã lưu trong app cũ (Gemini, JSON2Video, fal.ai) — khi lên Cloudflare sẽ chuyển vào biến môi trường của Workers.

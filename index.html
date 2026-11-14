@@ -177,6 +177,11 @@
       }
       .view-toggle button.active{ background:var(--navy); color:#fff; box-shadow:0 4px 12px rgba(52,42,110,.28); }
       .view-toggle button small{ display:block; font-size:10.5px; font-weight:600; opacity:.82; }
+      .user-chip{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 12px; box-shadow:var(--shadow-sm); }
+      .user-chip .uc-avatar{ width:30px; height:30px; border-radius:50%; background:var(--navy); color:#fff; display:grid; place-items:center; font-size:12px; font-weight:800; flex:none; }
+      .user-chip .uc-id{ display:flex; flex-direction:column; line-height:1.25; min-width:0; }
+      .user-chip .uc-name{ font-weight:700; color:var(--ink); font-size:13.5px; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .user-chip .uc-role{ font-size:11px; color:var(--muted); font-weight:600; }
       .view-banner{
         display:flex; gap:11px; align-items:flex-start;
         background:#fff; border:1.5px solid #d9d0fb; border-radius:16px;
@@ -1175,11 +1180,6 @@
             </div>
             <button class="btn-run" type="submit">Đăng nhập</button>
           </form>
-          <div class="auth-divider">hoặc</div>
-          <button class="btn-demo" type="button" id="demoLoginBtn">
-            <svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="none"/></svg>
-            Đăng nhập demo (tài khoản Admin)
-          </button>
           <p class="auth-alt">Chưa có tài khoản? <button class="link-btn" type="button" data-auth-go="register">Đăng ký ngay</button></p>
         </div>
 
@@ -1295,9 +1295,10 @@
             <svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             <input id="searchInput" type="search" placeholder="Tìm nhiệm vụ, bài viết, kênh…" aria-label="Tìm kiếm trong màn hình hiện tại" />
           </label>
-          <div class="view-toggle" role="group" aria-label="Chế độ xem demo — Admin hoặc Nhân viên">
-            <button type="button" id="viewAdminBtn" class="active" aria-pressed="true">Admin<small>Thấy tất cả</small></button>
-            <button type="button" id="viewStaffBtn" aria-pressed="false">Nhân viên<small>Trí Nghĩa</small></button>
+          <div class="user-chip" id="userChip" hidden>
+            <span class="uc-avatar" id="userChipAvatar">Dy</span>
+            <span class="uc-id"><span class="uc-name" id="userChipName">—</span><span class="uc-role" id="userChipRole">Admin</span></span>
+            <button class="btn-ghost btn-sm" type="button" id="logoutBtn">Đăng xuất</button>
           </div>
           <span class="live-chip"><span class="live-dot"></span>3 AI đang chạy</span>
           <button class="icon-btn" type="button" data-toast aria-label="Thông báo, 3 mục chưa đọc">
@@ -1316,7 +1317,7 @@
           <!-- Banner giải thích quy tắc phân quyền theo chế độ xem -->
           <div class="view-banner" id="viewBanner" role="status">
             <span class="vb-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <div id="viewBannerText"><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b> Bấm “Nhân viên” ở thanh trên cùng để xem giao diện của Trí Nghĩa.</div>
+            <div id="viewBannerText"><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b></div>
           </div>
 
           <!-- ======== MÀN HÌNH: DASHBOARD ======== -->
@@ -1412,33 +1413,7 @@
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Hoạt động gần đây</h2>
                 <p class="hint">Những việc đội AI vừa làm xong hoặc vừa báo về.</p>
-                <ul class="feed">
-                  <li data-filter>
-                    <span class="f-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
-                    <span class="f-txt"><b>Gemini</b> viết xong bài “Panel XPS là gì?” — web Bình Minh Panel</span>
-                    <span class="f-time">10:12</span>
-                  </li>
-                  <li data-filter>
-                    <span class="f-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="m10 9.2 5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg></span>
-                    <span class="f-txt"><b>Wan 3.0</b> dựng xong video “Ngôi nhà cuối hẻm” — Radio Đêm Ma</span>
-                    <span class="f-time">09:47</span>
-                  </li>
-                  <li data-filter>
-                    <span class="f-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
-                    <span class="f-txt"><b>Meta Graph API</b> đã đăng bài lên Page BlueMax đúng lịch</span>
-                    <span class="f-time">09:15</span>
-                  </li>
-                  <li data-filter>
-                    <span class="f-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="m16 8-14 14"/><path d="M17.5 15H9"/></svg></span>
-                    <span class="f-txt"><b>Vbee</b> lồng tiếng xong Chương 7 — sẵn sàng đăng</span>
-                    <span class="f-time">08:52</span>
-                  </li>
-                  <li data-filter>
-                    <span class="f-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-                    <span class="f-txt"><b>GSC API</b> báo 3 trang rớt hạng cần tối ưu lại</span>
-                    <span class="f-time">08:30</span>
-                  </li>
-                </ul>
+                <ul class="feed" id="dashFeed"></ul>
               </div>
             </div>
           </section>
@@ -1453,41 +1428,7 @@
                 <span class="count-chip" id="pendingCount">3 tài khoản</span>
               </h2>
               <p class="hint">Nhân viên tự đăng ký mới — duyệt xong họ mới đăng nhập dùng ứng dụng được. Mục này chỉ Admin thấy.</p>
-              <ul class="pending-list" id="pendingList">
-                <li class="pending-item" data-filter>
-                  <span class="p-avatar" aria-hidden="true">TT</span>
-                  <div class="p-info">
-                    <div class="p-name">Trần Minh Tuấn</div>
-                    <div class="p-meta">tuan.tran@gmail.com · Đăng ký 14/11/2026</div>
-                  </div>
-                  <div class="p-actions">
-                    <button class="btn-approve" type="button" data-approve><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Duyệt</button>
-                    <button class="btn-reject" type="button" data-reject>Từ chối</button>
-                  </div>
-                </li>
-                <li class="pending-item" data-filter>
-                  <span class="p-avatar" aria-hidden="true">NH</span>
-                  <div class="p-info">
-                    <div class="p-name">Nguyễn Thu Hằng</div>
-                    <div class="p-meta">hang.nguyen@gmail.com · Đăng ký 13/11/2026</div>
-                  </div>
-                  <div class="p-actions">
-                    <button class="btn-approve" type="button" data-approve><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Duyệt</button>
-                    <button class="btn-reject" type="button" data-reject>Từ chối</button>
-                  </div>
-                </li>
-                <li class="pending-item" data-filter>
-                  <span class="p-avatar" aria-hidden="true">LD</span>
-                  <div class="p-info">
-                    <div class="p-name">Lê Văn Đức</div>
-                    <div class="p-meta">duc.le@gmail.com · Đăng ký 12/11/2026</div>
-                  </div>
-                  <div class="p-actions">
-                    <button class="btn-approve" type="button" data-approve><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Duyệt</button>
-                    <button class="btn-reject" type="button" data-reject>Từ chối</button>
-                  </div>
-                </li>
-              </ul>
+              <ul class="pending-list" id="pendingList"></ul>
               <p class="pending-empty" id="pendingEmpty" hidden>Không còn tài khoản nào chờ duyệt.</p>
             </div>
 
@@ -1496,39 +1437,6 @@
               <p class="hint">Danh sách nhân viên của ứng dụng (không gồm tài khoản Admin). Mặc định mỗi tài khoản được dùng miễn phí 1 lượt/tuần cho mỗi tính năng; muốn dùng nhiều hơn thì phải mua thêm lượt — Admin setup tăng lượt riêng cho từng người theo số tiền họ đã nạp, bấm icon Setup ở từng thành viên để chỉnh. Khoá tài khoản thì nhân viên không đăng nhập được nữa; xoá là gỡ hẳn khỏi app.</p>
               <div class="member-table" id="memberTable">
                 <div class="member-head" aria-hidden="true"><span>Thành viên</span><span>Vai trò &amp; trạng thái</span><span>Đã nạp</span><span>Lượt dùng</span><span>Ngày tham gia</span><span>Thao tác</span></div>
-                <div class="member-row" data-filter data-member-id="tri-nghia">
-                  <div class="m-cell m-who"><span class="p-avatar" aria-hidden="true">TN</span><span class="m-id"><span class="m-name" title="Trí Nghĩa">Trí Nghĩa</span><span class="m-email" title="tri.nghia@congty.vn">tri.nghia@congty.vn</span></span></div>
-                  <div class="m-cell m-rolecell"><span class="m-label">Vai trò &amp; trạng thái</span><span class="m-role">Nhân viên</span><span class="tag done" data-member-status>Đang hoạt động</span></div>
-                  <div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">1.000.000đ</span></div>
-                  <div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain><span class="m-used">Design Web đã dùng <b>1/1</b></span><span class="m-sep">·</span><span class="m-remain out">Còn 0 lượt</span><small>Web 0/1 · Page 0/1 · Kênh 0/1 · Truyện 0/1 · Ảnh 0/1</small></span></div>
-                  <div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">15/10/2026</span></div>
-                  <div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-lock" type="button" data-member-lock title="Khoá tài khoản" aria-label="Khoá tài khoản"><svg class="ic sm ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg class="ic sm ic-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button><button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button></div>
-                </div>
-                <div class="member-row" data-filter data-member-id="thu-hang">
-                  <div class="m-cell m-who"><span class="p-avatar" aria-hidden="true">NH</span><span class="m-id"><span class="m-name" title="Nguyễn Thu Hằng">Nguyễn Thu Hằng</span><span class="m-email" title="hang.nguyen@gmail.com">hang.nguyen@gmail.com</span></span></div>
-                  <div class="m-cell m-rolecell"><span class="m-label">Vai trò &amp; trạng thái</span><span class="m-role">Nhân viên</span><span class="tag done" data-member-status>Đang hoạt động</span></div>
-                  <div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">500.000đ</span></div>
-                  <div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain><span class="m-used">Design Web đã dùng <b>0/1</b></span><span class="m-sep">·</span><span class="m-remain">Còn 1 lượt</span><small>Web 1/2 · Page 0/2 · Kênh 0/1 · Truyện 0/1 · Ảnh 1/2</small></span></div>
-                  <div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">28/10/2026</span></div>
-                  <div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-lock" type="button" data-member-lock title="Khoá tài khoản" aria-label="Khoá tài khoản"><svg class="ic sm ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg class="ic sm ic-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button><button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button></div>
-                </div>
-                <div class="member-row" data-filter data-member-id="minh-tuan">
-                  <div class="m-cell m-who"><span class="p-avatar" aria-hidden="true">TT</span><span class="m-id"><span class="m-name" title="Trần Minh Tuấn">Trần Minh Tuấn</span><span class="m-email" title="tuan.tran@gmail.com">tuan.tran@gmail.com</span></span></div>
-                  <div class="m-cell m-rolecell"><span class="m-label">Vai trò &amp; trạng thái</span><span class="m-role">Nhân viên</span><span class="tag wait" data-member-status>Chờ duyệt</span></div>
-                  <div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">200.000đ</span></div>
-                  <div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain><span class="m-used">Design Web đã dùng <b>0/1</b></span><span class="m-sep">·</span><span class="m-remain">Còn 1 lượt</span><small>Web 0/1 · Page 0/1 · Kênh 0/1 · Truyện 0/1 · Ảnh 0/1</small></span></div>
-                  <div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">14/11/2026</span></div>
-                  <div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-lock" type="button" data-member-lock title="Khoá tài khoản" aria-label="Khoá tài khoản"><svg class="ic sm ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg class="ic sm ic-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button><button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button></div>
-                </div>
-                <div class="member-row" data-filter data-member-id="van-duc">
-                  <div class="m-cell m-who"><span class="p-avatar" aria-hidden="true">LD</span><span class="m-id"><span class="m-name" title="Lê Văn Đức">Lê Văn Đức</span><span class="m-email" title="duc.le@gmail.com">duc.le@gmail.com</span></span></div>
-                  <div class="m-cell m-rolecell"><span class="m-label">Vai trò &amp; trạng thái</span><span class="m-role">Nhân viên</span><span class="tag err" data-member-status>Bị khoá</span></div>
-                  <div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">300.000đ</span></div>
-                  <div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain><span class="m-used">Design Web đã dùng <b>0/1</b></span><span class="m-sep">·</span><span class="m-remain">Còn 1 lượt</span><small>Web 1/2 · Page 0/1 · Kênh 0/1 · Truyện 0/1 · Ảnh 0/1</small></span></div>
-                  <div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">02/11/2026</span></div>
-                  <div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-lock unlock" type="button" data-member-lock title="Mở khoá tài khoản" aria-label="Mở khoá tài khoản"><svg class="ic sm ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg class="ic sm ic-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button><button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button></div>
-                </div>
-              </div>
               <p class="member-empty" id="memberEmpty" hidden>Chưa có thành viên nào.</p>
               <p class="no-result">Không có thành viên nào khớp với từ khóa đang tìm.</p>
             </div>
@@ -1537,7 +1445,7 @@
               <div class="setup-head">
                 <span class="p-avatar" id="setupAvatar" aria-hidden="true">TN</span>
                 <div class="s-who">
-                  <div class="s-name" id="setupTitle">Setup lượt dùng — Trí Nghĩa</div>
+                  <div class="s-name" id="setupTitle">Setup lượt dùng — Thành viên</div>
                   <div class="s-mail" id="setupEmail">tri.nghia@congty.vn</div>
                 </div>
                 <button class="btn-ghost btn-sm" type="button" id="setupClose">Đóng</button>
@@ -1546,6 +1454,14 @@
               <p class="deposit-note"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Thành viên này đã nạp <b id="setupDeposit">1.000.000đ</b> — Admin căn cứ số tiền đã nạp để tăng thêm lượt dùng cho từng tính năng bên dưới, trên mức mặc định 1 lượt/tuần miễn phí. Mỗi người một mức khác nhau, không áp dụng chung cho mọi người.</span></p>
               <form id="setupForm">
                 <ul class="limit-list">
+                <li class="limit-row">
+                  <div class="limit-name">Đã nạp</div>
+                  <div class="limit-input">
+                    <input id="setup-deposit" name="setup-deposit" type="number" min="0" step="1000" value="0" aria-label="Số tiền thành viên đã nạp" />
+                    <span class="limit-unit">đ</span>
+                  </div>
+                  <p class="limit-sub">Tổng số tiền thành viên đã nạp — Admin căn cứ vào đây để setup lượt.</p>
+                </li>
                 <li class="limit-row">
                   <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Chăm sóc web</div>
                   <div class="limit-input">
@@ -1695,39 +1611,7 @@
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ chăm sóc web</h2>
               <p class="hint">3 website đang được chăm sóc: Bình Minh Panel, Khánh Nghi Audio, BlueMax.</p>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Viết bài SEO “Panel XPS là gì?”</div>
-                    <div class="t-meta">Web Bình Minh Panel · Gemini · Từ khóa: panel xps</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang chạy · 68%</span>
-                    <div class="bar"><i style="width:68%"></i></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Tối ưu mô tả 12 trang sản phẩm</div>
-                    <div class="t-meta">Web Khánh Nghi Audio · Gemini · Chờ anh duyệt bản nháp</div>
-                  </div>
-                  <div class="t-side"><span class="tag wait">Chờ duyệt</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Kiểm tra tốc độ tải trang chủ</div>
-                    <div class="t-meta">Web bluemax.vn · GSC API · Đạt 92/100 điểm</div>
-                  </div>
-                  <div class="t-side"><span class="tag done">Hoàn thành</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Sửa 3 trang bị rớt hạng</div>
-                    <div class="t-meta">Web Săm Lốp Minh Tú · GSC API báo rớt khỏi top 10</div>
-                  </div>
-                  <div class="t-side"><span class="tag err">Cần xử lý</span></div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="web"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -1894,39 +1778,7 @@
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ chăm sóc page</h2>
               <p class="hint">4 fanpage đang chăm sóc: BlueMax, Khánh Nghi Audio, Bình Minh Panel, Radio Đêm Ma.</p>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Bài kiến thức E10 cho Page BlueMax</div>
-                    <div class="t-meta">Page BlueMax · Gemini · Kèm hashtag và thông tin liên hệ chuẩn</div>
-                  </div>
-                  <div class="t-side"><span class="tag sched">Đã lên lịch · 20:00 hôm nay</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Trả lời 14 bình luận chưa đọc</div>
-                    <div class="t-meta">Page Khánh Nghi Audio · Meta Graph API quét được 14 bình luận mới</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang chạy · 40%</span>
-                    <div class="bar"><i style="width:40%"></i></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Bài giới thiệu sản phẩm mới</div>
-                    <div class="t-meta">Page BlueMax · Bản nháp đã xong, chờ anh duyệt ảnh</div>
-                  </div>
-                  <div class="t-side"><span class="tag wait">Chờ duyệt</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Báo cáo tương tác tuần</div>
-                    <div class="t-meta">Cả 4 page · Lượt tiếp cận tăng 18% so với tuần trước</div>
-                  </div>
-                  <div class="t-side"><span class="tag done">Hoàn thành</span></div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="page"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -2093,39 +1945,7 @@
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ xây dựng kênh</h2>
               <p class="hint">3 kênh đang xây: Radio Đêm Ma (YouTube), TikTok BlueMax, Fanpage.</p>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Truyện ma “Ngôi nhà cuối hẻm” — tập 12</div>
-                    <div class="t-meta">YouTube Radio Đêm Ma · Wan 3.0 đang tạo cảnh 8/18</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang dựng · 45%</span>
-                    <div class="bar"><i style="width:45%"></i></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Clip ngắn: Mẹo dùng phụ gia E10</div>
-                    <div class="t-meta">TikTok BlueMax · Kịch bản xong, chờ anh duyệt</div>
-                  </div>
-                  <div class="t-side"><span class="tag wait">Chờ duyệt</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Video giới thiệu xưởng chi tiết</div>
-                    <div class="t-meta">Fanpage · fal.ai Kling · Đã đăng hôm qua</div>
-                  </div>
-                  <div class="t-side"><span class="tag done">Hoàn thành</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Dựng lại thumbnail 5 video cũ</div>
-                    <div class="t-meta">YouTube Radio Đêm Ma · Ảnh cũ mờ, cần làm lại đồng bộ</div>
-                  </div>
-                  <div class="t-side"><span class="tag err">Cần xử lý</span></div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="kenh"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -2252,10 +2072,7 @@
                   <div class="field full">
                     <label for="truyen-chon">Chọn truyện</label>
                     <select id="truyen-chon" name="chonTruyen" data-story-select>
-                      <option value="lang-chai" data-name="Truyện ma: Làng chài" data-last="8" data-last-title="Tiếng gọi ngoài khơi" selected>Truyện ma: Làng chài — đã có 8 chương</option>
-                      <option value="phong-kin" data-name="Trinh thám: Vụ án phòng kín" data-last="5" data-last-title="Chiếc chìa khóa biến mất">Trinh thám: Vụ án phòng kín — đã có 5 chương</option>
-                      <option value="dai-ky" data-name="Truyện dài kỳ" data-last="7" data-last-title="Nữ lớp trưởng">Truyện dài kỳ — đã có 7 chương</option>
-                      <option value="radio-dem-ma" data-name="Truyện ma — Radio Đêm Ma" data-last="11" data-last-title="Ngôi nhà cuối hẻm — tập 11">Truyện ma — Radio Đêm Ma — đã có 11 chương</option>
+                      <option value="" selected>Chưa có truyện nào — chọn “Truyện mới” để tạo</option>
                     </select>
                   </div>
                   <p class="story-summary" data-story-summary>Chương mới nhất: <b>Chương 8 — “Tiếng gọi ngoài khơi”</b> · Chương tiếp theo sẽ được gợi ý là Chương 9.</p>
@@ -2328,42 +2145,7 @@
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ viết truyện</h2>
               <p class="hint" data-story-tasks-hint>Đang hiển thị nhiệm vụ của: Truyện ma: Làng chài — Chương 9 đang làm.</p>
               <div class="sync-banner" role="status"><span class="sync-dot"></span><span><strong>Đang làm:</strong> <span data-story-sync-name>Truyện ma: Làng chài</span> · <span data-story-sync-chapter>Chương 9 đang làm</span></span></div>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name" data-story-first-name>Viết Chương 9 — Truyện ma: Làng chài</div>
-                    <div class="t-meta" data-story-first-meta>Truyện ma: Làng chài · Gemini · Viết tiếp từ chương mới nhất</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang viết · 55%</span>
-                    <div class="bar"><i style="width:55%"></i></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Lồng tiếng Chương 7 thành audio</div>
-                    <div class="t-meta">Truyện dài kỳ · Vbee · File audio dài 24 phút</div>
-                  </div>
-                  <div class="t-side"><span class="tag done">Hoàn thành</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Dàn ý phần 2 — mở thêm nhân vật mới</div>
-                    <div class="t-meta">Truyện dài kỳ · Gemini · Chờ anh duyệt hướng đi</div>
-                  </div>
-                  <div class="t-side"><span class="tag wait">Chờ duyệt</span></div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Rà soát 3 chương gần nhất</div>
-                    <div class="t-meta">Truyện ma Radio Đêm Ma · Kiểm tra tên nhân vật và mạch truyện</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang chạy · 20%</span>
-                    <div class="bar"><i style="width:20%"></i></div>
-                  </div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="truyen"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -2373,10 +2155,7 @@
               <div class="field plan-pick">
                 <label for="plan-sel-truyen">Dự án</label>
                 <select id="plan-sel-truyen" data-plan-select>
-                  <option selected>Truyện ma: Làng chài</option>
-                  <option>Trinh thám: Vụ án phòng kín</option>
-                  <option>Truyện dài kỳ</option>
-                  <option>Truyện ma — Radio Đêm Ma</option>
+                  <option selected>Truyện mới (chưa đặt tên)</option>
                 </select>
               </div>
               <ul class="plan-list" data-plan-list></ul>
@@ -2568,49 +2347,7 @@
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ thiết kế hình ảnh</h2>
               <p class="hint">Các yêu cầu thiết kế đang làm cho Radio Đêm Ma, BlueMax và Khánh Nghi Audio.</p>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Thumbnail tập 12 “Ngôi nhà cuối hẻm”</div>
-                    <div class="t-meta">Thumbnail Radio Đêm Ma · Leonardo · 1920×1080 · Phong cách hiện đại</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang tạo mẫu · 60%</span>
-                    <div class="bar"><i style="width:60%"></i></div>
-                    <div class="dl-row"><button class="btn-dl is-disabled" type="button" data-dl-locked aria-disabled="true"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải hình ảnh</button></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Banner khuyến mãi E10 tháng 11</div>
-                    <div class="t-meta">Banner BlueMax · Leonardo · Đã có 3 phương án, chờ anh chọn mẫu</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag wait">Chờ duyệt mẫu</span>
-                    <div class="dl-row"><button class="btn-dl is-disabled" type="button" data-dl-locked aria-disabled="true"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải hình ảnh</button></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Avatar mới cho kênh Radio Đêm Ma</div>
-                    <div class="t-meta">Avatar &amp; nhận diện Radio Đêm Ma · LightVisual · 1080×1080 · Bấm nút bên cạnh để tải ảnh về máy</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag done">Hoàn thành</span>
-                    <div class="dl-row"><button class="btn-dl" type="button" data-dl-demo-img><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải hình ảnh</button></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Ảnh sản phẩm bánh tỳ trên nền studio</div>
-                    <div class="t-meta">Ảnh sản phẩm Khánh Nghi Audio · Ảnh gốc hơi mờ, cần chụp lại hoặc xử lý nét hơn</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag err">Cần xử lý</span>
-                    <div class="dl-row"><button class="btn-dl is-disabled" type="button" data-dl-locked aria-disabled="true"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải hình ảnh</button></div>
-                  </div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="anh"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -2802,49 +2539,7 @@
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Nhiệm vụ Design Web</h2>
               <p class="hint">Các dự án thiết kế trang chủ đang làm cho ZA Project, Phúc Thịnh Home và các khách hàng khác. Nhiệm vụ đã hoàn thành có nút “Xem demo” để xem bản thiết kế ngay trong app và gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh.</p>
-              <ul class="tasks">
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Thiết kế trang chủ ZA Project</div>
-                    <div class="t-meta">ZA Project · Thư Ký Mỹ Linh · Đang dựng bản thiết kế theo mẫu Nasani</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag run">Đang thiết kế · 60%</span>
-                    <div class="bar"><i style="width:60%"></i></div>
-                    <div class="dl-row"><button class="btn-dl is-disabled" type="button" data-dl-locked aria-disabled="true"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải HTML</button></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Trang chủ Phúc Thịnh Home</div>
-                    <div class="t-meta">Phúc Thịnh Home · Thư Ký Mỹ Linh · File HTML hoàn chỉnh — bấm nút bên cạnh để tải về máy</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag done">Hoàn thành</span>
-                    <div class="dl-row"><button class="btn-view" type="button" data-preview="phucthinh"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Xem demo</button><a class="btn-dl" href="https://muse.ai/files/1317613414771178/1144326934763185/2vtc5p7t4ei6axubplmwxmf5/index.html" download="phuc-thinh-home.html"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải HTML</a></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Landing page Dư Dư Beauty Spa</div>
-                    <div class="t-meta">Dư Dư Beauty Spa · Thư Ký Mỹ Linh · Đã bàn giao file thiết kế hoàn chỉnh</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag done">Hoàn thành</span>
-                    <div class="dl-row"><button class="btn-view" type="button" data-preview="dudu"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Xem demo</button><button class="btn-dl" type="button" data-dl-demo-html><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải HTML</button></div>
-                  </div>
-                </li>
-                <li class="task" data-filter>
-                  <div>
-                    <div class="t-name">Trang chủ Thành Đạt — chốt lại tông màu</div>
-                    <div class="t-meta">Thành Đạt · Anh góp ý đổi tông navy sáng hơn trước khi dựng tiếp</div>
-                  </div>
-                  <div class="t-side">
-                    <span class="tag err">Cần xử lý</span>
-                    <div class="dl-row"><button class="btn-dl is-disabled" type="button" data-dl-locked aria-disabled="true"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Tải HTML</button></div>
-                  </div>
-                </li>
-              </ul>
+              <ul class="tasks" data-tasks="designweb"></ul>
               <p class="no-result">Không có nhiệm vụ nào khớp với từ khóa đang tìm.</p>
             </div>
             <div class="card plan-card">
@@ -3046,87 +2741,80 @@
       var SCREENS = {
         dashboard: {
           title: "Dashboard thống kê",
-          sub: "Hoạt động của đội AI hôm nay, thứ Bảy 14/11/2026",
+          sub: "Hoạt động của đội AI hôm nay",
           stats: '<div class="d-label">THỐNG KÊ HÔM NAY</div>' +
-                 '<div class="d-big">Hoàn thành 96/128 nhiệm vụ — đạt 75% kế hoạch ngày</div>' +
-                 '<div class="d-nums"><div><b>6</b><span>Đang chạy</span></div><div><b>23</b><span>Chờ duyệt</span></div><div><b>3</b><span>Lỗi cần xử lý</span></div></div>',
+                 '<div class="d-big">Chưa có nhiệm vụ nào hôm nay</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Đang chạy</span></div><div><b>0</b><span>Hôm nay</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
           detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
-                  '<div class="d-big">Viết bài SEO “Panel XPS là gì?” — web Bình Minh Panel</div>' +
-                  '<div class="d-sub">Gemini phụ trách · Đang ở bước 2/4 · 68%</div>' +
-                  '<div class="bar"><i style="width:68%"></i></div>'
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form từng tính năng để bắt đầu.</div>'
         },
         web: {
           title: "Chăm sóc web",
           sub: "SEO, nội dung và sức khỏe website",
           stats: '<div class="d-label">THỐNG KÊ WEB</div>' +
-                 '<div class="d-big">3 website đang chăm sóc — 18 bài đã đăng trong tháng này</div>' +
-                 '<div class="d-nums"><div><b>18</b><span>Bài đã đăng</span></div><div><b>7</b><span>Từ khóa top 10</span></div><div><b>3</b><span>Trang rớt hạng</span></div></div>',
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
           detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
-                  '<div class="d-big">Viết bài SEO “Panel XPS là gì?” — web Bình Minh Panel</div>' +
-                  '<div class="d-sub">Gemini phụ trách · Bước 2/4: viết &amp; tối ưu bài · 68%</div>' +
-                  '<div class="bar"><i style="width:68%"></i></div>'
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         page: {
           title: "Chăm sóc page",
           sub: "Nội dung và tương tác trên các fanpage",
           stats: '<div class="d-label">THỐNG KÊ PAGE</div>' +
-                 '<div class="d-big">4 fanpage đang chăm sóc — 26 bài đã lên lịch tuần này</div>' +
-                 '<div class="d-nums"><div><b>26</b><span>Bài đã lên lịch</span></div><div><b>14</b><span>Bình luận mới</span></div><div><b>+18%</b><span>Lượt tiếp cận</span></div></div>',
-          detail: '<div class="d-label"><span class="live-dot"></span>BÀI SẮP ĐĂNG GẦN NHẤT</div>' +
-                  '<div class="d-big">Bài kiến thức E10 — Page BlueMax</div>' +
-                  '<div class="d-sub">Meta Graph API đăng tự động lúc 20:00 hôm nay</div>' +
-                  '<div class="bar"><i style="width:100%"></i></div>'
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
+          detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         kenh: {
           title: "Xây dựng kênh",
           sub: "Sản xuất video cho YouTube, TikTok và Fanpage",
           stats: '<div class="d-label">THỐNG KÊ KÊNH</div>' +
-                 '<div class="d-big">3 kênh đang xây — 12 video đã đăng trong tháng này</div>' +
-                 '<div class="d-nums"><div><b>12</b><span>Video đã đăng</span></div><div><b>4</b><span>Đang sản xuất</span></div><div><b>1</b><span>Lỗi cần xử lý</span></div></div>',
-          detail: '<div class="d-label"><span class="live-dot"></span>VIDEO ĐANG DỰNG</div>' +
-                  '<div class="d-big">Truyện ma “Ngôi nhà cuối hẻm” — tập 12, Radio Đêm Ma</div>' +
-                  '<div class="d-sub">Wan 3.0 phụ trách · Bước 3/6: tạo cảnh video · 45%</div>' +
-                  '<div class="bar"><i style="width:45%"></i></div>'
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
+          detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         truyen: {
           title: "Viết truyện",
           sub: "Sáng tác và lồng tiếng truyện audio",
           stats: '<div class="d-label">THỐNG KÊ TRUYỆN</div>' +
-                 '<div class="d-big">2 truyện đang chạy — 14 chương hoàn thành trong tháng này</div>' +
-                 '<div class="d-nums"><div><b>14</b><span>Chương đã xong</span></div><div><b>9</b><span>File audio</span></div><div><b>1</b><span>Chờ duyệt dàn ý</span></div></div>',
-          detail: '<div class="d-label"><span class="live-dot"></span>CHƯƠNG ĐANG VIẾT</div>' +
-                  '<div class="d-big">Chương 8 — “Nữ lớp trưởng”, truyện dài kỳ</div>' +
-                  '<div class="d-sub">Gemini phụ trách · Bước 2/4: viết chương mới · 55%</div>' +
-                  '<div class="bar"><i style="width:55%"></i></div>'
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
+          detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         anh: {
           title: "Thiết kế hình ảnh",
           sub: "Avatar, banner, thumbnail, poster và ảnh sản phẩm",
           stats: '<div class="d-label">THỐNG KÊ THIẾT KẾ</div>' +
-                 '<div class="d-big">4 dự án thiết kế đang chạy — 21 ảnh đã giao trong tháng này</div>' +
-                 '<div class="d-nums"><div><b>21</b><span>Ảnh đã giao</span></div><div><b>3</b><span>Đang tạo mẫu</span></div><div><b>1</b><span>Chờ duyệt mẫu</span></div></div>',
-          detail: '<div class="d-label"><span class="live-dot"></span>ẢNH ĐANG TẠO</div>' +
-                  '<div class="d-big">Thumbnail tập 12 “Ngôi nhà cuối hẻm” — Radio Đêm Ma</div>' +
-                  '<div class="d-sub">Leonardo phụ trách · Bước 2/4: tạo ảnh mẫu · 60%</div>' +
-                  '<div class="bar"><i style="width:60%"></i></div>'
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
+          detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         designweb: {
           title: "Design Web",
           sub: "Thiết kế giao diện trang chủ website cho khách hàng",
           stats: '<div class="d-label">THỐNG KÊ DESIGN WEB</div>' +
-                 '<div class="d-big">4 dự án thiết kế đang chạy — 5 bản đã bàn giao trong tháng này</div>' +
-                 '<div class="d-nums"><div><b>5</b><span>Bản đã bàn giao</span></div><div><b>2</b><span>Đang thiết kế</span></div><div><b>1</b><span>Chờ duyệt</span></div></div>',
-          detail: '<div class="d-label"><span class="live-dot"></span>BẢN ĐANG THIẾT KẾ</div>' +
-                  '<div class="d-big">Trang chủ ZA Project — dựng bản thiết kế</div>' +
-                  '<div class="d-sub">Thư Ký Mỹ Linh phụ trách · Bước 2/4: dựng bản thiết kế · 60%</div>' +
-                  '<div class="bar"><i style="width:60%"></i></div>'
+                 '<div class="d-big">0/0 nhiệm vụ hoàn thành — đạt 0%</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Tổng nhiệm vụ</span></div><div><b>0</b><span>Đã xong</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>',
+          detail: '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>'
         },
         accounts: {
           title: "Quản lý tài khoản",
           sub: "Quản lý thành viên — chỉ Admin thấy mục này",
           stats: '<div class="d-label">THỐNG KÊ THÀNH VIÊN</div>' +
-                 '<div class="d-big">5 thành viên — 3 tài khoản đang chờ duyệt</div>' +
-                 '<div class="d-nums"><div><b>5</b><span>Thành viên</span></div><div><b>3</b><span>Chờ duyệt</span></div><div><b>1</b><span>Bị khoá</span></div></div>',
+                 '<div class="d-big">0 thành viên — 0 tài khoản đang chờ duyệt</div>' +
+                 '<div class="d-nums"><div><b>0</b><span>Thành viên</span></div><div><b>0</b><span>Chờ duyệt</span></div><div><b>0</b><span>Bị khoá</span></div></div>',
           detail: '<div class="d-label"><span class="live-dot"></span>GIỚI HẠN NỔI BẬT</div>' +
                   '<div class="d-big">Design Web: 1 lượt / tuần / nhân viên</div>' +
                   '<div class="d-sub">Vượt giới hạn thì phải mua thêm lượt trong app</div>' +
@@ -3152,20 +2840,36 @@
 
       var currentScreen = "dashboard";
       var VIEW_MODE = "admin";
-      function ownerName(owner) { return owner === "tri-nghia" ? "Trí Nghĩa" : (owner || "Nhân viên khác"); }
+      function initialsOf(name) {
+        var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return "?";
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+      }
+      function todayStr() {
+        var d = new Date();
+        var days = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
+        return days[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+      }
+      function ownerName(owner) {
+        if (owner === "me") return window.AppState && window.AppState.me ? window.AppState.me.name : "Bạn";
+        return owner || "Nhân viên khác";
+      }
       function ownerVisible(el) {
         if (VIEW_MODE !== "staff") return true;
         var o = el.getAttribute("data-owner");
         if (!o) return true;
-        return o === "tri-nghia";
+        var me = window.AppState ? window.AppState.me : null;
+        return !me || o === me.id;
       }
       function screenData(key) {
         var d = SCREENS[key];
         if (!d) return null;
         if (key === "dashboard" && VIEW_MODE === "staff") {
+          var nm = window.AppState && window.AppState.me ? window.AppState.me.name : "Nhân viên";
           return {
-            title: "Dashboard của Trí Nghĩa",
-            sub: "Chỉ phần việc của Trí Nghĩa hôm nay, thứ Bảy 14/11/2026",
+            title: "Dashboard của " + nm,
+            sub: "Chỉ phần việc của " + nm + " hôm nay, " + todayStr(),
             stats: STAFF_DOCK_STATS,
             detail: STAFF_DOCK_DETAIL
           };
@@ -3226,7 +2930,7 @@
       var toastBtns = document.querySelectorAll("[data-toast]");
       for (var m = 0; m < toastBtns.length; m++) {
         toastBtns[m].addEventListener("click", function () {
-          showToast("Thao tác này chạy ở phía máy chủ ở bản Cloudflare — API key không lưu trong trình duyệt.");
+          showToast("Chức năng này chưa có trong bản v1 — liên hệ Admin để được hỗ trợ.");
         });
       }
       var assignForms = document.querySelectorAll("form[data-assign]");
@@ -3239,54 +2943,7 @@
       searchInput.addEventListener("input", function () { applyFilter(this.value); });
 
       /* ===== Dashboard: bấm vào thẻ số liệu để xem chi tiết ===== */
-      var DASH_DETAILS = {
-        today: {
-          title: "Nhiệm vụ hôm nay — thứ Bảy 14/11/2026",
-          hint: "Những việc nổi bật trong 128 nhiệm vụ của ngày, trên cả 6 tính năng.",
-          items: [
-            '<li class="task"><div><div class="t-name">Viết bài SEO “Panel XPS là gì?”</div><div class="t-meta">Chăm sóc web · Bình Minh Panel · Gemini phụ trách</div></div><div class="t-side"><span class="tag run">Đang chạy · 68%</span><div class="bar"><i style="width:68%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Bài kiến thức E10 đăng khung giờ vàng</div><div class="t-meta">Chăm sóc page · Page BlueMax · Gemini soạn bài</div></div><div class="t-side"><span class="tag sched">Đã lên lịch · 20:00</span></div></li>',
-            '<li class="task"><div><div class="t-name">Truyện ma “Ngôi nhà cuối hẻm” — tập 12</div><div class="t-meta">Xây dựng kênh · YouTube Radio Đêm Ma · Wan 3.0 dựng cảnh</div></div><div class="t-side"><span class="tag run">Đang dựng · 45%</span><div class="bar"><i style="width:45%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Viết Chương 8 — “Nữ lớp trưởng”</div><div class="t-meta">Viết truyện · Truyện dài kỳ · Gemini phụ trách</div></div><div class="t-side"><span class="tag run">Đang viết · 55%</span><div class="bar"><i style="width:55%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Trả lời 14 bình luận chưa đọc</div><div class="t-meta">Chăm sóc page · Page Khánh Nghi Audio · Meta Graph API quét</div></div><div class="t-side"><span class="tag run">Đang chạy · 40%</span><div class="bar"><i style="width:40%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Báo cáo tương tác tuần của 4 page</div><div class="t-meta">Chăm sóc page · Lượt tiếp cận tăng 18% so với tuần trước</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="plan-empty">… và 122 nhiệm vụ định kỳ khác trong kế hoạch hôm nay: đăng bài tự động, quét dữ liệu thứ hạng, kiểm tra bình luận, sao lưu nội dung.</li>'
-          ]
-        },
-        running: {
-          title: "Đang chạy — 6 việc",
-          hint: "Các việc đội AI đang xử lý ngay lúc này, kèm tiến độ từng việc.",
-          items: [
-            '<li class="task"><div><div class="t-name">Viết bài SEO “Panel XPS là gì?”</div><div class="t-meta">Chăm sóc web · Gemini · Bước 2/4: viết &amp; tối ưu bài</div></div><div class="t-side"><span class="tag run">68%</span><div class="bar"><i style="width:68%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Truyện ma “Ngôi nhà cuối hẻm” — tập 12</div><div class="t-meta">Xây dựng kênh · Wan 3.0 · Đang tạo cảnh 8/18</div></div><div class="t-side"><span class="tag run">45%</span><div class="bar"><i style="width:45%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Viết Chương 8 — “Nữ lớp trưởng”</div><div class="t-meta">Viết truyện · Gemini · Đã xong mở đầu và cao trào</div></div><div class="t-side"><span class="tag run">55%</span><div class="bar"><i style="width:55%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Trả lời 14 bình luận chưa đọc</div><div class="t-meta">Chăm sóc page · Page Khánh Nghi Audio · Meta Graph API</div></div><div class="t-side"><span class="tag run">40%</span><div class="bar"><i style="width:40%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Rà soát 3 chương gần nhất</div><div class="t-meta">Viết truyện · Truyện ma Radio Đêm Ma · Gemini kiểm tra mạch truyện</div></div><div class="t-side"><span class="tag run">20%</span><div class="bar"><i style="width:20%"></i></div></div></li>',
-            '<li class="task"><div><div class="t-name">Quét thứ hạng 128 trang web</div><div class="t-meta">Chăm sóc web · GSC API · Cả 4 website</div></div><div class="t-side"><span class="tag run">82%</span><div class="bar"><i style="width:82%"></i></div></div></li>'
-          ]
-        },
-        done: {
-          title: "Đã hoàn thành — 96 việc hôm nay",
-          hint: "Những việc tiêu biểu đã xong trong ngày, mới nhất ở trên.",
-          items: [
-            '<li class="task"><div><div class="t-name">Báo cáo tương tác tuần của 4 page</div><div class="t-meta">Chăm sóc page · Xong lúc 10:02 · Lượt tiếp cận tăng 18%</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="task"><div><div class="t-name">Đăng bài buổi sáng lên Page BlueMax</div><div class="t-meta">Chăm sóc page · Meta Graph API · Xong lúc 09:15</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="task"><div><div class="t-name">Kiểm tra tốc độ tải trang chủ bluemax.vn</div><div class="t-meta">Chăm sóc web · GSC API · Đạt 92/100 điểm · Xong lúc 09:05</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="task"><div><div class="t-name">Lồng tiếng Chương 7 thành audio</div><div class="t-meta">Viết truyện · Vbee · File audio 24 phút · Xong lúc 08:52</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="task"><div><div class="t-name">Quét lỗi index trên 128 trang web</div><div class="t-meta">Chăm sóc web · GSC API · Xong lúc 08:30</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>',
-            '<li class="task"><div><div class="t-name">Video giới thiệu xưởng chi tiết</div><div class="t-meta">Xây dựng kênh · fal.ai Kling · Đã đăng lên Fanpage hôm qua</div></div><div class="t-side"><span class="tag done">Hoàn thành</span></div></li>'
-          ]
-        },
-        errors: {
-          title: "Lỗi cần xử lý — 3 mục",
-          hint: "Các lỗi đội AI báo về. Bấm “Xử lý ngay” để giao việc xử lý cho đội AI.",
-          items: [
-            '<li class="task"><div><div class="t-name">3 trang rớt khỏi top 10 Google</div><div class="t-meta">Chăm sóc web · Săm Lốp Minh Tú · GSC API báo lúc 08:30 — cần viết lại nội dung, tối ưu lại từ khóa</div></div><div class="t-side"><button class="btn-ghost btn-sm" type="button" data-fix>Xử lý ngay</button></div></li>',
-            '<li class="task"><div><div class="t-name">Thumbnail 5 video cũ bị mờ</div><div class="t-meta">Xây dựng kênh · YouTube Radio Đêm Ma — cần dựng lại thumbnail đồng bộ với bộ mới</div></div><div class="t-side"><button class="btn-ghost btn-sm" type="button" data-fix>Xử lý ngay</button></div></li>',
-            '<li class="task"><div><div class="t-name">Số dư credit fal.ai sắp hết</div><div class="t-meta">Xây dựng kênh · Cần nạp thêm credit hoặc chuyển việc dựng video sang Wan 3.0</div></div><div class="t-side"><button class="btn-ghost btn-sm" type="button" data-fix>Xử lý ngay</button></div></li>'
-          ]
-        }
-      };
+      // Chi tiet Dashboard lay tu API /api/dashboard + /api/tasks (xem AppBackend).
       var dashPanel = document.getElementById("dashPanel");
       var dashTitle = document.getElementById("dashPanelTitle");
       var dashHint = document.getElementById("dashPanelHint");
@@ -3302,21 +2959,31 @@
           statCards[i].setAttribute("aria-expanded", "false");
         }
       }
+      var DASH_TITLES = { today: "Việc hôm nay", running: "Việc đang chạy", done: "Việc đã hoàn thành", errors: "Việc cần xử lý" };
       function toggleDash(idx) {
         var key = STAT_KEYS[idx];
         if (openStat === key) { closeDash(); return; }
         openStat = key;
-        var d = DASH_DETAILS[key];
-        dashTitle.textContent = d.title;
-        dashHint.textContent = d.hint;
-        dashList.innerHTML = d.items.join("");
-        decorateDashItems();
+        dashTitle.textContent = DASH_TITLES[key] || "Chi tiết";
+        dashHint.textContent = VIEW_MODE === "staff" ? "Chỉ hiển thị việc của bạn trong mục này." : "Hiển thị việc của toàn đội trong mục này.";
+        dashList.innerHTML = '<li class="plan-empty">Đang tải…</li>';
         dashPanel.hidden = false;
         for (var i = 0; i < statCards.length; i++) {
           var on = STAT_KEYS[i] === key;
           statCards[i].classList.toggle("active-stat", on);
           statCards[i].setAttribute("aria-expanded", on ? "true" : "false");
         }
+        var params = key === "today" ? "today=1" : "status=" + (key === "done" ? "completed" : key);
+        window.AppBackend.api("/api/tasks?" + params + "&limit=20").then(function (res) {
+          if (openStat !== key) return;
+          dashList.innerHTML = "";
+          if (!res.tasks.length) { dashList.innerHTML = '<li class="plan-empty">Không có nhiệm vụ nào.</li>'; return; }
+          res.tasks.forEach(function (t) { dashList.appendChild(window.AppRuntime.renderTaskItem(t)); });
+          applyFilter(searchInput.value);
+        }).catch(function () {
+          if (openStat !== key) return;
+          dashList.innerHTML = '<li class="plan-empty">Không tải được dữ liệu.</li>';
+        });
       }
       for (var s = 0; s < statCards.length; s++) {
         statCards[s].setAttribute("role", "button");
@@ -3332,7 +2999,7 @@
       document.getElementById("dashPanelClose").addEventListener("click", closeDash);
       dashPanel.addEventListener("click", function (e) {
         if (e.target && e.target.closest && e.target.closest("[data-fix]")) {
-          showToast("Bản xem trước — thao tác xử lý lỗi chưa chạy thật.");
+          showToast("Chức năng xử lý lỗi chưa có trong bản v1 — liên hệ Admin.");
         }
       });
 
@@ -3396,102 +3063,8 @@
       }
 
       /* ===== Lịch & Kế hoạch theo từng dự án (dữ liệu mẫu) ===== */
-      var PLANS = {
-        web: {
-          "BlueMax — bluemax.vn": [
-            { name: "Viết bài giới thiệu BlueMax E10 chuẩn SEO", when: "Thứ Hai 16/11", repeat: "Lặp: Hằng tuần", due: "Hạn 18/11" },
-            { name: "Kiểm tra thứ hạng các từ khóa chính", when: "Thứ Sáu 20/11", repeat: "Lặp: Hằng tuần" }
-          ],
-          "Bình Minh Panel": [
-            { name: "Đăng bài “Panel XPS là gì?” lên web", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Viết bài panel cách nhiệt cho kho lạnh", when: "Thứ Ba 17/11", due: "Hạn 19/11" }
-          ],
-          "Khánh Nghi Audio": [
-            { name: "Đăng sản phẩm mới kèm bài tin tức", when: "Thứ Tư 18/11", repeat: "Lặp: Hằng tuần" },
-            { name: "Tối ưu mô tả 12 trang sản phẩm", when: "Thứ Năm 19/11", due: "Hạn 21/11" }
-          ],
-          "Săm Lốp Minh Tú": [
-            { name: "Sửa 3 trang bị rớt hạng", when: "Thứ Hai 16/11", due: "Hạn 17/11" }
-          ]
-        },
-        page: {
-          "Page BlueMax": [
-            { name: "Bài kiến thức E10 — đăng khung 20:00", when: "Hôm nay — thứ Bảy 14/11", repeat: "Lặp: Thứ 3 · 5 · 7 hằng tuần" },
-            { name: "Bình luận tương tác trong 11 nhóm Facebook", when: "Tuần 16–22/11", repeat: "Lặp: Hằng ngày" }
-          ],
-          "Page Khánh Nghi Audio": [
-            { name: "Bài giới thiệu sản phẩm mới", when: "Thứ Tư 18/11", due: "Hạn 18/11" }
-          ],
-          "Page Bình Minh Panel": [
-            { name: "Bài chia sẻ dự án panel vừa thi công", when: "Thứ Sáu 20/11" }
-          ],
-          "Page Radio Đêm Ma": [
-            { name: "Đăng teaser truyện “Ngôi nhà cuối hẻm” tập 12", when: "Chủ Nhật 15/11" }
-          ]
-        },
-        kenh: {
-          "Radio Đêm Ma — YouTube": [
-            { name: "Đăng tập 12 “Ngôi nhà cuối hẻm”", when: "Chủ Nhật 15/11", due: "Hạn 20:00" },
-            { name: "Dựng tập 13 — tạo cảnh bằng Wan 3.0", when: "Thứ Ba 17/11", repeat: "Lặp: Hằng tuần" }
-          ],
-          "TikTok BlueMax": [
-            { name: "Clip mẹo dùng phụ gia E10", when: "Thứ Hai 16/11", repeat: "Lặp: Thứ 2 · 4 · 6 hằng tuần" }
-          ],
-          "Fanpage BlueMax": [
-            { name: "Video giới thiệu sản phẩm E10", when: "Thứ Năm 19/11" }
-          ]
-        },
-        truyen: {
-          "Truyện ma: Làng chài": [
-            { name: "Viết Chương 9 — nối tiếp “Tiếng gọi ngoài khơi”", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Lồng tiếng Chương 9 bằng Vbee", when: "Chủ Nhật 15/11", repeat: "Lặp: Hằng tuần" }
-          ],
-          "Trinh thám: Vụ án phòng kín": [
-            { name: "Viết Chương 6 — nối tiếp “Chiếc chìa khóa biến mất”", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 16/11" },
-            { name: "Rà soát manh mối 5 chương đầu", when: "Thứ Ba 17/11" }
-          ],
-          "Truyện dài kỳ": [
-            { name: "Viết Chương 8 — “Nữ lớp trưởng”", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Lồng tiếng chương mới bằng Vbee", when: "Chủ Nhật 15/11", repeat: "Lặp: Hằng tuần" }
-          ],
-          "Truyện ma — Radio Đêm Ma": [
-            { name: "Viết tập 12 — “Ngôi nhà cuối hẻm”", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Lên dàn ý tập 13", when: "Thứ Ba 17/11" }
-          ]
-        },
-        anh: {
-          "Thumbnail Radio Đêm Ma": [
-            { name: "Thiết kế thumbnail tập 12 “Ngôi nhà cuối hẻm”", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Làm đồng bộ thumbnail 5 video cũ", when: "Thứ Ba 17/11", repeat: "Lặp: Hằng tuần" }
-          ],
-          "Banner BlueMax": [
-            { name: "Banner khuyến mãi E10 tháng 11 — duyệt 3 phương án", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 16/11" },
-            { name: "Banner tuyển đại lý toàn quốc", when: "Thứ Năm 19/11" }
-          ],
-          "Avatar & nhận diện Radio Đêm Ma": [
-            { name: "Bàn giao bộ avatar và ảnh bìa kênh", when: "Chủ Nhật 15/11" }
-          ],
-          "Ảnh sản phẩm Khánh Nghi Audio": [
-            { name: "Xử lý ảnh sản phẩm mới trên nền studio 600×600", when: "Thứ Tư 18/11", repeat: "Lặp: Hằng tuần" }
-          ]
-        },
-        designweb: {
-          "Trang chủ ZA Project": [
-            { name: "Dựng bản thiết kế trang chủ theo mẫu Nasani", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 16/11" },
-            { name: "Chỉnh sửa theo góp ý và bàn giao file", when: "Thứ Ba 17/11" }
-          ],
-          "Trang chủ Phúc Thịnh Home": [
-            { name: "Gửi bản xem trước v2 để anh duyệt", when: "Hôm nay — thứ Bảy 14/11", due: "Hạn 15/11" },
-            { name: "Hoàn thiện trang dự án và sale gallery", when: "Thứ Tư 18/11" }
-          ],
-          "Trang chủ Thành Đạt": [
-            { name: "Chốt lại tông màu navy theo góp ý", when: "Thứ Hai 16/11", due: "Hạn 17/11" }
-          ],
-          "Landing page Dư Dư Beauty Spa": [
-            { name: "Bàn giao file thiết kế hoàn chỉnh", when: "Chủ Nhật 15/11" }
-          ]
-        }
-      };
+      var PLANS = { web: {}, page: {}, kenh: {}, truyen: {}, anh: {}, designweb: {} };
+
       var PLAN_CAL = '<svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
       function escHtml(str) {
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -3505,13 +3078,11 @@
         var rawItems = (PLANS[key] && PLANS[key][sel.value]) || [];
         var items = [];
         for (var ri = 0; ri < rawItems.length; ri++) {
-          var rOwner = ri % 2 === 0 ? "tri-nghia" : "other";
-          rawItems[ri]._owner = rOwner;
-          if (VIEW_MODE === "staff" && rOwner !== "tri-nghia") continue;
+          rawItems[ri]._owner = "me"; // Kế hoạch chỉ lưu trong phiên, luôn là việc của chính mình.
           items.push(rawItems[ri]);
         }
         if (!items.length) {
-          list.innerHTML = '<li class="plan-empty">' + (rawItems.length ? 'Việc trong kế hoạch này thuộc về nhân viên khác — chế độ Nhân viên chỉ hiện việc của Trí Nghĩa.' : 'Chưa có việc nào trong kế hoạch của dự án này — thêm việc đầu tiên ở phần nhập bên dưới.') + '</li>';
+          list.innerHTML = '<li class="plan-empty">Chưa có việc nào trong kế hoạch của dự án này — thêm việc đầu tiên ở phần nhập bên dưới.</li>';
           return;
         }
         var html = "";
@@ -3519,7 +3090,7 @@
           var it = items[i];
           html += '<li class="plan-item"><span class="pl-ic">' + PLAN_CAL + '</span><div>' +
             '<div class="pl-name">' + escHtml(it.name) + '</div>' +
-            '<div class="pl-meta"><span>' + escHtml(it.when) + '</span><span class="owner-tag' + (it._owner === "other" ? " other" : "") + '">Phụ trách: ' + (it._owner === "other" ? "Nhân viên khác" : "Trí Nghĩa") + '</span>' +
+            '<div class="pl-meta"><span>' + escHtml(it.when) + '</span><span class="owner-tag">Phụ trách: ' + escHtml(window.AppState && window.AppState.me ? window.AppState.me.name : "Bạn") + '</span>' +
             (it.repeat ? '<span class="tag sched">' + escHtml(it.repeat) + '</span>' : '') +
             (it.due ? '<span class="tag wait">' + escHtml(it.due) + '</span>' : '') +
             '</div></div></li>';
@@ -3589,6 +3160,10 @@
         var nextIn = scr.querySelector("[data-next-chapter]");
         if (!sel || !sel.options.length) return;
         var opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.getAttribute("data-name")) {
+          if (summary) summary.textContent = "Chưa có truyện nào — chọn nhánh “Truyện mới” để tạo truyện đầu tiên.";
+          return;
+        }
         var last = parseInt(opt.getAttribute("data-last") || "0", 10) || 0;
         var lastTitle = opt.getAttribute("data-last-title") || "";
         if (summary) summary.innerHTML = 'Chương mới nhất: <b>Chương ' + last + ' — &ldquo;' + escHtml(lastTitle) + '&rdquo;</b> · Chương tiếp theo sẽ được gợi ý là Chương ' + (last + 1) + '.';
@@ -3610,10 +3185,16 @@
           var sel = scr.querySelector("[data-story-select]");
           if (!sel) return;
           var opt = sel.options[sel.selectedIndex];
-          storyName = opt.getAttribute("data-name") || opt.textContent;
-          var nextIn = scr.querySelector("[data-next-chapter]");
-          chapterNum = nextIn && nextIn.value ? nextIn.value : ((parseInt(opt.getAttribute("data-last") || "0", 10) || 0) + 1);
-          chapterLabel = "Chương " + chapterNum;
+          if (!opt || sel.disabled || !opt.getAttribute("data-name")) {
+            storyName = "Truyện mới (chưa đặt tên)";
+            chapterNum = 1;
+            chapterLabel = "Chương 1";
+          } else {
+            storyName = opt.getAttribute("data-name") || opt.textContent;
+            var nextIn = scr.querySelector("[data-next-chapter]");
+            chapterNum = nextIn && nextIn.value ? nextIn.value : ((parseInt(opt.getAttribute("data-last") || "0", 10) || 0) + 1);
+            chapterLabel = "Chương " + chapterNum;
+          }
         } else {
           var nameIn = scr.querySelector("[data-new-story-name]");
           var typed = nameIn ? nameIn.value.trim() : "";
@@ -4080,78 +3661,28 @@
 
       /* ===== Chế độ xem Admin / Nhân viên — demo phân quyền =====
          Quy tắc: mỗi nhân viên đăng nhập chỉ thấy việc của mình; chỉ Admin thấy tất cả. */
-      var STAFF_NAME = "Trí Nghĩa";
-      var OTHER_NAMES = ["Trần Minh Tuấn", "Nguyễn Thu Hằng", "Lê Văn Đức"];
-      var STAFF_DOCK_STATS = '<div class="d-label">THỐNG KÊ CỦA TRÍ NGHĨA HÔM NAY</div>' +
-        '<div class="d-big">Hoàn thành 25/34 nhiệm vụ của Trí Nghĩa — đạt 74% kế hoạch ngày</div>' +
-        '<div class="d-nums"><div><b>2</b><span>Đang chạy</span></div><div><b>8</b><span>Chờ duyệt</span></div><div><b>1</b><span>Lỗi cần xử lý</span></div></div>';
-      var STAFF_DOCK_DETAIL = '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY CỦA TRÍ NGHĨA</div>' +
-        '<div class="d-big">Viết bài SEO “Panel XPS là gì?” — web Bình Minh Panel</div>' +
-        '<div class="d-sub">Gemini phụ trách · Đang ở bước 2/4 · 68%</div>' +
-        '<div class="bar"><i style="width:68%"></i></div>';
+      // Số liệu Dashboard lấy từ API /api/dashboard (xem AppBackend.refreshDashboard).
+      var STAFF_DOCK_STATS = '<div class="d-label">THỐNG KÊ HÔM NAY</div>' +
+        '<div class="d-big">Chưa có nhiệm vụ nào hôm nay</div>' +
+        '<div class="d-nums"><div><b>0</b><span>Đang chạy</span></div><div><b>0</b><span>Chờ duyệt</span></div><div><b>0</b><span>Lỗi cần xử lý</span></div></div>';
+      var STAFF_DOCK_DETAIL = '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+        '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+        '<div class="d-sub">Giao việc mới ở form từng tính năng để bắt đầu.</div>';
       var DASH_STATS = {
         admin: [
-          { num: "128", delta: "+12 hôm nay", note: "Trên cả 6 tính năng — toàn app" },
-          { num: "6", delta: "Ổn định", note: "Của cả đội · 3 AI đang xử lý song song" },
-          { num: "96", delta: "Đạt 75%", note: "Trong tổng 128 nhiệm vụ toàn app" },
-          { num: "3", delta: "Cần xem", note: "2 ở web, 1 ở kênh video" }
+          { num: "0", delta: "Hôm nay", note: "Trên cả 6 tính năng — toàn app" },
+          { num: "0", delta: "Ổn định", note: "Của cả đội · AI đang xử lý song song" },
+          { num: "0", delta: "Đạt 0%", note: "Trong tổng 0 nhiệm vụ toàn app" },
+          { num: "0", delta: "Cần xem", note: "Chưa có lỗi cần xử lý" }
         ],
         staff: [
-          { num: "34", delta: "+3 hôm nay", note: "Chỉ việc của Trí Nghĩa" },
-          { num: "2", delta: "Ổn định", note: "Việc của Trí Nghĩa đang chạy" },
-          { num: "25", delta: "Đạt 74%", note: "Trong tổng 34 nhiệm vụ của Trí Nghĩa" },
-          { num: "1", delta: "Cần xem", note: "Ở Design Web" }
+          { num: "0", delta: "Hôm nay", note: "Chỉ việc của bạn" },
+          { num: "0", delta: "Ổn định", note: "Việc của bạn đang chạy" },
+          { num: "0", delta: "Đạt 0%", note: "Trong tổng 0 nhiệm vụ của bạn" },
+          { num: "0", delta: "Cần xem", note: "Chưa có lỗi cần xử lý" }
         ]
       };
-      function makeOwnerTag(owner, name) {
-        var sp = document.createElement("span");
-        sp.className = "owner-tag" + (owner === "other" ? " other" : "");
-        sp.textContent = "Phụ trách: " + name;
-        return sp;
-      }
-      function assignOwners() {
-        var screens = document.querySelectorAll(".screen");
-        for (var si = 0; si < screens.length; si++) {
-          var scr = screens[si];
-          if (scr.getAttribute("data-screen") === "accounts") continue;
-          var tasks = scr.querySelectorAll("ul.tasks > li.task");
-          for (var ti = 0; ti < tasks.length; ti++) {
-            var isMine = ti % 2 === 0;
-            var owner = isMine ? "tri-nghia" : "other";
-            var name = isMine ? STAFF_NAME : OTHER_NAMES[ti % OTHER_NAMES.length];
-            tasks[ti].setAttribute("data-owner", owner);
-            tasks[ti].setAttribute("data-owner-name", name);
-            var meta = tasks[ti].querySelector(".t-meta");
-            if (meta && !meta.querySelector(".owner-tag")) meta.appendChild(makeOwnerTag(owner, name));
-          }
-          var feeds = scr.querySelectorAll(".feed > li");
-          for (var fi = 0; fi < feeds.length; fi++) {
-            var fMine = fi % 2 === 0;
-            var fOwner = fMine ? "tri-nghia" : "other";
-            var fName = fMine ? STAFF_NAME : OTHER_NAMES[fi % OTHER_NAMES.length];
-            feeds[fi].setAttribute("data-owner", fOwner);
-            feeds[fi].setAttribute("data-owner-name", fName);
-            var ftxt = feeds[fi].querySelector(".f-txt");
-            if (ftxt && !ftxt.querySelector(".owner-tag")) ftxt.appendChild(makeOwnerTag(fOwner, fName));
-          }
-        }
-      }
-      function decorateDashItems() {
-        if (!dashList) return;
-        var items = dashList.querySelectorAll("li.task");
-        for (var i = 0; i < items.length; i++) {
-          var isMine = i % 2 === 0;
-          var owner = isMine ? "tri-nghia" : "other";
-          var name = isMine ? STAFF_NAME : OTHER_NAMES[i % OTHER_NAMES.length];
-          items[i].setAttribute("data-owner", owner);
-          var meta = items[i].querySelector(".t-meta");
-          if (meta && !meta.querySelector(".owner-tag")) meta.appendChild(makeOwnerTag(owner, name));
-          items[i].style.display = ownerVisible(items[i]) ? "" : "none";
-        }
-        if (VIEW_MODE === "staff" && openStat && DASH_DETAILS[openStat]) {
-          dashHint.textContent = "Chỉ hiển thị việc của Trí Nghĩa trong mục này — việc của nhân viên khác đã ẩn (chế độ Nhân viên).";
-        }
-      }
+      // (Da bo: gan chu so huu gia + trang tri muc Dashboard gia. Chu so huu that lay tu API, hien thi trong AppRuntime.renderTaskItem.)
       function updateDashStats() {
         var set = DASH_STATS[VIEW_MODE === "staff" ? "staff" : "admin"];
         for (var i = 0; i < statCards.length && i < set.length; i++) {
@@ -4166,24 +3697,22 @@
       function setViewMode(mode, silent) {
         VIEW_MODE = mode === "staff" ? "staff" : "admin";
         var staff = VIEW_MODE === "staff";
-        var aBtn = document.getElementById("viewAdminBtn");
-        var sBtn = document.getElementById("viewStaffBtn");
-        if (aBtn) { aBtn.classList.toggle("active", !staff); aBtn.setAttribute("aria-pressed", staff ? "false" : "true"); }
-        if (sBtn) { sBtn.classList.toggle("active", staff); sBtn.setAttribute("aria-pressed", staff ? "true" : "false"); }
+        var me = window.AppState ? window.AppState.me : null;
+        var displayName = me ? me.name : (staff ? "Nhân viên" : "Duy");
         var navs = document.querySelectorAll("[data-admin-nav]");
         for (var n = 0; n < navs.length; n++) navs[n].classList.toggle("nav-hidden", staff);
         var adminBlocks = document.querySelectorAll("[data-admin-only]");
         for (var ab = 0; ab < adminBlocks.length; ab++) adminBlocks[ab].classList.toggle("staff-hidden", staff);
         var avatar = document.getElementById("railAvatar");
         if (avatar) {
-          avatar.textContent = staff ? "TN" : "Dy";
-          avatar.title = staff ? "Tài khoản nhân viên: Trí Nghĩa" : "Tài khoản của anh Dy";
+          avatar.textContent = me ? initialsOf(me.name) : (staff ? "?" : "Dy");
+          avatar.title = staff ? "Tài khoản nhân viên: " + displayName : "Tài khoản của anh Dy";
         }
         var banner = document.getElementById("viewBannerText");
         if (banner) {
           banner.innerHTML = staff
-            ? '<span class="vb-mode">Đang xem: Nhân viên — Trí Nghĩa</span> — Giao diện này <b>chỉ hiện nhiệm vụ của chính Trí Nghĩa</b>; nhiệm vụ của nhân viên khác đã ẩn, mục <b>Quản lý tài khoản bị ẩn hẳn</b> và số liệu Dashboard chỉ tính phần việc của Trí Nghĩa. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>'
-            : '<span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” (duyệt tài khoản, giới hạn lượt dùng, danh sách thành viên) và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b> Bấm “Nhân viên” ở thanh trên cùng để xem giao diện của Trí Nghĩa.';
+            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — Giao diện này <b>chỉ hiện nhiệm vụ của chính bạn</b>; nhiệm vụ của nhân viên khác đã ẩn, mục <b>Quản lý tài khoản bị ẩn hẳn</b> và số liệu Dashboard chỉ tính phần việc của bạn. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>'
+            : '<span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” (duyệt tài khoản, giới hạn lượt dùng, danh sách thành viên) và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>';
         }
         updateDashStats();
         if (typeof closeDash === "function") closeDash();
@@ -4203,24 +3732,16 @@
         }
         if (!silent) {
           showToast(staff
-            ? "Đã chuyển sang chế độ Nhân viên (Trí Nghĩa) — chỉ thấy việc của Trí Nghĩa."
+            ? "Đã chuyển sang chế độ Nhân viên (" + displayName + ") — chỉ thấy việc của bạn."
             : "Đã chuyển sang chế độ Admin — thấy tất cả việc của mọi người.");
         }
       }
-      var viewAdminBtn = document.getElementById("viewAdminBtn");
-      var viewStaffBtn = document.getElementById("viewStaffBtn");
-      if (viewAdminBtn) viewAdminBtn.addEventListener("click", function () { setViewMode("admin"); });
-      if (viewStaffBtn) viewStaffBtn.addEventListener("click", function () { setViewMode("staff"); });
+      // (Da bo: nut chuyen che do xem demo Admin/Nhan vien — quyen lay tu tai khoan dang nhap.)
 
       /* ===== Quản lý tài khoản: setup lượt dùng RIÊNG cho từng thành viên (theo số tiền đã nạp) ===== */
       /* Mặc định: mỗi tài khoản được miễn phí 1 lượt/tuần cho MỖI tính năng.
          Muốn dùng nhiều hơn thì phải mua thêm lượt — Admin setup tăng riêng cho từng người theo số tiền đã nạp. */
-      var MEMBER_LIMITS = {
-        "tri-nghia": { name: "Trí Nghĩa", email: "tri.nghia@congty.vn", initials: "TN", deposit: "1.000.000đ", used: { web: 0, page: 0, kenh: 0, truyen: 0, anh: 0, designweb: 1 }, limits: { web: 1, page: 1, kenh: 1, truyen: 1, anh: 1, designweb: 1 } },
-        "thu-hang": { name: "Nguyễn Thu Hằng", email: "hang.nguyen@gmail.com", initials: "NH", deposit: "500.000đ", used: { web: 1, page: 0, kenh: 0, truyen: 0, anh: 1, designweb: 0 }, limits: { web: 2, page: 2, kenh: 1, truyen: 1, anh: 2, designweb: 1 } },
-        "minh-tuan": { name: "Trần Minh Tuấn", email: "tuan.tran@gmail.com", initials: "TT", deposit: "200.000đ", used: { web: 0, page: 0, kenh: 0, truyen: 0, anh: 0, designweb: 0 }, limits: { web: 1, page: 1, kenh: 1, truyen: 1, anh: 1, designweb: 1 } },
-        "van-duc": { name: "Lê Văn Đức", email: "duc.le@gmail.com", initials: "LD", deposit: "300.000đ", used: { web: 1, page: 0, kenh: 0, truyen: 0, anh: 0, designweb: 0 }, limits: { web: 2, page: 1, kenh: 1, truyen: 1, anh: 1, designweb: 1 } }
-      };
+      var MEMBERS = {}; // Du lieu that tu API /api/admin/users (xem AppBackend.loadAdminUsers).
       var SETUP_FIELDS = ["web", "page", "kenh", "truyen", "anh", "designweb"];
       var SETUP_FEATURES = [
         { k: "web", short: "Web" },
@@ -4257,16 +3778,18 @@
           "<small>" + others.join(" · ") + "</small>";
       }
       function openSetup(id) {
-        var m = MEMBER_LIMITS[id];
+        var m = MEMBERS[id];
         if (!m || !setupPanel) return;
         setupMemberId = id;
         document.getElementById("setupAvatar").textContent = m.initials;
         document.getElementById("setupTitle").textContent = "Setup lượt dùng — " + m.name;
         document.getElementById("setupEmail").textContent = m.email;
         document.getElementById("setupDeposit").textContent = m.deposit;
+        var depInp = document.getElementById("setup-deposit");
+        if (depInp) depInp.value = m.deposit_vnd || 0;
         SETUP_FIELDS.forEach(function (k) {
           var inp = document.getElementById("setup-" + k);
-          if (inp) inp.value = m.limits[k];
+          if (inp) inp.value = (m.limits && m.limits[k] != null) ? m.limits[k] : 1;
         });
         setupPanel.hidden = false;
         if (setupPanel.scrollIntoView) setupPanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -4274,17 +3797,23 @@
       if (setupForm) {
         setupForm.addEventListener("submit", function (e) {
           e.preventDefault();
-          var m = MEMBER_LIMITS[setupMemberId];
+          var m = MEMBERS[setupMemberId];
           if (!m) return;
+          var limits = {};
           SETUP_FIELDS.forEach(function (k) {
             var inp = document.getElementById("setup-" + k);
             var v = inp ? parseInt(inp.value, 10) : 0;
-            m.limits[k] = (isNaN(v) || v < 0) ? 0 : v;
+            limits[k] = (isNaN(v) || v < 0) ? 0 : v;
           });
-          var tbl = document.getElementById("memberTable");
-          var row = tbl ? tbl.querySelector('[data-member-id="' + setupMemberId + '"]') : null;
-          refreshRemain(row, m);
-          showToast("Đã lưu setup lượt dùng cho " + m.name + ".");
+          var depInp = document.getElementById("setup-deposit");
+          var dep = depInp ? parseInt(depInp.value, 10) : m.deposit_vnd;
+          if (isNaN(dep) || dep < 0) dep = m.deposit_vnd || 0;
+          window.AppBackend.api("/api/admin/users/" + setupMemberId, { method: "PATCH", body: { limits: limits, deposit_vnd: dep } })
+            .then(function () {
+              showToast("Đã lưu setup lượt dùng cho " + m.name + ".");
+              window.AppBackend.loadAdminUsers();
+            })
+            .catch(function (err) { showToast(err.message || "Không lưu được setup."); });
         });
       }
       var setupClose = document.getElementById("setupClose");
@@ -4307,37 +3836,22 @@
           var delBtn = e.target.closest ? e.target.closest("[data-member-del]") : null;
           var row = e.target.closest ? e.target.closest(".member-row") : null;
           if (!row) return;
-          if (setupBtn) {
-            openSetup(row.getAttribute("data-member-id"));
-            return;
-          }
+          var id = row.getAttribute("data-member-id");
+          if (setupBtn) { openSetup(id); return; }
           var nameEl = row.querySelector(".m-name");
           var mName = nameEl ? nameEl.textContent : "thành viên";
           if (delBtn) {
-            row.remove();
-            refreshMembers();
-            showToast("Đã xoá thành viên " + mName + " khỏi ứng dụng.");
+            if (confirm("Xóa tài khoản " + mName + "? Mọi nhiệm vụ của họ cũng bị xóa.")) window.AppBackend.deleteUser(id);
             return;
           }
           if (lockBtn) {
             var st = row.querySelector("[data-member-status]");
             var locked = st && st.textContent.indexOf("khoá") !== -1;
-            if (st) {
-              st.textContent = locked ? "Đang hoạt động" : "Bị khoá";
-              st.className = "tag " + (locked ? "done" : "err");
-              st.setAttribute("data-member-status", "");
-            }
-            lockBtn.classList.toggle("unlock", !locked);
-            var lockLabel = locked ? "Khoá tài khoản" : "Mở khoá tài khoản";
-            lockBtn.title = lockLabel;
-            lockBtn.setAttribute("aria-label", lockLabel);
-            showToast(locked
-              ? "Đã mở khoá tài khoản " + mName + " — đăng nhập lại được rồi."
-              : "Đã khoá tài khoản " + mName + " — nhân viên không đăng nhập được nữa.");
+            if (locked) window.AppBackend.unlockUser(id);
+            else window.AppBackend.lockUser(id);
           }
         });
       }
-      assignOwners();
       setViewMode("admin", true);
 
       renderPlan("web");
@@ -4352,8 +3866,53 @@
     </script>
 
     <script>
-      /* ===== Demo Đăng nhập / Đăng ký / Chờ duyệt (chỉ giao diện, chưa có đăng nhập thật) ===== */
-      (function () {
+            /* ===== AppBackend: dang nhap/dang ky that qua Pages Functions + D1 =====
+         - Auth: POST /api/auth/register|login|logout, GET /api/auth/me (cookie session).
+         - Du lieu: GET /api/tasks, GET /api/quota, GET /api/dashboard, GET /api/admin/users.
+         - Admin duyet/khoa/xoa/sua luot qua PATCH/DELETE /api/admin/users/:id.
+         - Nhan vien chi thay viec cua minh (server loc); Admin thay tat ca. */
+      window.AppState = { me: null, quota: null, tasks: [] };
+      window.AppBackend = (function () {
+        var FEATURE_KEYS = ["web", "page", "kenh", "truyen", "anh", "designweb"];
+        var FEATURE_NAMES = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
+        var FEED_ICON = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>';
+        var SVG_SETUP = '<svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l-.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
+        var SVG_LOCK = '<svg class="ic sm ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg class="ic sm ic-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>';
+        var SVG_DEL = '<svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
+        var SVG_CHECK = '<svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+        function api(path, opts) {
+          opts = opts || {};
+          return fetch(path, {
+            method: opts.method || "GET",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: opts.body ? JSON.stringify(opts.body) : undefined
+          }).then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok || data.ok === false) {
+                var e = new Error(data.error || ("Lỗi " + res.status));
+                e.status = res.status;
+                e.data = data;
+                throw e;
+              }
+              return data;
+            });
+          });
+        }
+        function fmtMoney(v) { return (Number(v) || 0).toLocaleString("vi-VN") + "đ"; }
+        function fmtDateShort(iso) {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return "";
+          return ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear();
+        }
+        function fmtTime(iso) {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return "";
+          return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
+        }
+
+        /* ---------- Auth ---------- */
         var authWrap = document.getElementById("authWrap");
         var panels = {
           login: document.getElementById("authLogin"),
@@ -4364,7 +3923,8 @@
           for (var k in panels) {
             if (panels[k]) panels[k].classList.toggle("active", k === key);
           }
-          authWrap.scrollTop = 0;
+          if (authWrap) authWrap.hidden = false;
+          if (authWrap) authWrap.scrollTop = 0;
         }
         var goBtns = document.querySelectorAll("[data-auth-go]");
         for (var i = 0; i < goBtns.length; i++) {
@@ -4372,236 +3932,357 @@
             showAuth(this.getAttribute("data-auth-go"));
           });
         }
-        document.getElementById("loginForm").addEventListener("submit", function (e) {
+        var loginForm = document.getElementById("loginForm");
+        if (loginForm) loginForm.addEventListener("submit", function (e) {
           e.preventDefault();
-          showToast("Bản xem trước — đăng nhập thật chưa nối. Dùng nút “Đăng nhập demo (tài khoản Admin)” để vào app.");
+          var email = document.getElementById("loginEmail").value.trim();
+          var pass = document.getElementById("loginPass").value;
+          api("/api/auth/login", { method: "POST", body: { email: email, password: pass } })
+            .then(function (res) { enterApp(res.user); })
+            .catch(function (err) { showToast(err.message || "Đăng nhập thất bại."); });
         });
-        document.getElementById("forgotBtn").addEventListener("click", function () {
-          showToast("Bản xem trước — chức năng lấy lại mật khẩu chưa nối thật.");
-        });
-        document.getElementById("demoLoginBtn").addEventListener("click", function () {
-          authWrap.hidden = true;
-          showToast("Đã vào app bằng tài khoản Admin.");
-        });
-        document.getElementById("registerForm").addEventListener("submit", function (e) {
+        var registerForm = document.getElementById("registerForm");
+        if (registerForm) registerForm.addEventListener("submit", function (e) {
           e.preventDefault();
-          showAuth("pending");
+          var name = document.getElementById("regName").value.trim();
+          var email = document.getElementById("regEmail").value.trim();
+          var pass = document.getElementById("regPass").value;
+          var pass2 = document.getElementById("regPass2").value;
+          api("/api/auth/register", { method: "POST", body: { name: name, email: email, password: pass, password2: pass2 } })
+            .then(function (res) {
+              if (res.session) {
+                enterApp(res.user);
+                showToast("Chào mừng Admin — tài khoản đầu tiên đã được kích hoạt.");
+              } else {
+                showAuth("pending");
+              }
+            })
+            .catch(function (err) { showToast(err.message || "Đăng ký thất bại."); });
+        });
+        var forgotBtn = document.getElementById("forgotBtn");
+        if (forgotBtn) forgotBtn.addEventListener("click", function () {
+          showToast("Bản v1 chưa có lấy lại mật khẩu — liên hệ Admin để được cấp lại.");
+        });
+        var logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn) logoutBtn.addEventListener("click", function () {
+          api("/api/auth/logout", { method: "POST" }).then(function () { location.reload(); }, function () { location.reload(); });
         });
 
-        /* ===== Dashboard: duyệt / từ chối tài khoản chờ duyệt ===== */
+        /* ---------- Vao app ---------- */
+        function boot() {
+          api("/api/auth/me")
+            .then(function (res) { enterApp(res.user); })
+            .catch(function () { showAuth("login"); });
+        }
+        function enterApp(user) {
+          AppState.me = user;
+          if (authWrap) authWrap.hidden = true;
+          var chip = document.getElementById("userChip");
+          if (chip) {
+            chip.hidden = false;
+            var av = document.getElementById("userChipAvatar");
+            if (av) av.textContent = initialsOf(user.name);
+            var nm = document.getElementById("userChipName");
+            if (nm) nm.textContent = user.name;
+            var rl = document.getElementById("userChipRole");
+            if (rl) rl.textContent = user.role === "admin" ? "Admin" : "Nhân viên";
+          }
+          SCREENS.dashboard.sub = "Hoạt động của đội AI hôm nay, " + todayStr();
+          setViewMode(user.role === "admin" ? "admin" : "staff", true);
+          if (currentScreen === "dashboard") { titleEl.textContent = "Chào buổi sáng, " + user.name; subEl.textContent = SCREENS.dashboard.sub; }
+          loadAll();
+        }
+        function loadAll() {
+          refreshQuota();
+          loadTasks();
+          refreshDashboard();
+          if (AppState.me && AppState.me.role === "admin") loadAdminUsers();
+        }
+        function refreshQuota() {
+          return api("/api/quota").then(function (res) {
+            AppState.quota = res.quota;
+            if (window.AppRuntime) window.AppRuntime.setQuotaCache(res.quota);
+          }).catch(function () {});
+        }
+        function afterTaskChange() { refreshQuota(); refreshDashboard(); }
+
+        /* ---------- Nhiem vu ---------- */
+        function loadTasks() {
+          return api("/api/tasks?limit=500").then(function (res) {
+            AppState.tasks = res.tasks || [];
+            FEATURE_KEYS.forEach(function (key) {
+              var list = document.querySelector('[data-tasks="' + key + '"]');
+              if (!list) return;
+              list.innerHTML = "";
+              var items = AppState.tasks.filter(function (t) { return t.feature === key; });
+              if (!items.length) {
+                list.innerHTML = '<li class="plan-empty">Chưa có nhiệm vụ nào — giao việc đầu tiên ở form bên trên.</li>';
+                return;
+              }
+              items.forEach(function (t) { list.appendChild(window.AppRuntime.renderTaskItem(t)); });
+              items.filter(function (t) { return t.status === "running"; }).forEach(function (t) { window.AppRuntime.resumeTask(t); });
+            });
+            rebuildStorySelect();
+            applyFilter(searchInput.value);
+          }).catch(function (e) { showToast("Không tải được nhiệm vụ: " + e.message); });
+        }
+        function rebuildStorySelect() {
+          var sel = document.getElementById("truyen-chon");
+          if (!sel) return;
+          var stories = {};
+          AppState.tasks.filter(function (t) { return t.feature === "truyen" && t.payload && t.payload.storyName; })
+            .forEach(function (t) {
+              var name = t.payload.storyName;
+              var ch = t.payload.chapterNum || 0;
+              if (!stories[name] || ch > stories[name].chapter) {
+                stories[name] = { chapter: ch, title: t.payload.chapterTitle || "" };
+              }
+            });
+          var names = Object.keys(stories);
+          sel.innerHTML = "";
+          if (!names.length) {
+            var opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "Chưa có truyện nào — chọn “Truyện mới” để tạo";
+            sel.appendChild(opt);
+            sel.disabled = true;
+          } else {
+            sel.disabled = false;
+            names.forEach(function (name) {
+              var o = document.createElement("option");
+              o.value = name;
+              o.textContent = name + " — đã có " + stories[name].chapter + " chương";
+              o.setAttribute("data-name", name);
+              o.setAttribute("data-last", String(stories[name].chapter));
+              o.setAttribute("data-last-title", stories[name].title);
+              sel.appendChild(o);
+            });
+          }
+          updateStorySummary();
+          syncStory();
+        }
+
+        /* ---------- Dashboard ---------- */
+        function refreshDashboard() {
+          return api("/api/dashboard").then(function (d) {
+            var pct = d.total ? Math.round((d.done * 100) / d.total) : 0;
+            DASH_STATS.admin = [
+              { num: String(d.today), delta: "Hôm nay", note: "Trên cả 6 tính năng — toàn app" },
+              { num: String(d.running), delta: "Ổn định", note: "Của cả đội · AI đang xử lý song song" },
+              { num: String(d.done), delta: "Đạt " + pct + "%", note: "Trong tổng " + d.total + " nhiệm vụ toàn app" },
+              { num: String(d.errors), delta: "Cần xem", note: "Cần xử lý ngay" }
+            ];
+            DASH_STATS.staff = [
+              { num: String(d.today), delta: "Hôm nay", note: "Chỉ việc của bạn" },
+              { num: String(d.running), delta: "Ổn định", note: "Việc của bạn đang chạy" },
+              { num: String(d.done), delta: "Đạt " + pct + "%", note: "Trong tổng " + d.total + " nhiệm vụ của bạn" },
+              { num: String(d.errors), delta: "Cần xem", note: "Cần xử lý ngay" }
+            ];
+            var firstRunning = (AppState.tasks || []).filter(function (t) { return t.status === "running"; })[0];
+            var detailHtml = firstRunning
+              ? '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                '<div class="d-big">' + escHtml(firstRunning.title) + '</div>' +
+                '<div class="d-sub">' + escHtml((firstRunning.payload && firstRunning.payload.meta) || "") + ' · ' + (firstRunning.progress || 0) + '%</div>' +
+                '<div class="bar"><i style="width:' + (firstRunning.progress || 0) + '%"></i></div>'
+              : '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                '<div class="d-sub">Giao việc mới ở form từng tính năng để bắt đầu.</div>';
+            SCREENS.dashboard.stats = '<div class="d-label">THỐNG KÊ HÔM NAY</div>' +
+              '<div class="d-big">Hoàn thành ' + d.done + '/' + d.total + ' nhiệm vụ — đạt ' + pct + '% kế hoạch ngày</div>' +
+              '<div class="d-nums"><div><b>' + d.running + '</b><span>Đang chạy</span></div><div><b>' + d.today + '</b><span>Hôm nay</span></div><div><b>' + d.errors + '</b><span>Lỗi cần xử lý</span></div></div>';
+            SCREENS.dashboard.detail = detailHtml;
+            STAFF_DOCK_STATS = SCREENS.dashboard.stats;
+            STAFF_DOCK_DETAIL = detailHtml;
+            var DOCK_SHORT = { web: "WEB", page: "PAGE", kenh: "KÊNH", truyen: "TRUYỆN", anh: "THIẾT KẾ", designweb: "DESIGN WEB" };
+            FEATURE_KEYS.forEach(function (key) {
+              var bf = d.byFeature[key];
+              if (!bf || !SCREENS[key]) return;
+              var run = (AppState.tasks || []).filter(function (t) { return t.feature === key && t.status === "running"; })[0];
+              var doneN = (AppState.tasks || []).filter(function (t) { return t.feature === key && t.status === "completed"; }).length;
+              var errN = (AppState.tasks || []).filter(function (t) { return t.feature === key && t.status === "error"; }).length;
+              SCREENS[key].stats = '<div class="d-label">THỐNG KÊ ' + DOCK_SHORT[key] + '</div>' +
+                '<div class="d-big">' + bf.done + '/' + bf.total + ' nhiệm vụ hoàn thành — đạt ' + bf.pct + '%</div>' +
+                '<div class="d-nums"><div><b>' + bf.total + '</b><span>Tổng nhiệm vụ</span></div><div><b>' + doneN + '</b><span>Đã xong</span></div><div><b>' + errN + '</b><span>Lỗi cần xử lý</span></div></div>';
+              SCREENS[key].detail = run
+                ? '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">' + escHtml(run.title) + '</div>' +
+                  '<div class="d-sub">' + escHtml((run.payload && run.payload.meta) || "") + ' · ' + (run.progress || 0) + '%</div>' +
+                  '<div class="bar"><i style="width:' + (run.progress || 0) + '%"></i></div>'
+                : '<div class="d-label"><span class="live-dot"></span>NHIỆM VỤ ĐANG CHẠY</div>' +
+                  '<div class="d-big">Chưa có nhiệm vụ đang chạy</div>' +
+                  '<div class="d-sub">Giao việc mới ở form bên trên để bắt đầu.</div>';
+            });
+            var rows = document.querySelectorAll('[data-screen="dashboard"] .prog-row');
+            FEATURE_KEYS.forEach(function (key, i) {
+              var row = rows[i];
+              if (!row || !d.byFeature[key]) return;
+              var bar = row.querySelector(".bar i");
+              var valEl = row.querySelector(".p-val");
+              if (bar) bar.style.width = d.byFeature[key].pct + "%";
+              if (valEl) valEl.textContent = d.byFeature[key].pct + "%";
+            });
+            var feed = document.getElementById("dashFeed");
+            if (feed) {
+              feed.innerHTML = "";
+              (d.recent || []).forEach(function (r) {
+                var li = document.createElement("li");
+                li.setAttribute("data-filter", "");
+                li.innerHTML =
+                  '<span class="f-ic">' + FEED_ICON + '</span>' +
+                  '<span class="f-txt"><b>' + escHtml(r.owner) + '</b> · ' + escHtml(FEATURE_NAMES[r.feature] || r.feature) + ' — ' + escHtml(r.title) +
+                  (r.meta ? '<span class="f-meta">' + escHtml(r.meta) + '</span>' : '') + '</span>' +
+                  '<span class="f-time">' + fmtTime(r.created_at) + '</span>';
+                feed.appendChild(li);
+              });
+              if (!d.recent || !d.recent.length) feed.innerHTML = '<li class="plan-empty">Chưa có hoạt động nào.</li>';
+            }
+            if (typeof d.pendingCount === "number") {
+              var badge = document.querySelector('[data-nav="accounts"] .tip-badge');
+              if (badge) badge.textContent = d.pendingCount;
+            }
+            updateDashStats();
+            var cur = screenData(currentScreen);
+            if (cur) { dockStats.innerHTML = cur.stats; dockDetail.innerHTML = cur.detail; }
+            applyFilter(searchInput.value);
+          }).catch(function () {});
+        }
+
+        /* ---------- Quan ly tai khoan (Admin) ---------- */
         var pendingList = document.getElementById("pendingList");
         var pendingCount = document.getElementById("pendingCount");
         var pendingEmpty = document.getElementById("pendingEmpty");
-        function refreshPending() {
-          var n = pendingList.querySelectorAll(".pending-item").length;
-          pendingCount.textContent = n + " tài khoản";
-          pendingCount.style.display = n ? "" : "none";
-          pendingEmpty.hidden = n !== 0;
-        }
-        pendingList.addEventListener("click", function (e) {
+        if (pendingList) pendingList.addEventListener("click", function (e) {
           var btn = e.target.closest("[data-approve], [data-reject]");
           if (!btn) return;
           var item = btn.closest(".pending-item");
           if (!item) return;
-          var nameEl = item.querySelector(".p-name");
-          var name = nameEl ? nameEl.textContent : "tài khoản";
-          var approved = btn.hasAttribute("data-approve");
-          item.remove();
-          refreshPending();
-          showToast(approved
-            ? "Đã duyệt tài khoản " + name + " — nhân viên đăng nhập dùng app được rồi."
-            : "Đã từ chối tài khoản " + name + ".");
+          var id = item.getAttribute("data-user-id");
+          if (btn.hasAttribute("data-approve")) approveUser(id);
+          else rejectUser(id);
         });
+        function loadAdminUsers() {
+          return api("/api/admin/users").then(function (res) {
+            var users = res.users || [];
+            MEMBERS = {};
+            users.forEach(function (u) {
+              MEMBERS[u.id] = {
+                id: u.id, name: u.name, email: u.email, role: u.role, status: u.status,
+                initials: initialsOf(u.name),
+                deposit: fmtMoney(u.deposit_vnd),
+                deposit_vnd: u.deposit_vnd,
+                used: u.used || {}, limits: u.limits || {},
+                created_at: u.created_at
+              };
+            });
+            var pending = users.filter(function (u) { return u.status === "pending"; });
+            var staff = users.filter(function (u) { return u.role === "staff"; });
+            SCREENS.accounts.stats = staff.length + " thành viên — " + pending.length + " tài khoản đang chờ duyệt";
+            renderPending(pending);
+            renderMembers(staff);
+            var badge = document.querySelector('[data-nav="accounts"] .tip-badge');
+            if (badge) badge.textContent = pending.length;
+          }).catch(function (e) { showToast("Không tải được danh sách tài khoản: " + e.message); });
+        }
+        function renderPending(pending) {
+          if (!pendingList) return;
+          pendingList.innerHTML = "";
+          if (pendingCount) { pendingCount.textContent = pending.length + " tài khoản"; pendingCount.style.display = pending.length ? "" : "none"; }
+          if (pendingEmpty) pendingEmpty.hidden = pending.length !== 0;
+          if (!pending.length) return;
+          pending.forEach(function (u) {
+            var li = document.createElement("li");
+            li.className = "pending-item";
+            li.setAttribute("data-filter", "");
+            li.setAttribute("data-user-id", u.id);
+            li.innerHTML =
+              '<span class="p-avatar" aria-hidden="true">' + escHtml(initialsOf(u.name)) + '</span>' +
+              '<div class="p-info"><div class="p-name">' + escHtml(u.name) + '</div>' +
+              '<div class="p-meta">' + escHtml(u.email) + ' · Đăng ký ' + fmtDateShort(u.created_at) + '</div></div>' +
+              '<div class="p-actions"><button class="btn-approve" type="button" data-approve>' + SVG_CHECK + ' Duyệt</button>' +
+              '<button class="btn-reject" type="button" data-reject>Từ chối</button></div>';
+            pendingList.appendChild(li);
+          });
+        }
+        function renderMembers(staff) {
+          var table = document.getElementById("memberTable");
+          if (!table) return;
+          table.querySelectorAll(".member-row").forEach(function (r) { r.remove(); });
+          var empty = table.querySelector(".member-empty");
+          if (empty) empty.remove();
+          if (!staff.length) {
+            var p = document.createElement("p");
+            p.className = "member-empty";
+            p.textContent = "Chưa có thành viên nào.";
+            table.appendChild(p);
+          }
+          staff.forEach(function (u) {
+            var m = MEMBERS[u.id];
+            var row = document.createElement("div");
+            row.className = "member-row";
+            row.setAttribute("data-filter", "");
+            row.setAttribute("data-member-id", u.id);
+            var statusTag = u.status === "locked"
+              ? '<span class="tag err" data-member-status>Bị khoá</span>'
+              : u.status === "pending"
+                ? '<span class="tag wait" data-member-status>Chờ duyệt</span>'
+                : '<span class="tag done" data-member-status>Đang hoạt động</span>';
+            var lockBtn = u.status === "locked"
+              ? '<button class="btn-lock unlock" type="button" data-member-lock title="Mở khoá tài khoản" aria-label="Mở khoá tài khoản">' + SVG_LOCK + '</button>'
+              : '<button class="btn-lock" type="button" data-member-lock title="Khoá tài khoản" aria-label="Khoá tài khoản">' + SVG_LOCK + '</button>';
+            row.innerHTML =
+              '<div class="m-cell m-who"><span class="p-avatar" aria-hidden="true">' + escHtml(m.initials) + '</span><span class="m-id"><span class="m-name" title="' + escHtml(m.name) + '">' + escHtml(m.name) + '</span><span class="m-email" title="' + escHtml(m.email) + '">' + escHtml(m.email) + '</span></span></div>' +
+              '<div class="m-cell m-rolecell"><span class="m-label">Vai trò &amp; trạng thái</span><span class="m-role">' + (u.role === "admin" ? "Admin" : "Nhân viên") + '</span>' + statusTag + '</div>' +
+              '<div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">' + escHtml(m.deposit) + '</span></div>' +
+              '<div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain></span></div>' +
+              '<div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">' + fmtDateShort(u.created_at) + '</span></div>' +
+              '<div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng">' + SVG_SETUP + '</button>' + lockBtn +
+              '<button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên">' + SVG_DEL + '</button></div>';
+            table.appendChild(row);
+            refreshRemain(row, m);
+          });
+          refreshMembers();
+        }
+        function approveUser(id) {
+          api("/api/admin/users/" + id, { method: "PATCH", body: { status: "active" } })
+            .then(function () { showToast("Đã duyệt tài khoản — nhân viên đăng nhập dùng app được rồi."); loadAdminUsers(); refreshDashboard(); })
+            .catch(function (e) { showToast(e.message || "Không duyệt được."); });
+        }
+        function rejectUser(id) {
+          api("/api/admin/users/" + id, { method: "DELETE" })
+            .then(function () { showToast("Đã từ chối (xóa) tài khoản."); loadAdminUsers(); refreshDashboard(); })
+            .catch(function (e) { showToast(e.message || "Không từ chối được."); });
+        }
+        function lockUser(id) {
+          api("/api/admin/users/" + id, { method: "PATCH", body: { status: "locked" } })
+            .then(function () { showToast("Đã khoá tài khoản — nhân viên không đăng nhập được nữa."); loadAdminUsers(); })
+            .catch(function (e) { showToast(e.message || "Không khoá được."); });
+        }
+        function unlockUser(id) {
+          api("/api/admin/users/" + id, { method: "PATCH", body: { status: "active" } })
+            .then(function () { showToast("Đã mở khoá tài khoản — đăng nhập lại được rồi."); loadAdminUsers(); })
+            .catch(function (e) { showToast(e.message || "Không mở khoá được."); });
+        }
+        function deleteUser(id) {
+          api("/api/admin/users/" + id, { method: "DELETE" })
+            .then(function () { showToast("Đã xoá tài khoản."); loadAdminUsers(); refreshDashboard(); })
+            .catch(function (e) { showToast(e.message || "Không xoá được."); });
+        }
+
+        boot();
+
+        return {
+          api: api, boot: boot, enterApp: enterApp, loadAll: loadAll,
+          refreshQuota: refreshQuota, loadTasks: loadTasks, refreshDashboard: refreshDashboard,
+          loadAdminUsers: loadAdminUsers, approveUser: approveUser, rejectUser: rejectUser,
+          lockUser: lockUser, unlockUser: unlockUser, deleteUser: deleteUser,
+          afterTaskChange: afterTaskChange
+        };
       })();
     </script>
 
     <script>
       /* ===== [features/design-web] Bảng xem demo: xem demo, yêu cầu chỉnh sửa, lịch sử phiên bản ===== */
-      (function initDesignPreview() {
-        var PHUC_THINH_URL = "https://muse.ai/files/1317613414771178/1144326934763185/2vtc5p7t4ei6axubplmwxmf5/index.html";
-
-        /* Bản HTML mẫu tạo ngay trong trình duyệt cho các phiên bản không có file thật */
-        function sampleDoc(kind) {
-          if (kind === "phucthinh-v1") {
-            return "<!doctype html>\n<html lang=\"vi\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title>Phúc Thịnh Home — Trang chủ (v1, bản đầu)</title>\n<style>body{font-family:system-ui,sans-serif;margin:0;color:#3c3c46;background:#fff}header{background:#154b9d;color:#fff;padding:14px 22px;font-weight:800;letter-spacing:.02em}.hero{padding:58px 22px;text-align:center;background:#eef3fa}.hero h1{margin:0 0 10px;font-size:30px;color:#154b9d;line-height:1.3}.hero p{margin:0;font-size:16px}main{max-width:820px;margin:0 auto;padding:26px 22px}.card{border:1px solid #dbe2ec;border-radius:14px;padding:18px;margin-bottom:14px}.card h2{margin:0 0 6px;font-size:19px;color:#154b9d}.card p{margin:0;line-height:1.6}footer{background:#154b9d;color:#fff;text-align:center;padding:16px;font-size:13.5px}</style>\n</head>\n<body>\n<header>PHÚC THỊNH HOME</header>\n<div class=\"hero\"><h1>Chất Lượng Làm Nên Uy Tín Làm Đầu</h1><p>Công ty TNHH TVTK XD &amp; Bất Động Sản Phúc Thịnh Home</p></div>\n<main>\n<div class=\"card\"><h2>Giới thiệu</h2><p>Đây là bản dựng đầu tiên (v1) của trang chủ: mới có khung giới thiệu và dịch vụ, chưa có mục Dự án và chưa chỉnh hero theo góp ý.</p></div>\n<div class=\"card\"><h2>Dịch vụ xây dựng</h2><p>Thiết kế — thi công nhà ở và công trình dân dụng trọn gói tại TP.HCM.</p></div>\n<div class=\"card\"><h2>Liên hệ</h2><p>Hotline: 097 7719 074 · 68/1 Đường Đỗ Mười, Khu Phố 27, Phường An Phú Đông, TP.HCM</p></div>\n</main>\n<footer>Phúc Thịnh Home — phiên bản v1 (bản đầu)</footer>\n</body>\n</html>";
-          }
-          if (kind === "dudu-v1") {
-            return "<!doctype html>\n<html lang=\"vi\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title>Dư Dư Beauty Spa — Landing page (v1, bản đầu)</title>\n<style>body{font-family:system-ui,sans-serif;margin:0;color:#2b2440}header{padding:48px 22px;text-align:center;background:#f3efe6}h1{margin:0 0 8px;font-size:30px}header p{margin:0}main{max-width:720px;margin:0 auto;padding:26px 22px}.card{border:1px solid #e2e3ee;border-radius:14px;padding:18px;margin-bottom:14px}.card h2{margin:0 0 6px;font-size:18px}.card p{margin:0;line-height:1.6}</style>\n</head>\n<body>\n<header><h1>Dư Dư Beauty Spa</h1><p>Mỗi lần chạm là một lần chữa lành</p></header>\n<main>\n<div class=\"card\"><h2>Bản phác đầu tiên (v1)</h2><p>Bản đầu mới dựng khung chào và một mục dịch vụ, tông màu chưa chốt, chưa có mục Liên hệ — sau góp ý đã làm lại thành bản v2.</p></div>\n<div class=\"card\"><h2>Gội đầu dưỡng sinh</h2><p>Thư giãn, giảm căng thẳng với liệu trình gội đầu dưỡng sinh kết hợp massage trị liệu.</p></div>\n</main>\n</body>\n</html>";
-          }
-          /* dudu-v2 — bản hiện tại của landing page Dư Dư Beauty Spa */
-          return "<!doctype html>\n<html lang=\"vi\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title>Dư Dư Beauty Spa — Landing page</title>\n<style>body{font-family:system-ui,sans-serif;margin:0;color:#2b2440}header{padding:56px 24px;text-align:center;background:#efeafd}h1{margin:0 0 10px;font-size:34px}p{line-height:1.6}main{max-width:760px;margin:0 auto;padding:32px 24px}.card{border:1px solid #e2e3ee;border-radius:16px;padding:20px;margin-bottom:16px}</style>\n</head>\n<body>\n<header><h1>Dư Dư Beauty Spa</h1><p>Mỗi lần chạm là một lần chữa lành</p></header>\n<main>\n<div class=\"card\"><h2>Gội đầu dưỡng sinh</h2><p>Thư giãn, giảm căng thẳng với liệu trình gội đầu dưỡng sinh kết hợp massage trị liệu.</p></div>\n<div class=\"card\"><h2>Massage trị liệu</h2><p>Đội ngũ kỹ thuật viên tận tâm — mở cửa 10h00–22h00, thứ Hai đến Chủ Nhật.</p></div>\n<div class=\"card\"><h2>Liên hệ</h2><p>Hotline: 0373 180 868 · duduspa2026@gmail.com</p></div>\n</main>\n</body>\n</html>";
-        }
-
-        var TASKS = {
-          phucthinh: {
-            name: "Trang chủ Phúc Thịnh Home",
-            sub: "Phúc Thịnh Home · Thư Ký Mỹ Linh thiết kế · Bản hiện tại (v2) là file HTML thật đã bàn giao",
-            versions: [
-              { id: "v2", name: "Đã sửa theo góp ý", desc: "Bản hiện tại — file HTML thật, đúng bản đã bàn giao cho khách.", date: "13/11/2026", current: true, url: PHUC_THINH_URL, addr: "phuc-thinh-home.html — file HTML thật" },
-              { id: "v1", name: "Bản đầu", desc: "Bản dựng đầu tiên gửi duyệt, chưa sửa theo góp ý (xem bằng bản mẫu trong trình duyệt).", date: "09/11/2026", doc: "phucthinh-v1", addr: "Bản v1 — bản mẫu tạo trong trình duyệt" }
-            ]
-          },
-          dudu: {
-            name: "Landing page Dư Dư Beauty Spa",
-            sub: "Dư Dư Beauty Spa · Thư Ký Mỹ Linh thiết kế · Demo xem bằng bản HTML mẫu tạo trong trình duyệt",
-            versions: [
-              { id: "v2", name: "Đã sửa theo góp ý", desc: "Bản hiện tại — đã thêm mục Dịch vụ và Liên hệ theo góp ý.", date: "12/11/2026", current: true, doc: "dudu-v2", addr: "du-du-beauty-spa.html — bản v2 (hiện tại)" },
-              { id: "v1", name: "Bản đầu", desc: "Bản phác đầu tiên gửi duyệt, tông màu và bố cục chưa chốt.", date: "08/11/2026", doc: "dudu-v1", addr: "du-du-beauty-spa-v1.html — bản v1 (bản đầu)" }
-            ]
-          }
-        };
-
-        var wrap = document.getElementById("previewWrap");
-        var frame = document.getElementById("previewFrame");
-        var nameEl = document.getElementById("previewName");
-        var subEl2 = document.getElementById("previewSub");
-        var verTag = document.getElementById("previewVerTag");
-        var addrEl = document.getElementById("previewAddr");
-        var verList = document.getElementById("versionList");
-        var editBtn = document.getElementById("previewEditBtn");
-        var editForm = document.getElementById("editForm");
-        var editNote = document.getElementById("editNote");
-        var editSent = document.getElementById("editSent");
-        var editSentTxt = document.getElementById("editSentTxt");
-        var dlBtn = document.getElementById("previewDlBtn");
-        var openBtn = document.getElementById("previewOpenBtn");
-        var closeBtn = document.getElementById("previewClose");
-
-        var state = { task: null, ver: null, opener: null };
-
-        function saveBlob(blob, filename) {
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement("a");
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-        }
-
-        function loadVersion(ver) {
-          state.ver = ver;
-          if (ver.url) {
-            frame.removeAttribute("srcdoc");
-            frame.src = ver.url;
-            openBtn.hidden = false;
-            openBtn.href = ver.url;
-          } else {
-            frame.removeAttribute("src");
-            frame.srcdoc = sampleDoc(ver.doc);
-            openBtn.hidden = true;
-          }
-          addrEl.textContent = ver.addr || "";
-          verTag.textContent = "Đang xem " + ver.id + (ver.current ? " · Bản hiện tại" : "");
-          verTag.className = "tag " + (ver.current ? "done" : "sched");
-          var items = verList.querySelectorAll(".version-item");
-          for (var i = 0; i < items.length; i++) {
-            var on = items[i].getAttribute("data-ver") === ver.id;
-            items[i].classList.toggle("active", on);
-            items[i].setAttribute("aria-pressed", on ? "true" : "false");
-          }
-        }
-
-        function renderVersions(task) {
-          verList.innerHTML = "";
-          task.versions.forEach(function (ver) {
-            var li = document.createElement("li");
-            var btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "version-item";
-            btn.setAttribute("data-ver", ver.id);
-            btn.setAttribute("aria-pressed", "false");
-            btn.innerHTML =
-              '<span class="version-badge">' + ver.id + "</span>" +
-              '<span class="v-txt"><span class="v-name">' + ver.id + " — " + ver.name + '</span><br /><span class="v-desc">' + ver.desc + "</span></span>" +
-              '<span class="v-date">' + ver.date + "</span>" +
-              (ver.current ? '<span class="tag done">Bản hiện tại</span>' : "");
-            btn.addEventListener("click", function () { loadVersion(ver); });
-            li.appendChild(btn);
-            verList.appendChild(li);
-          });
-        }
-
-        function setEditOpen(open) {
-          editForm.hidden = !open;
-          editBtn.setAttribute("aria-expanded", open ? "true" : "false");
-          if (open) editNote.focus();
-        }
-
-        function openPreview(key, opener) {
-          var task = TASKS[key];
-          if (!task) return;
-          state.task = task;
-          state.opener = opener || null;
-          nameEl.textContent = "Xem demo — " + task.name;
-          subEl2.textContent = task.sub;
-          editSent.hidden = true;
-          editNote.value = "";
-          setEditOpen(false);
-          renderVersions(task);
-          loadVersion(task.versions[0]);
-          wrap.hidden = false;
-          wrap.scrollTop = 0;
-          document.body.style.overflow = "hidden";
-          closeBtn.focus();
-        }
-
-        function closePreview() {
-          wrap.hidden = true;
-          frame.removeAttribute("src");
-          frame.removeAttribute("srcdoc");
-          document.body.style.overflow = "";
-          if (state.opener && state.opener.focus) state.opener.focus();
-          state.opener = null;
-        }
-
-        var openers = document.querySelectorAll("[data-preview]");
-        for (var i = 0; i < openers.length; i++) {
-          openers[i].addEventListener("click", function () {
-            openPreview(this.getAttribute("data-preview"), this);
-          });
-        }
-        closeBtn.addEventListener("click", closePreview);
-        wrap.addEventListener("click", function (e) { if (e.target === wrap) closePreview(); });
-        document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape" && !wrap.hidden) closePreview();
-        });
-
-        editBtn.addEventListener("click", function () { setEditOpen(editForm.hidden); });
-        document.getElementById("editCancel").addEventListener("click", function () { setEditOpen(false); });
-        editForm.addEventListener("submit", function (e) {
-          e.preventDefault();
-          var note = editNote.value.trim();
-          if (!note) {
-            showToast("Ghi chỗ cần sửa trước khi gửi nhé — ví dụ: đổi màu, đổi chữ, thêm mục…");
-            editNote.focus();
-            return;
-          }
-          setEditOpen(false);
-          editSentTxt.textContent = "Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh: “" + note + "” — chờ bản sửa tiếp theo.";
-          editSent.hidden = false;
-          editNote.value = "";
-          showToast("Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh.");
-        });
-
-        dlBtn.addEventListener("click", function () {
-          var ver = state.ver;
-          if (!ver) return;
-          if (ver.url) {
-            var a = document.createElement("a");
-            a.href = ver.url;
-            a.download = "phuc-thinh-home.html";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          } else {
-            var base = state.task === TASKS.phucthinh ? "phuc-thinh-home" : "du-du-beauty-spa";
-            saveBlob(new Blob([sampleDoc(ver.doc)], { type: "text/html;charset=utf-8" }), base + "-" + ver.id + ".html");
-          }
-          showToast("Đang tải file HTML của bản " + ver.id + " về máy…");
-        });
-      })();
+      // (Da bo: bang xem demo tinh cua 2 nhiem vu gia. Nhiem vu Design Web that dung overlay cua AppRuntime.)
     </script>
 
     <script>
@@ -4618,7 +4299,7 @@
                thước/phong cách đã chọn).
              · Các tính năng còn lại: "Tải kết quả" (file .txt phiếu việc).
          - Setup lượt dùng trong [features/quan-ly-tai-khoan] đồng bộ sang đây:
-           Admin tăng lượt cho Trí Nghĩa thì giới hạn khi giao việc tăng theo.
+           Admin tăng lượt cho nhân viên thì giới hạn khi giao việc tăng theo.
          Dữ liệu nhiệm vụ sống trong phiên làm việc trên trình duyệt; bản
          Cloudflare (Workers + D1) là bước triển khai tiếp theo.
          ════════════════════════════════════════════════════════════════════ */
@@ -4644,9 +4325,120 @@
           if (toastTimer) clearTimeout(toastTimer);
           toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3200);
         }
-        function staffMode() {
-          var b = document.getElementById("viewStaffBtn");
-          return !!(b && b.classList.contains("active"));
+        /* ---- API backend (Pages Functions + D1) — gioi han luot do server kiem tra ---- */
+        var quotaCache = null;
+        function api(path, opts) { return window.AppBackend.api(path, opts); }
+        function setQuotaCache(q) { quotaCache = q; }
+
+        /* ---- Render mot nhiem vu tu API thanh <li class="task"> ---- */
+        function taskTag(task) {
+          if (task.status === "running") return '<span class="tag run">Đang chạy · ' + (task.progress || 0) + '%</span>';
+          if (task.status === "completed") return '<span class="tag done">Hoàn thành</span>';
+          if (task.status === "waiting") return '<span class="tag wait">Chờ duyệt</span>';
+          if (task.status === "scheduled") return '<span class="tag sched">Đã lên lịch</span>';
+          if (task.status === "error") return '<span class="tag err">Cần xử lý</span>';
+          return '<span class="tag">' + esc(task.status || "") + '</span>';
+        }
+        function downloadRowHtml(task) {
+          if (task.feature === "designweb") {
+            return '<div class="dl-row"><button type="button" class="btn-ghost btn-sm" data-dl="demo">Xem demo</button><button type="button" class="btn-dl" data-dl="html">Tải HTML</button></div>';
+          }
+          if (task.feature === "anh") {
+            return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="image">Tải hình ảnh</button></div>';
+          }
+          return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="text">Tải kết quả</button></div>';
+        }
+        function buildVersions(task, full) {
+          var vers = [];
+          if (full.versions && full.versions.length) {
+            full.versions.forEach(function (v) {
+              vers.push({ id: v.id, note: v.note || "", doc: buildWebDoc(full, v.id, v.note || "") });
+            });
+          } else {
+            vers.push({ id: "v1", note: "", doc: buildWebDoc(full, "v1", "") });
+          }
+          vers[vers.length - 1].current = true;
+          return vers;
+        }
+        function wireDownloadButtons(li, task, full) {
+          li.querySelectorAll("[data-dl]").forEach(function (btn) {
+            var kind = btn.getAttribute("data-dl");
+            btn.addEventListener("click", function () {
+              if (kind === "demo") {
+                openOverlay({ title: task.title, data: full, versions: buildVersions(task, full), apiId: task.id });
+              } else if (kind === "html") {
+                var vers = buildVersions(task, full);
+                var v = vers[vers.length - 1];
+                saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(task.title) + "-" + v.id + ".html");
+                toast("Đang tải file HTML của bản " + v.id + " về máy…");
+              } else if (kind === "image") {
+                drawImagePNG(full, function (b) { if (b) { saveBlob(b, slug(task.title) + ".png"); toast("Đang tải hình ảnh về máy…"); } });
+              } else {
+                saveBlob(new Blob([resultText(full)], { type: "text/plain;charset=utf-8" }), slug(task.title) + "-ket-qua.txt");
+                toast("Đang tải file kết quả về máy…");
+              }
+            });
+          });
+        }
+        function renderTaskItem(task) {
+          var full = task.payload || {};
+          full.key = task.feature;
+          full.title = task.title;
+          var li = document.createElement("li");
+          li.className = "task";
+          li.setAttribute("data-filter", "");
+          li.setAttribute("data-owner", task.user_id);
+          li.setAttribute("data-task-id", task.id);
+          var meta = esc(full.meta || "");
+          var aiName = full.ai || (window.APP_CONFIG.features[task.feature] ? window.APP_CONFIG.features[task.feature].aiPrimary : "");
+          if (meta) meta += " · ";
+          meta += esc(aiName) + " phụ trách";
+          var me = window.AppState ? window.AppState.me : null;
+          if (me && me.role === "admin" && task.user_name) {
+            meta += ' <span class="owner-tag">Phụ trách: ' + esc(task.user_name) + '</span>';
+          }
+          var side = taskTag(task);
+          if (task.status === "running") {
+            side += '<div class="bar"><i style="width:' + (task.progress || 0) + '%"></i></div>';
+          } else if (task.status === "completed") {
+            side += downloadRowHtml(task);
+          }
+          li.innerHTML =
+            '<div><div class="t-name">' + esc(task.title) + '</div><div class="t-meta">' + meta + '</div></div>' +
+            '<div class="t-side">' + side + '</div>';
+          if (task.status === "completed") wireDownloadButtons(li, task, full);
+          return li;
+        }
+
+        /* ---- Chay tien do mo phong (v1 chua goi AI that) ---- */
+        function runSimulation(li, task, full, startProgress) {
+          var pct = startProgress || 0;
+          var iv = setInterval(function () {
+            pct = Math.min(100, pct + 10 + Math.round(Math.random() * 14));
+            var tag = li.querySelector(".tag.run");
+            var barFill = li.querySelector(".bar > i");
+            if (pct >= 100) {
+              clearInterval(iv);
+              finishTask(li, task, full);
+            } else {
+              if (tag) tag.textContent = "Đang chạy · " + pct + "%";
+              if (barFill) barFill.style.width = pct + "%";
+            }
+          }, 650);
+        }
+        function finishTask(li, task, full) {
+          task.status = "completed";
+          task.progress = 100;
+          api("/api/tasks/" + task.id, { method: "PATCH", body: { status: "completed", progress: 100 } })
+            .catch(function (e) { toast("Không cập nhật được trạng thái nhiệm vụ: " + e.message); });
+          var fresh = renderTaskItem(task);
+          li.replaceWith(fresh);
+          toast("Hoàn thành: " + task.title);
+          if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+        }
+        function resumeTask(task) {
+          var li = document.querySelector('[data-task-id="' + task.id + '"]');
+          if (li) runSimulation(li, task, task.payload || {}, task.progress || 0);
         }
         function val(id) { var el = document.getElementById(id); return el ? (el.value || "").trim() : ""; }
         function selText(id) {
@@ -4671,24 +4463,6 @@
           a.href = url; a.download = filename;
           document.body.appendChild(a); a.click(); a.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-        }
-
-        /* ---- Lượt dùng của nhân viên đang xem (Trí Nghĩa) — mặc định 1 lượt/tuần/tính năng ---- */
-        var quota = {
-          used:   { web: 0, page: 0, kenh: 0, truyen: 0, anh: 0, designweb: 1 },
-          limits: { web: 1, page: 1, kenh: 1, truyen: 1, anh: 1, designweb: 1 }
-        };
-        var setupFormEl = document.getElementById("setupForm");
-        if (setupFormEl) {
-          setupFormEl.addEventListener("submit", function () {
-            var title = document.getElementById("setupTitle");
-            if (!title || title.textContent.indexOf("Trí Nghĩa") === -1) return;
-            ["web", "page", "kenh", "truyen", "anh", "designweb"].forEach(function (k) {
-              var inp = document.getElementById("setup-" + k);
-              var v = inp ? parseInt(inp.value, 10) : NaN;
-              if (!isNaN(v) && v >= 0) quota.limits[k] = v;
-            });
-          });
         }
 
         /* ---- Gom thông tin từ form của từng tính năng ---- */
@@ -4717,11 +4491,20 @@
               d.title = "Truyện mới: " + val("truyen-ten-moi");
               var g = selText("truyen-genre"); if (g === "Khác (tự nhập)") g = val("truyen-genre-custom") || g;
               d.meta = [g, val("truyen-so-chuong-du-kien") ? "Dự kiến " + val("truyen-so-chuong-du-kien") + " chương" : ""].filter(Boolean).join(" · ");
+              d.storyName = val("truyen-ten-moi");
+              d.chapterNum = 1;
+              d.chapterTitle = "";
               line("Tên truyện", val("truyen-ten-moi")); line("Thể loại", g);
               line("Nhân vật chính", val("truyen-character")); line("Bối cảnh", val("truyen-boi-canh"));
               line("Ý tưởng chính", val("truyen-summary")); line("Số chương dự kiến", val("truyen-so-chuong-du-kien"));
             } else {
+              var storySel = document.getElementById("truyen-chon");
+              var storyOpt = storySel ? storySel.options[storySel.selectedIndex] : null;
+              if (!storyOpt || !storyOpt.getAttribute("data-name")) { toast("Chưa có truyện nào — chọn “Truyện mới” ở trên để tạo truyện."); return null; }
               var ch = val("truyen-chuong-moi");
+              d.storyName = storyOpt.getAttribute("data-name");
+              d.chapterNum = parseInt(ch, 10) || null;
+              d.chapterTitle = val("truyen-ten-chuong-moi");
               d.title = "Viết tiếp " + (selText("truyen-chon") || "truyện đã chọn") + (ch ? " — Chương " + ch : "");
               if (val("truyen-ten-chuong-moi")) d.title += " “" + val("truyen-ten-chuong-moi") + "”";
               d.meta = "Viết tiếp chương mới";
@@ -4849,7 +4632,13 @@
             var note = overlay.querySelector("#rtEditText").value.trim();
             if (!note) { toast("Hãy ghi rõ chỗ cần sửa trước khi gửi."); return; }
             var nv = "v" + (overlayTask.versions.length + 1);
-            overlayTask.versions.push({ id: nv, doc: buildWebDoc(overlayTask.data, nv, note) });
+            overlayTask.versions.push({ id: nv, note: note, doc: buildWebDoc(overlayTask.data, nv, note) });
+            if (overlayTask.apiId) {
+              var vers = overlayTask.versions.map(function (v) { return { id: v.id, note: v.note || "" }; });
+              var newPayload = Object.assign({}, overlayTask.data, { versions: vers });
+              api("/api/tasks/" + overlayTask.apiId, { method: "PATCH", body: { payload: newPayload } })
+                .catch(function (e) { toast("Không lưu được phiên bản mới: " + e.message); });
+            }
             overlay.querySelector("#rtEditText").value = "";
             overlay.querySelector("[data-rt-form]").hidden = true;
             loadOverlayVersion();
@@ -4866,85 +4655,41 @@
         function openOverlay(task) { ensureOverlay(); overlayTask = task; loadOverlayVersion(); overlay.hidden = false; }
         function closeOverlay() { if (overlay) overlay.hidden = true; }
 
-        /* ---- Tạo nhiệm vụ + chạy tiến độ ---- */
-        var taskSeq = 0;
+        /* ---- Tạo nhiệm vụ qua API + chạy tiến độ ---- */
         function onAssign(form) {
           var scr = form.closest ? form.closest("[data-screen]") : null;
           var key = scr ? scr.getAttribute("data-screen") : "";
           var feat = window.APP_CONFIG.features[key];
           if (!feat) { toast("Đã nhận việc mới."); return; }
-          if (staffMode()) {
-            var used = quota.used[key] || 0, lim = quota.limits[key] || 0;
-            if (used >= lim) {
-              toast("Hết lượt " + feat.name + " tuần này (" + used + "/" + lim + "). Muốn dùng thêm, hãy mua thêm lượt hoặc nhờ Admin setup tăng lượt.");
-              return;
-            }
-            quota.used[key] = used + 1;
-          }
           var d = collect(key);
-          var list = scr.querySelector("ul.tasks");
-          if (!list) { toast("Đã giao việc: " + d.title); return; }
-          taskSeq += 1;
-          var task = { id: "rt" + taskSeq, data: d, title: d.title, versions: key === "designweb" ? [{ id: "v1", doc: buildWebDoc(d, "v1", "") }] : [] };
-          var li = document.createElement("li");
-          li.className = "task"; li.setAttribute("data-filter", "");
-          li.setAttribute("data-owner", staffMode() ? "tri-nghia" : "admin");
-          var aiName = feat.aiPrimary;
-          var metaHtml = esc(d.meta || feat.name) + " · " + esc(aiName) + " phụ trách";
-          if (staffMode()) metaHtml += ' <span class="owner-tag">Phụ trách: Trí Nghĩa</span>';
-          li.innerHTML =
-            '<div><div class="t-name">' + esc(d.title) + '</div><div class="t-meta">' + metaHtml + '</div></div>' +
-            '<div class="t-side"><span class="tag run">Đang chạy · 0%</span><div class="bar"><i style="width:0%"></i></div></div>';
-          list.insertBefore(li, list.firstChild);
-          var tag = li.querySelector(".tag"), barFill = li.querySelector(".bar > i"), side = li.querySelector(".t-side");
-          var pct = 0;
-          var iv = setInterval(function () {
-            pct += 10 + Math.round(Math.random() * 14);
-            if (pct >= 100) {
-              pct = 100; clearInterval(iv);
-              tag.className = "tag done"; tag.textContent = "Hoàn thành";
-              var bar = li.querySelector(".bar"); if (bar) bar.remove();
-              var row = document.createElement("div"); row.className = "dl-row";
-              if (key === "designweb") {
-                var vBtn = document.createElement("button");
-                vBtn.type = "button"; vBtn.className = "btn-ghost btn-sm"; vBtn.textContent = "Xem demo";
-                vBtn.addEventListener("click", function () { openOverlay(task); });
-                var dBtn = document.createElement("button");
-                dBtn.type = "button"; dBtn.className = "btn-dl"; dBtn.textContent = "Tải HTML";
-                dBtn.addEventListener("click", function () {
-                  var v = task.versions[task.versions.length - 1];
-                  saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(task.title) + "-" + v.id + ".html");
-                  toast("Đang tải file HTML của bản " + v.id + " về máy…");
-                });
-                row.appendChild(vBtn); row.appendChild(dBtn);
-              } else if (key === "anh") {
-                var iBtn = document.createElement("button");
-                iBtn.type = "button"; iBtn.className = "btn-dl"; iBtn.textContent = "Tải hình ảnh";
-                iBtn.addEventListener("click", function () {
-                  drawImagePNG(d, function (b) { if (b) { saveBlob(b, slug(task.title) + ".png"); toast("Đang tải hình ảnh về máy…"); } });
-                });
-                row.appendChild(iBtn);
-              } else {
-                var tBtn = document.createElement("button");
-                tBtn.type = "button"; tBtn.className = "btn-dl"; tBtn.textContent = "Tải kết quả";
-                tBtn.addEventListener("click", function () {
-                  saveBlob(new Blob([resultText(d)], { type: "text/plain;charset=utf-8" }), slug(task.title) + "-ket-qua.txt");
-                  toast("Đang tải file kết quả về máy…");
-                });
-                row.appendChild(tBtn);
+          if (!d) return; // collect() đã báo lỗi cụ thể.
+          d.ai = feat.aiPrimary;
+          var btn = form.querySelector(".btn-run");
+          if (btn) btn.disabled = true;
+          api("/api/tasks", { method: "POST", body: { feature: key, title: d.title, payload: d } })
+            .then(function (res) {
+              var task = res.task;
+              var list = scr ? scr.querySelector('ul.tasks[data-tasks="' + key + '"]') : null;
+              var li = renderTaskItem(task);
+              if (list) {
+                var empty = list.querySelector(".plan-empty");
+                if (empty) empty.remove();
+                list.insertBefore(li, list.firstChild);
               }
-              side.appendChild(row);
-              toast("Hoàn thành: " + d.title);
-            } else {
-              tag.textContent = "Đang chạy · " + pct + "%";
-              if (barFill) barFill.style.width = pct + "%";
-            }
-          }, 650);
-          var remain = staffMode() ? " — " + feat.name + " còn " + Math.max(0, (quota.limits[key] || 0) - (quota.used[key] || 0)) + " lượt tuần này." : ".";
-          toast("Đã giao việc cho " + aiName + ": " + d.title + remain);
-          if (form.reset) form.reset();
+              runSimulation(li, task, task.payload || d, 0);
+              var q = task.quota;
+              toast("Đã giao việc cho " + feat.aiPrimary + ": " + d.title + (q ? " — " + feat.name + " còn " + q.remaining + " lượt tuần này." : "."));
+              if (q && quotaCache && quotaCache[key]) { quotaCache[key].used = q.used; quotaCache[key].remaining = q.remaining; }
+              if (form.reset) form.reset();
+              syncStory();
+              if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+            })
+            .catch(function (e) {
+              toast(e.message || "Không giao được việc.");
+            })
+            .then(function () { if (btn) btn.disabled = false; });
         }
-        return { onAssign: onAssign };
+        return { onAssign: onAssign, renderTaskItem: renderTaskItem, resumeTask: resumeTask, setQuotaCache: setQuotaCache, getQuotaCache: function () { return quotaCache; } };
       })();
     </script>
   </body>
