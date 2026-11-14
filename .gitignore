@@ -1,0 +1,7 @@
+# Không đẩy key và dữ liệu nhạy cảm lên GitHub
+*.key
+.env
+.env.*
+config/secrets.json
+node_modules/
+.DS_Store
