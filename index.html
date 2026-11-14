@@ -922,8 +922,8 @@
       .member-table{ margin-top:2px; overflow-x:auto; scrollbar-width:thin; }
       .member-head, .member-row{
         display:grid; align-items:center; gap:10px 16px;
-        min-width:868px;
-        grid-template-columns:minmax(176px,1.5fr) minmax(118px,.9fr) minmax(90px,.6fr) minmax(164px,1.15fr) minmax(90px,.6fr) 118px;
+        min-width:760px;
+        grid-template-columns:minmax(176px,1.5fr) minmax(118px,.9fr) minmax(90px,.6fr) minmax(56px,.4fr) minmax(90px,.6fr) 118px;
       }
       .member-head{
         font-size:11.5px; font-weight:800; letter-spacing:.04em; color:var(--muted);
@@ -953,12 +953,48 @@
       .m-rolecell{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
       .m-role{ font-size:13.5px; font-weight:600; color:var(--ink); white-space:nowrap; }
       .m-date{ white-space:nowrap; }
-      .m-usage{ display:block; line-height:1.45; }
-      .m-usage .m-used{ white-space:nowrap; }
-      .m-usage .m-used b{ color:var(--navy); font-weight:700; }
-      .m-usage .m-sep{ margin:0 6px; color:var(--muted); }
-      .m-usage .m-remain{ white-space:nowrap; }
-      .m-usage small{ display:block; font-weight:600; color:var(--muted); font-size:12px; margin-top:1px; }
+      .m-usage{ display:flex; justify-content:flex-end; }
+      .usage-icon{
+        position:relative; width:40px; height:40px; flex:none;
+        border:1.5px solid var(--line); border-radius:12px;
+        background:var(--card); color:var(--navy);
+        display:grid; place-items:center; cursor:pointer;
+      }
+      .usage-icon:hover{ border-color:var(--accent); background:var(--accent-soft); }
+      .usage-icon .ic{ width:20px; height:20px; }
+      .usage-badge{
+        position:absolute; top:-7px; right:-7px;
+        min-width:19px; height:19px; padding:0 5px;
+        border-radius:999px; background:var(--green); color:#fff;
+        font-size:11px; font-weight:800;
+        display:grid; place-items:center; border:2px solid var(--card);
+      }
+      .usage-badge.out{ background:var(--red); }
+      /* Popup bảng thống kê lượt dùng của 1 thành viên */
+      .usage-modal{
+        position:fixed; inset:0; z-index:80;
+        background:rgba(15,23,42,.45);
+        display:flex; align-items:center; justify-content:center; padding:16px;
+      }
+      .usage-modal[hidden]{ display:none; }
+      .usage-card{
+        width:480px; max-width:100%; max-height:88vh; overflow:auto;
+        background:var(--card); border-radius:18px; padding:20px;
+        box-shadow:0 24px 60px rgba(15,23,42,.3);
+      }
+      .usage-head{ display:flex; align-items:center; gap:13px; margin-bottom:6px; }
+      .usage-head .p-avatar{ width:46px; height:46px; font-size:15px; }
+      .usage-head .s-who{ flex:1 1 180px; min-width:0; }
+      .usage-head .s-name{ font-size:16.5px; font-weight:800; color:var(--ink); line-height:1.3; overflow-wrap:anywhere; }
+      .usage-head .s-mail{ font-size:12.5px; color:var(--muted); overflow-wrap:anywhere; }
+      .usage-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+      .usage-table th, .usage-table td{ padding:9px 6px; border-bottom:1px dashed var(--line); text-align:right; font-variant-numeric:tabular-nums; }
+      .usage-table th:first-child, .usage-table td:first-child{ text-align:left; }
+      .usage-table th{ font-size:11.5px; color:var(--muted); font-weight:800; }
+      .usage-table tr:last-child td{ border-bottom:0; }
+      .usage-table td b{ color:var(--navy); }
+      .usage-table .u-out{ color:var(--red); font-weight:700; }
+      .usage-foot{ margin:14px 0 0; font-size:12.5px; color:var(--muted); line-height:1.55; }
       .m-actions{ display:flex; gap:7px; flex:none; align-items:center; }
       .btn-lock{
         width:34px; height:34px; padding:0; flex:none;
@@ -1547,6 +1583,24 @@
                   <span class="lf-note">Cột “Lượt còn lại” của thành viên được cập nhật ngay theo số vừa setup. Vượt giới hạn thì phải mua thêm lượt trong app mới dùng tiếp được.</span>
                 </div>
               </form>
+            </div>
+
+            <div class="usage-modal" id="usageModal" hidden role="dialog" aria-modal="true" aria-labelledby="usageTitle">
+              <div class="usage-card">
+                <div class="usage-head">
+                  <span class="p-avatar" id="usageAvatar" aria-hidden="true">TN</span>
+                  <div class="s-who">
+                    <div class="s-name" id="usageTitle">Lượt dùng — Thành viên</div>
+                    <div class="s-mail" id="usageEmail">email</div>
+                  </div>
+                  <button class="btn-ghost btn-sm" type="button" id="usageClose">Đóng</button>
+                </div>
+                <table class="usage-table">
+                  <thead><tr><th>Tính năng</th><th>Đã dùng</th><th>Giới hạn</th><th>Còn lại</th></tr></thead>
+                  <tbody id="usageBody"></tbody>
+                </table>
+                <p class="usage-foot" id="usageFoot"></p>
+              </div>
             </div>
           </section>
 
@@ -3824,11 +3878,12 @@
       var setupPanel = document.getElementById("setupPanel");
       var setupForm = document.getElementById("setupForm");
       var setupMemberId = null;
+      var USAGE_NAMES = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
       function refreshRemain(row, m) {
         if (!row || !m) return;
-        /* Cột "Lượt dùng" hiển thị theo từng tính năng (đã dùng/giới hạn tuần này):
-           dòng chính là tính năng còn ít lượt nhất (ưu tiên Design Web khi bằng nhau),
-           dòng nhỏ liệt kê các tính năng còn lại. */
+        /* Cột "Lượt dùng" chỉ còn 1 icon: số trên icon là số lượt còn lại ít nhất
+           trong 6 tính năng (ưu tiên Design Web khi bằng nhau); bấm icon mở popup
+           bảng thống kê đầy đủ. */
         var hot = null;
         SETUP_FEATURES.forEach(function (f) {
           var rem = Math.max(0, (m.limits[f.k] || 0) - (m.used[f.k] || 0));
@@ -3836,17 +3891,42 @@
             hot = { k: f.k, name: f.short, rem: rem };
           }
         });
-        var others = [];
-        SETUP_FEATURES.forEach(function (f) {
-          if (f.k !== hot.k) others.push(f.short + " " + (m.used[f.k] || 0) + "/" + (m.limits[f.k] || 0));
-        });
         var cell = row.querySelector("[data-remain]");
         if (cell) cell.innerHTML =
-          '<span class="m-used">' + hot.name + ' đã dùng <b>' + (m.used[hot.k] || 0) + "/" + (m.limits[hot.k] || 0) + '</b></span>' +
-          '<span class="m-sep">·</span>' +
-          '<span class="m-remain' + (hot.rem === 0 ? " out" : "") + '">Còn ' + hot.rem + " lượt</span>" +
-          "<small>" + others.join(" · ") + "</small>";
+          '<button type="button" class="usage-icon" data-usage-id="' + m.id + '" aria-label="Xem lượt dùng của ' + escHtml(m.name) + '">' +
+          '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>' +
+          '<span class="usage-badge' + (hot.rem === 0 ? " out" : "") + '">' + hot.rem + '</span></button>';
       }
+      var usageModal = document.getElementById("usageModal");
+      function openUsage(id) {
+        var m = MEMBERS[id];
+        if (!m || !usageModal) return;
+        document.getElementById("usageAvatar").textContent = m.initials;
+        document.getElementById("usageTitle").textContent = "Lượt dùng — " + m.name;
+        document.getElementById("usageEmail").textContent = m.email;
+        var body = document.getElementById("usageBody");
+        body.innerHTML = "";
+        var minRem = null;
+        SETUP_FEATURES.forEach(function (f) {
+          var used = m.used[f.k] || 0, lim = m.limits[f.k] || 0;
+          var rem = Math.max(0, lim - used);
+          if (minRem === null || rem < minRem) minRem = rem;
+          var tr = document.createElement("tr");
+          tr.innerHTML = '<td>' + escHtml(USAGE_NAMES[f.k] || f.short) + '</td><td>' + used + '</td><td>' + lim + '</td>' +
+            '<td class="' + (rem === 0 ? "u-out" : "") + '"><b>' + (rem === 0 ? "Hết lượt" : rem + " lượt") + '</b></td>';
+          body.appendChild(tr);
+        });
+        var foot = document.getElementById("usageFoot");
+        if (foot) foot.textContent = minRem === 0
+          ? "Thành viên này đã hết lượt ở ít nhất một tính năng — Admin setup tăng lượt trong mục Setup để họ dùng tiếp."
+          : "Mặc định 1 lượt/tuần cho mỗi tính năng. Muốn dùng nhiều hơn thì phải mua thêm lượt — Admin setup trong mục Setup.";
+        usageModal.hidden = false;
+      }
+      function closeUsage() { if (usageModal) usageModal.hidden = true; }
+      var usageClose = document.getElementById("usageClose");
+      if (usageClose) usageClose.addEventListener("click", closeUsage);
+      if (usageModal) usageModal.addEventListener("click", function (e) { if (e.target === usageModal) closeUsage(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && usageModal && !usageModal.hidden) closeUsage(); });
       function openSetup(id) {
         var m = MEMBERS[id];
         if (!m || !setupPanel) return;
@@ -3901,12 +3981,14 @@
       }
       if (memberTable) {
         memberTable.addEventListener("click", function (e) {
+          var usageBtn = e.target.closest ? e.target.closest("[data-usage-id]") : null;
           var setupBtn = e.target.closest ? e.target.closest("[data-member-setup]") : null;
           var lockBtn = e.target.closest ? e.target.closest("[data-member-lock]") : null;
           var delBtn = e.target.closest ? e.target.closest("[data-member-del]") : null;
           var row = e.target.closest ? e.target.closest(".member-row") : null;
           if (!row) return;
           var id = row.getAttribute("data-member-id");
+          if (usageBtn) { openUsage(usageBtn.getAttribute("data-usage-id")); return; }
           if (setupBtn) { openSetup(id); return; }
           var nameEl = row.querySelector(".m-name");
           var mName = nameEl ? nameEl.textContent : "thành viên";
