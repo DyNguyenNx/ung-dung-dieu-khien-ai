@@ -35,7 +35,7 @@
         --r-card:20px;
       }
       *{ box-sizing:border-box; }
-      html,body{ height:100%; }
+      html,body{ height:100%; overflow:hidden; }
       body{
         margin:0;
         font-family:"Be Vietnam Pro",system-ui,sans-serif;
@@ -123,7 +123,7 @@
         border-radius:28px;
         box-shadow:var(--shadow);
         display:flex; flex-direction:column;
-        overflow:hidden;
+        overflow:clip;
         position:relative;
       }
 
@@ -404,7 +404,7 @@
       /* Form giao việc mới */
       .screen > .cols-ai{ margin-top:16px; }
       .assign-form{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
-      .field{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+      .field{ display:flex; flex-direction:column; gap:6px; min-width:0; position:relative; }
       .field[hidden]{ display:none; }
       .field.full{ grid-column:1 / -1; }
       .field label{ font-size:13px; font-weight:700; color:var(--ink); }
@@ -444,8 +444,12 @@
       .ref-note{ font-size:12.5px; color:var(--muted); line-height:1.5; }
       .ref-pick{ align-self:flex-start; }
       .ref-input:focus-visible + .ref-pick{ outline:3px solid var(--accent); outline-offset:2px; }
-      .ref-input{
-        position:absolute; width:1px; height:1px;
+      /* Ô file ẩn: selector .field input.ref-input (độ ưu tiên cao hơn .field input)
+         để chắc chắn ô chỉ 1×1 — nếu bị .field input ghi đè thành 100%×46px,
+         ô sẽ nằm ngoài khung cuộn .content, trình duyệt cuộn .stage khi focus
+         và toàn bộ app bị đẩy lên, để lại khoảng trắng phía dưới (lỗi 14/11). */
+      .field input.ref-input{
+        position:absolute; width:1px; height:1px; padding:0; border:0; margin:0;
         opacity:0; overflow:hidden; pointer-events:none;
       }
       .ref-thumbs{ display:flex; flex-wrap:wrap; gap:10px; margin-top:2px; }
