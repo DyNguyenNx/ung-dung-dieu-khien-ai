@@ -10,4 +10,4 @@ binding = "DB"
 database_name = "app-dieu-khien-ai-db"
 # Điền database_id sau khi tạo D1 trên dashboard (cần cho lệnh remote).
 # Chạy local (--local / pages dev --d1) không cần database_id.
-database_id = "REPLACE-ME-AFTER-CREATING-D1"
+database_id = "d466ce9d-73cf-4aee-863a-1a3dd8a4f55e"
