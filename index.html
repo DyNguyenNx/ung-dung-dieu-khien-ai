@@ -999,6 +999,17 @@
       .usage-table td b{ color:var(--navy); }
       .usage-table .u-out{ color:var(--red); font-weight:700; }
       .usage-foot{ margin:14px 0 0; font-size:12.5px; color:var(--muted); line-height:1.55; }
+      /* Sửa lượt dùng ngay trong popup: ô nhập giới hạn từng tính năng + ô Đã nạp + nút Lưu */
+      .usage-deposit{ display:flex; align-items:center; gap:10px; margin:12px 0 4px; padding:10px 12px; background:var(--stage); border-radius:12px; }
+      .usage-deposit label{ font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; flex:none; }
+      .usage-deposit input{ width:140px; font-family:inherit; font-size:14px; color:var(--ink); background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums; }
+      .usage-deposit input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+      .usage-deposit .u-dep-unit{ font-size:13px; font-weight:600; color:var(--muted); }
+      .usage-deposit .u-dep-note{ margin-left:auto; font-size:12px; color:var(--muted); text-align:right; }
+      .u-limit-input{ width:78px; font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--stage); border:1.5px solid var(--line); border-radius:10px; padding:6px 8px; text-align:right; font-variant-numeric:tabular-nums; }
+      .u-limit-input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:#fff; }
+      .usage-actions{ display:flex; align-items:center; gap:12px; margin-top:14px; }
+      .usage-actions .lf-note{ font-size:12.5px; color:var(--muted); line-height:1.5; }
       .m-actions{ display:flex; gap:7px; flex:none; align-items:center; }
       .btn-lock{
         width:34px; height:34px; padding:0; flex:none;
@@ -1512,83 +1523,6 @@
               <p class="no-result">Không có thành viên nào khớp với từ khóa đang tìm.</p>
             </div>
 
-            <div class="card setup-panel" id="setupPanel" hidden>
-              <div class="setup-head">
-                <span class="p-avatar" id="setupAvatar" aria-hidden="true">TN</span>
-                <div class="s-who">
-                  <div class="s-name" id="setupTitle">Setup lượt dùng — Thành viên</div>
-                  <div class="s-mail" id="setupEmail">tri.nghia@congty.vn</div>
-                </div>
-                <button class="btn-ghost btn-sm" type="button" id="setupClose">Đóng</button>
-              </div>
-              <p class="limit-note"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span><b>Mặc định:</b> mỗi tài khoản được dùng miễn phí 1 lần/tuần cho mỗi tính năng. Muốn dùng nhiều hơn thì phải mua thêm lượt.</span></p>
-              <p class="deposit-note"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Thành viên này đã nạp <b id="setupDeposit">1.000.000đ</b> — Admin căn cứ số tiền đã nạp để tăng thêm lượt dùng cho từng tính năng bên dưới, trên mức mặc định 1 lượt/tuần miễn phí. Mỗi người một mức khác nhau, không áp dụng chung cho mọi người.</span></p>
-              <form id="setupForm">
-                <ul class="limit-list">
-                <li class="limit-row">
-                  <div class="limit-name">Đã nạp</div>
-                  <div class="limit-input">
-                    <input id="setup-deposit" name="setup-deposit" type="number" min="0" step="1000" value="0" aria-label="Số tiền thành viên đã nạp" />
-                    <span class="limit-unit">đ</span>
-                  </div>
-                  <p class="limit-sub">Tổng số tiền thành viên đã nạp — Admin căn cứ vào đây để setup lượt.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Chăm sóc web</div>
-                  <div class="limit-input">
-                    <input id="setup-web" name="setup-web" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Chăm sóc web cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Viết bài SEO, tối ưu nội dung và kiểm tra sức khỏe website.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Chăm sóc page</div>
-                  <div class="limit-input">
-                    <input id="setup-page" name="setup-page" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Chăm sóc page cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Soạn bài đăng, trả lời bình luận và lên lịch nội dung fanpage.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="m10 9.2 5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg>Xây dựng kênh</div>
-                  <div class="limit-input">
-                    <input id="setup-kenh" name="setup-kenh" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Xây dựng kênh cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Dựng video, tạo thumbnail và đăng lên kênh.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="m16 8-14 14"/><path d="M17.5 15H9"/></svg>Viết truyện</div>
-                  <div class="limit-input">
-                    <input id="setup-truyen" name="setup-truyen" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Viết truyện cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Viết chương mới, rà soát và lồng tiếng truyện audio.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg>Thiết kế hình ảnh</div>
-                  <div class="limit-input">
-                    <input id="setup-anh" name="setup-anh" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Thiết kế hình ảnh cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Tạo và chỉnh sửa avatar, banner, thumbnail, ảnh sản phẩm.</p>
-                </li>
-                <li class="limit-row">
-                  <div class="limit-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>Design Web</div>
-                  <div class="limit-input">
-                    <input id="setup-designweb" name="setup-designweb" type="number" min="0" step="1" value="1" aria-label="Số lần dùng Design Web cho thành viên này" />
-                    <span class="limit-unit">lượt / tuần</span>
-                  </div>
-                  <p class="limit-sub">Việc giao cho Thư Ký Mỹ Linh làm — tốn token của Admin nên giới hạn chặt nhất.</p>
-                </li>
-                </ul>
-                <div class="limit-foot">
-                  <button class="btn-run" type="submit"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Lưu</button>
-                  <span class="lf-note">Cột “Lượt còn lại” của thành viên được cập nhật ngay theo số vừa setup. Vượt giới hạn thì phải mua thêm lượt trong app mới dùng tiếp được.</span>
-                </div>
-              </form>
-            </div>
-
             <div class="usage-modal" id="usageModal" hidden role="dialog" aria-modal="true" aria-labelledby="usageTitle">
               <div class="usage-card">
                 <div class="usage-head">
@@ -1599,11 +1533,21 @@
                   </div>
                   <button class="btn-ghost btn-sm" type="button" id="usageClose">Đóng</button>
                 </div>
+                <div class="usage-deposit">
+                  <label for="usageDeposit">Đã nạp</label>
+                  <input id="usageDeposit" type="number" min="0" step="1000" value="0" aria-label="Số tiền thành viên đã nạp" />
+                  <span class="u-dep-unit">đ</span>
+                  <span class="u-dep-note">Căn cứ số tiền đã nạp để tăng lượt bên dưới.</span>
+                </div>
                 <table class="usage-table">
                   <thead><tr><th>Tính năng</th><th>Đã dùng</th><th>Giới hạn</th><th>Còn lại</th></tr></thead>
                   <tbody id="usageBody"></tbody>
                 </table>
                 <p class="usage-foot" id="usageFoot"></p>
+                <div class="usage-actions">
+                  <button class="btn-run" type="button" id="usageSave"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Lưu thay đổi</button>
+                  <span class="lf-note">Sửa số lượt ngay trong bảng rồi bấm Lưu — số lượt còn lại trên icon cập nhật ngay.</span>
+                </div>
               </div>
             </div>
           </section>
@@ -3879,9 +3823,6 @@
         { k: "anh", short: "Ảnh" },
         { k: "designweb", short: "Design Web" }
       ];
-      var setupPanel = document.getElementById("setupPanel");
-      var setupForm = document.getElementById("setupForm");
-      var setupMemberId = null;
       var USAGE_NAMES = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
       function refreshRemain(row, m) {
         if (!row || !m) return;
@@ -3902,12 +3843,16 @@
           '<span class="usage-badge' + (hot.rem === 0 ? " out" : "") + '">' + hot.rem + '</span></button>';
       }
       var usageModal = document.getElementById("usageModal");
+      var usageMemberId = null;
       function openUsage(id) {
         var m = MEMBERS[id];
         if (!m || !usageModal) return;
+        usageMemberId = id;
         document.getElementById("usageAvatar").textContent = m.initials;
         document.getElementById("usageTitle").textContent = "Lượt dùng — " + m.name;
         document.getElementById("usageEmail").textContent = m.email;
+        var depInp = document.getElementById("usageDeposit");
+        if (depInp) depInp.value = m.deposit_vnd || 0;
         var body = document.getElementById("usageBody");
         body.innerHTML = "";
         var minRem = null;
@@ -3916,14 +3861,16 @@
           var rem = Math.max(0, lim - used);
           if (minRem === null || rem < minRem) minRem = rem;
           var tr = document.createElement("tr");
-          tr.innerHTML = '<td>' + escHtml(USAGE_NAMES[f.k] || f.short) + '</td><td>' + used + '</td><td>' + lim + '</td>' +
-            '<td class="' + (rem === 0 ? "u-out" : "") + '"><b>' + (rem === 0 ? "Hết lượt" : rem + " lượt") + '</b></td>';
+          tr.setAttribute("data-used", used);
+          tr.innerHTML = '<td>' + escHtml(USAGE_NAMES[f.k] || f.short) + '</td><td>' + used + '</td>' +
+            '<td><input type="number" class="u-limit-input" min="0" step="1" value="' + lim + '" data-limit-key="' + f.k + '" aria-label="Giới hạn lượt ' + escHtml(USAGE_NAMES[f.k] || f.short) + '" /></td>' +
+            '<td class="u-rem' + (rem === 0 ? " u-out" : "") + '"><b>' + (rem === 0 ? "Hết lượt" : rem + " lượt") + '</b></td>';
           body.appendChild(tr);
         });
         var foot = document.getElementById("usageFoot");
         if (foot) foot.textContent = minRem === 0
-          ? "Thành viên này đã hết lượt ở ít nhất một tính năng — Admin setup tăng lượt trong mục Setup để họ dùng tiếp."
-          : "Mặc định 1 lượt/tuần cho mỗi tính năng. Muốn dùng nhiều hơn thì phải mua thêm lượt — Admin setup trong mục Setup.";
+          ? "Thành viên này đã hết lượt ở ít nhất một tính năng — sửa số lượt ngay trong bảng này rồi bấm Lưu thay đổi."
+          : "Mặc định 1 lượt/tuần cho mỗi tính năng. Muốn dùng nhiều hơn thì sửa số lượt ngay trong bảng này rồi bấm Lưu thay đổi.";
         usageModal.hidden = false;
       }
       function closeUsage() { if (usageModal) usageModal.hidden = true; }
@@ -3931,49 +3878,42 @@
       if (usageClose) usageClose.addEventListener("click", closeUsage);
       if (usageModal) usageModal.addEventListener("click", function (e) { if (e.target === usageModal) closeUsage(); });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape" && usageModal && !usageModal.hidden) closeUsage(); });
-      function openSetup(id) {
-        var m = MEMBERS[id];
-        if (!m || !setupPanel) return;
-        setupMemberId = id;
-        document.getElementById("setupAvatar").textContent = m.initials;
-        document.getElementById("setupTitle").textContent = "Setup lượt dùng — " + m.name;
-        document.getElementById("setupEmail").textContent = m.email;
-        document.getElementById("setupDeposit").textContent = m.deposit;
-        var depInp = document.getElementById("setup-deposit");
-        if (depInp) depInp.value = m.deposit_vnd || 0;
-        SETUP_FIELDS.forEach(function (k) {
-          var inp = document.getElementById("setup-" + k);
-          if (inp) inp.value = (m.limits && m.limits[k] != null) ? m.limits[k] : 1;
+      /* Sửa giới hạn ngay trong popup: gõ số mới thì cột "Còn lại" tính lại tức thì; bấm Lưu thì gửi lên server như mục Setup cũ. */
+      var usageBodyEl = document.getElementById("usageBody");
+      if (usageBodyEl) usageBodyEl.addEventListener("input", function (e) {
+        var inp = e.target.closest ? e.target.closest("[data-limit-key]") : null;
+        if (!inp) return;
+        var tr = inp.closest("tr");
+        var used = tr ? parseInt(tr.getAttribute("data-used"), 10) || 0 : 0;
+        var v = parseInt(inp.value, 10);
+        if (isNaN(v) || v < 0) v = 0;
+        var rem = Math.max(0, v - used);
+        var cell = tr ? tr.querySelector(".u-rem") : null;
+        if (cell) {
+          cell.classList.toggle("u-out", rem === 0);
+          cell.innerHTML = "<b>" + (rem === 0 ? "Hết lượt" : rem + " lượt") + "</b>";
+        }
+      });
+      var usageSave = document.getElementById("usageSave");
+      if (usageSave) usageSave.addEventListener("click", function () {
+        var m = MEMBERS[usageMemberId];
+        if (!m) return;
+        var limits = {};
+        document.querySelectorAll("#usageBody [data-limit-key]").forEach(function (inp) {
+          var v = parseInt(inp.value, 10);
+          limits[inp.getAttribute("data-limit-key")] = (isNaN(v) || v < 0) ? 0 : v;
         });
-        setupPanel.hidden = false;
-        if (setupPanel.scrollIntoView) setupPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      if (setupForm) {
-        setupForm.addEventListener("submit", function (e) {
-          e.preventDefault();
-          var m = MEMBERS[setupMemberId];
-          if (!m) return;
-          var limits = {};
-          SETUP_FIELDS.forEach(function (k) {
-            var inp = document.getElementById("setup-" + k);
-            var v = inp ? parseInt(inp.value, 10) : 0;
-            limits[k] = (isNaN(v) || v < 0) ? 0 : v;
-          });
-          var depInp = document.getElementById("setup-deposit");
-          var dep = depInp ? parseInt(depInp.value, 10) : m.deposit_vnd;
-          if (isNaN(dep) || dep < 0) dep = m.deposit_vnd || 0;
-          window.AppBackend.api("/api/admin/users/" + setupMemberId, { method: "PATCH", body: { limits: limits, deposit_vnd: dep } })
-            .then(function () {
-              showToast("Đã lưu setup lượt dùng cho " + m.name + ".");
-              window.AppBackend.loadAdminUsers();
-            })
-            .catch(function (err) { showToast(err.message || "Không lưu được setup."); });
-        });
-      }
-      var setupClose = document.getElementById("setupClose");
-      if (setupClose && setupPanel) {
-        setupClose.addEventListener("click", function () { setupPanel.hidden = true; });
-      }
+        var depInp = document.getElementById("usageDeposit");
+        var dep = depInp ? parseInt(depInp.value, 10) : m.deposit_vnd;
+        if (isNaN(dep) || dep < 0) dep = m.deposit_vnd || 0;
+        window.AppBackend.api("/api/admin/users/" + usageMemberId, { method: "PATCH", body: { limits: limits, deposit_vnd: dep } })
+          .then(function () {
+            showToast("Đã lưu lượt dùng cho " + m.name + ".");
+            closeUsage();
+            window.AppBackend.loadAdminUsers();
+          })
+          .catch(function (err) { showToast(err.message || "Không lưu được lượt dùng."); });
+      });
       var memberTable = document.getElementById("memberTable");
       var memberCount = document.getElementById("memberCount");
       var memberEmpty = document.getElementById("memberEmpty");
@@ -3986,14 +3926,12 @@
       if (memberTable) {
         memberTable.addEventListener("click", function (e) {
           var usageBtn = e.target.closest ? e.target.closest("[data-usage-id]") : null;
-          var setupBtn = e.target.closest ? e.target.closest("[data-member-setup]") : null;
           var lockBtn = e.target.closest ? e.target.closest("[data-member-lock]") : null;
           var delBtn = e.target.closest ? e.target.closest("[data-member-del]") : null;
           var row = e.target.closest ? e.target.closest(".member-row") : null;
           if (!row) return;
           var id = row.getAttribute("data-member-id");
           if (usageBtn) { openUsage(usageBtn.getAttribute("data-usage-id")); return; }
-          if (setupBtn) { openSetup(id); return; }
           var nameEl = row.querySelector(".m-name");
           var mName = nameEl ? nameEl.textContent : "thành viên";
           if (delBtn) {
@@ -4472,7 +4410,7 @@
               '<div class="m-cell"><span class="m-label">Đã nạp</span><span class="m-money">' + escHtml(m.deposit) + '</span></div>' +
               '<div class="m-cell"><span class="m-label">Lượt dùng</span><span class="m-usage" data-remain></span></div>' +
               '<div class="m-cell"><span class="m-label">Ngày tham gia</span><span class="m-date">' + fmtDateShort(u.created_at) + '</span></div>' +
-              '<div class="m-cell m-actions"><button class="btn-setup" type="button" data-member-setup title="Setup lượt dùng" aria-label="Setup lượt dùng">' + SVG_SETUP + '</button>' + lockBtn +
+              '<div class="m-cell m-actions">' + lockBtn +
               '<button class="btn-del" type="button" data-member-del title="Xoá thành viên" aria-label="Xoá thành viên">' + SVG_DEL + '</button></div>';
             table.appendChild(row);
             refreshRemain(row, m);
