@@ -477,20 +477,13 @@
         display:grid; place-items:center;
       }
       .sec-btn:hover:not(:disabled){ background:#fff; }
-      /* Design Web — Brief 1 lần + 3 núm thiết kế (Hallmark / Taste / Impeccable) */
+      /* Design Web — Brief 1 lần (Hallmark / Taste / Impeccable) */
       .brief-block{ border:1.5px dashed #d9d0fb; border-radius:14px; padding:12px; background:#fbfaff; }
       .brief-block .field{ margin-bottom:10px; }
       .brief-block .field:last-child{ margin-bottom:0; }
       .brief-title{ font-size:13.5px; font-weight:800; color:var(--navy); margin:0 0 4px; }
       .brief-note{ font-size:12.5px; color:var(--muted); margin:0 0 10px; }
       .mat-checks{ display:flex; flex-wrap:wrap; gap:8px; }
-      .dial-row{ display:grid; grid-template-columns:150px 1fr 34px; gap:10px; align-items:center; margin:10px 0; }
-      .dial-row label{ font-size:13px; font-weight:600; color:var(--ink); margin:0; }
-      .dial-row input[type="range"]{ width:100%; accent-color:var(--accent); }
-      .dial-row output{ font-size:13.5px; font-weight:800; color:var(--navy); text-align:center; background:var(--accent-soft); border-radius:8px; padding:4px 0; }
-      .dial-ends{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin:-6px 0 2px 160px; }
-      .std-note{ font-size:12.5px; color:var(--muted); background:#f4f6f8; border-radius:10px; padding:10px 12px; margin:4px 0 0; line-height:1.55; }
-      .std-note b{ color:var(--ink); }
       .sec-btn:disabled{ opacity:.3; cursor:not-allowed; }
       .sec-btn.remove:hover{ background:var(--red); color:#fff; }
       .sec-chip.editing{ background:#fff; border-color:var(--accent); }
@@ -2509,7 +2502,7 @@
                 <div class="field full">
                   <div class="brief-block" aria-label="Brief thiết kế — hỏi 1 lần">
                     <p class="brief-title">Brief thiết kế — hỏi 1 lần</p>
-                    <p class="brief-note">AI đọc brief này trước khi dựng — điền đủ 4 mục để bản thiết kế đúng khách, đúng việc, không phải sửa lại từ đầu.</p>
+                    <p class="brief-note">AI đọc brief này trước khi dựng — điền đủ các mục để bản thiết kế đúng khách, đúng việc, không phải sửa lại từ đầu.</p>
                     <div class="field">
                       <label for="design-audience">Đối tượng xem web</label>
                       <input id="design-audience" name="doiTuong" type="text" placeholder="Ví dụ: Chủ nhà đang tìm đơn vị cải tạo trọn gói tại TP.HCM" />
@@ -2523,17 +2516,6 @@
                         <option>Đặt lịch hẹn / khảo sát</option>
                         <option>Nhắn Zalo / Facebook</option>
                         <option>Khác</option>
-                      </select>
-                    </div>
-                    <div class="field">
-                      <label for="design-tone">Tone thiết kế (chọn 1)</label>
-                      <select id="design-tone" name="toneThietKe">
-                        <option>Editorial — báo chí, serif, khoảng trắng rộng</option>
-                        <option>Hiện đại tối giản — sạch, phẳng, ít chi tiết</option>
-                        <option>Sang trọng — tối màu, serif, khoảng cách rộng</option>
-                        <option>Mềm mại — bo tròn, màu nhạt, thân thiện</option>
-                        <option>Brutalist — thô, khối lớn, chữ to</option>
-                        <option>Vui tươi — màu tươi, hình khối, năng động</option>
                       </select>
                     </div>
                     <div class="field">
@@ -2572,28 +2554,6 @@
                   </div>
                 </div>
                 <div class="field full">
-                  <p class="brief-title">3 núm thiết kế</p>
-                  <p class="brief-note">Kéo để chỉnh hướng thiết kế — mặc định đã đặt theo chuẩn web khách Việt Nam.</p>
-                  <div class="dial-row">
-                    <label for="design-dial-var">Độ biến tấu bố cục</label>
-                    <input id="design-dial-var" name="dialVariance" type="range" min="1" max="10" step="1" value="5" data-dial />
-                    <output id="design-dial-var-out" for="design-dial-var">5</output>
-                  </div>
-                  <div class="dial-ends"><span>1 — Đối xứng, quen thuộc</span><span>10 — Phá cách</span></div>
-                  <div class="dial-row">
-                    <label for="design-dial-motion">Độ chuyển động</label>
-                    <input id="design-dial-motion" name="dialMotion" type="range" min="1" max="10" step="1" value="3" data-dial />
-                    <output id="design-dial-motion-out" for="design-dial-motion">3</output>
-                  </div>
-                  <div class="dial-ends"><span>1 — Tĩnh, chỉ hover</span><span>10 — Điện ảnh</span></div>
-                  <div class="dial-row">
-                    <label for="design-dial-density">Độ dày đặc nội dung</label>
-                    <input id="design-dial-density" name="dialDensity" type="range" min="1" max="10" step="1" value="4" data-dial />
-                    <output id="design-dial-density-out" for="design-dial-density">4</output>
-                  </div>
-                  <div class="dial-ends"><span>1 — Thoáng, ít chữ</span><span>10 — Dày đặc</span></div>
-                </div>
-                <div class="field full">
                   <label for="design-ref">Ảnh mẫu / tài liệu tham khảo</label>
                   <input class="ref-input" id="design-ref" name="refImages" type="file" accept="image/*" multiple />
                   <label class="btn-ghost ref-pick" for="design-ref">
@@ -2607,7 +2567,6 @@
                   <label for="design-note">Ghi chú thêm</label>
                   <textarea id="design-note" name="ghiChu" placeholder="Yêu cầu riêng: bố cục thích kiểu nào, phần nào cần nổi bật, hạn bàn giao…"></textarea>
                 </div>
-                <p class="std-note"><b>Chuẩn thiết kế áp dụng (Hallmark / Taste / Impeccable):</b> không gradient, không eyebrow trên tiêu đề, ảnh và số liệu thật (không bịa), tương phản chữ/nền ≥ 4.5:1, font tiếng Việt an toàn, một màn hình một ý tưởng (~80 từ), kiểm tra ở 390px trước khi giao.</p>
                 <div class="form-foot">
                   <button class="btn-run" type="submit"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>Giao việc</button>
                 </div>
@@ -2696,7 +2655,7 @@
                   </div>
                   <div class="step todo">
                     <span class="s-dot">4</span>
-                    <div><div class="s-name">Dựng bản thiết kế</div><div class="s-by">Dựng giao diện trang chủ theo màu, font và 3 núm đã chốt</div></div>
+                    <div><div class="s-name">Dựng bản thiết kế</div><div class="s-by">Dựng giao diện trang chủ theo màu, font và hướng đã chốt</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">5</span>
@@ -3027,17 +2986,6 @@
         });
       }
 
-      /* ===== Design Web: 3 núm thiết kế — hiện số khi kéo ===== */
-      (function initDesignDials() {
-        var dials = document.querySelectorAll('[data-screen="designweb"] input[data-dial]');
-        for (var i = 0; i < dials.length; i++) {
-          (function (d) {
-            var out = document.getElementById(d.id + "-out");
-            function sync() { if (out) out.textContent = d.value; }
-            d.addEventListener("input", sync); sync();
-          })(dials[i]);
-        }
-      })();
       searchInput.addEventListener("input", function () { applyFilter(this.value); });
 
       /* ===== Dashboard: bấm vào thẻ số liệu để xem chi tiết ===== */
@@ -4632,14 +4580,12 @@
             var mats = [];
             ["design-mat-photo", "design-mat-nums", "design-mat-quote"].forEach(function (id) { var el = document.getElementById(id); if (el && el.checked) mats.push(el.value); });
             d.web = { customer: cust, field: val("design-linhvuc"), color: val("design-color"), font: val("design-font"), ref: val("design-ref-link"), sections: secs, logoPos: logo, note: val("design-note"),
-              audience: val("design-audience"), action: selText("design-action"), tone: selText("design-tone"), materials: mats,
-              dials: { variance: val("design-dial-var"), motion: val("design-dial-motion"), density: val("design-dial-density") } };
+              audience: val("design-audience"), action: selText("design-action"), materials: mats };
             d.meta = [d.web.field, d.web.color ? "Màu: " + d.web.color : "", secs.length ? secs.length + " mục" : ""].filter(Boolean).join(" · ");
             line("Khách hàng / dự án", cust); line("Lĩnh vực", d.web.field); line("Màu chủ đạo", d.web.color);
             line("Font chữ", d.web.font); line("Website tham khảo", d.web.ref);
-            line("Đối tượng xem web", d.web.audience); line("Hành động chính", d.web.action); line("Tone thiết kế", d.web.tone);
+            line("Đối tượng xem web", d.web.audience); line("Hành động chính", d.web.action);
             line("Chất liệu thật đã có", mats.join(", "));
-            line("3 núm thiết kế", "Biến tấu " + d.web.dials.variance + " · Chuyển động " + d.web.dials.motion + " · Mật độ " + d.web.dials.density);
             line("Các mục cần có", secs.join(", ")); line("Vị trí logo", logo); line("Ghi chú", d.web.note);
           }
           return d;
