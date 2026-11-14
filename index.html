@@ -22,14 +22,25 @@
         --navy-deep:#241c4e;
         --accent:#6a48d7;
         --accent-soft:#ece7fd;
-        --green:#178a5c;
+        --green:#0e6b45;
         --green-soft:#e2f4ec;
-        --amber:#a86e08;
+        --amber:#7a5205;
         --amber-soft:#fdf1da;
         --red:#c0392b;
         --red-soft:#fbe9e7;
-        --blue:#2563eb;
+        --blue:#1d4ed8;
         --blue-soft:#e5edfd;
+        --border-soft:#d9d0fb;
+        --bg-soft:#f6f7fb;
+        --bg-brief:#fbfaff;
+        --amber-fill:#e0a32e;
+        --hover-lav:#e0d6fc;
+        --space-sm:8px;
+        --space-md:16px;
+        --space-lg:24px;
+        --text-sm:13px;
+        --text-base:16px;
+        --text-lg:18px;
         --shadow:0 12px 32px rgba(30,27,60,.10);
         --shadow-sm:0 4px 14px rgba(30,27,60,.07);
         --r-card:20px;
@@ -41,7 +52,7 @@
         font-family:"Be Vietnam Pro",system-ui,sans-serif;
         background:var(--bg);
         color:var(--body);
-        font-size:15px;
+        font-size:var(--text-base);
         line-height:1.55;
         -webkit-font-smoothing:antialiased;
       }
@@ -177,17 +188,29 @@
       }
       .view-toggle button.active{ background:var(--navy); color:#fff; box-shadow:0 4px 12px rgba(52,42,110,.28); }
       .view-toggle button small{ display:block; font-size:10.5px; font-weight:600; opacity:.82; }
-      .user-chip{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 12px; box-shadow:var(--shadow-sm); }
+      .user-chip{ display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 12px; box-shadow:var(--shadow-sm); }
       .user-chip .uc-avatar{ width:30px; height:30px; border-radius:50%; background:var(--navy); color:#fff; display:grid; place-items:center; font-size:12px; font-weight:800; flex:none; }
       .user-chip .uc-id{ display:flex; flex-direction:column; line-height:1.25; min-width:0; }
       .user-chip .uc-name{ font-weight:700; color:var(--ink); font-size:13.5px; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .user-chip .uc-role{ font-size:11px; color:var(--muted); font-weight:600; }
       .view-banner{
-        display:flex; gap:11px; align-items:flex-start;
-        background:#fff; border:1.5px solid #d9d0fb; border-radius:16px;
-        padding:13px 16px; margin-bottom:16px;
+        display:flex; gap:11px; align-items:center; flex-wrap:wrap;
+        background:var(--card); border:1.5px solid var(--border-soft); border-radius:16px;
+        padding:10px 14px; margin-bottom:16px;
         font-size:13.5px; line-height:1.55; color:var(--body);
       }
+      .view-banner .vb-short{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .view-banner .vb-help{
+        width:32px; height:32px; flex:none; position:relative;
+        border:1.5px solid var(--line); border-radius:50%;
+        background:var(--card); color:var(--navy);
+        font-size:15px; font-weight:800; font-family:inherit;
+        display:grid; place-items:center; cursor:pointer;
+      }
+      .view-banner .vb-help::after{ content:""; position:absolute; inset:-6px; }
+      .view-banner .vb-help:hover{ border-color:var(--accent); }
+      .view-banner .vb-full{ flex-basis:100%; }
+      .view-banner .vb-full[hidden]{ display:none; }
       .view-banner .vb-ic{
         width:36px; height:36px; flex:none; border-radius:12px;
         background:var(--accent-soft); color:var(--navy);
@@ -199,12 +222,12 @@
         display:inline-flex; align-items:center; gap:5px;
         font-size:11.5px; font-weight:700; line-height:1;
         padding:4px 9px; border-radius:999px; white-space:nowrap;
-        background:var(--accent-soft); color:var(--navy); border:1px solid #d9d0fb;
+        background:var(--accent-soft); color:var(--navy); border:1px solid var(--border-soft);
       }
       .owner-tag.other{ background:var(--stage); color:var(--muted); border-color:var(--line); }
       .owner-tag::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; }
       .live-dot{ width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 1.8s infinite; }
-      @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(23,138,92,.45);} 70%{ box-shadow:0 0 0 7px rgba(23,138,92,0);} 100%{ box-shadow:0 0 0 0 rgba(23,138,92,0);} }
+      @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(14,107,69,.45);} 70%{ box-shadow:0 0 0 7px rgba(23,138,92,0);} 100%{ box-shadow:0 0 0 0 rgba(23,138,92,0);} }
       .icon-btn{
         width:44px; height:44px; flex:none;
         border:1px solid var(--line); border-radius:50%;
@@ -233,7 +256,7 @@
       .notif-list{ list-style:none; margin:0; padding:6px; max-height:320px; overflow:auto; }
       .notif-empty{ padding:18px 12px; text-align:center; color:var(--muted); font-size:13.5px; }
       .notif-item{ display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; background:none; border:0; padding:10px; border-radius:10px; cursor:pointer; font:inherit; color:var(--ink); }
-      .notif-item:hover{ background:var(--bg-soft, #f6f7fb); }
+      .notif-item:hover{ background:var(--bg-soft); }
       .notif-dot{ width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none; background:var(--amber); }
       .notif-dot.error{ background:var(--red); }
       .notif-txt{ display:flex; flex-direction:column; gap:2px; min-width:0; }
@@ -248,20 +271,22 @@
         white-space:nowrap;
         transition:background .18s ease;
       }
+      /* Nút chờ v2 — ẩn tạm (chức năng chưa có trong bản v1, không để nút chết; giữ nguyên HTML để khôi phục ở v2): nút "Chạy tác vụ" trên topbar, 12 nút "Thay AI / Đổi key" ở 6 màn tính năng, "Quên mật khẩu?" và nút xử lý lỗi nhiệm vụ. */
+      [data-toast], #forgotBtn, [data-fix]{ display:none !important; }
       .btn-run:hover{ background:var(--navy-deep); }
 
       /* ---------- Vùng nội dung ---------- */
       .content{
         flex:1; min-height:0;
         overflow-y:auto;
-        padding:16px 20px 20px;
+        padding:var(--space-md) 20px 20px;
         scrollbar-width:thin;
       }
       .screen{ display:none; }
       .screen.active{ display:block; animation:fadein .25s ease; }
       @keyframes fadein{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
 
-      .grid{ display:grid; gap:16px; }
+      .grid{ display:grid; gap:var(--space-md); }
       .cols-2{ grid-template-columns:1fr 1fr; }
       .cols-ai{ grid-template-columns:5fr 7fr; }
 
@@ -272,7 +297,7 @@
         padding:20px 22px;
       }
       .card h2{
-        margin:0 0 4px; font-size:15.5px; font-weight:700; color:var(--ink);
+        margin:0 0 4px; font-size:var(--text-lg); font-weight:700; color:var(--ink);
         display:flex; align-items:center; gap:9px;
       }
       .card h2 .ic{ color:var(--accent); }
@@ -301,7 +326,7 @@
       .bar{ height:9px; border-radius:999px; background:var(--line); overflow:hidden; }
       .bar > i{ display:block; height:100%; border-radius:999px; background:var(--accent); }
       .bar > i.green{ background:var(--green); }
-      .bar > i.amber{ background:#e0a32e; }
+      .bar > i.amber{ background:var(--amber-fill); }
       .prog-row{
         display:grid; grid-template-columns:150px 1fr 46px; align-items:center; gap:14px;
         padding:11px 10px; border-radius:14px;
@@ -351,7 +376,7 @@
       .btn-ghost{
         border:1.5px solid var(--line); background:var(--card);
         color:var(--ink); font-size:13.5px; font-weight:600;
-        border-radius:999px; padding:0 18px; height:42px;
+        border-radius:999px; padding:0 18px; height:44px;
         display:inline-flex; align-items:center; gap:8px;
       }
       .btn-ghost:hover{ border-color:var(--accent); color:var(--navy); }
@@ -417,7 +442,7 @@
       .field input::placeholder, .field textarea::placeholder{ color:var(--muted); }
       .field input:focus, .field select:focus, .field textarea:focus{
         outline:3px solid var(--accent); outline-offset:1px;
-        border-color:var(--accent); background:#fff;
+        border-color:var(--accent); background:var(--card);
       }
       .form-foot{ grid-column:1 / -1; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
       /* Kích thước tự nhập — 2 ô Rộng × Cao trong form Thiết kế hình ảnh */
@@ -473,7 +498,7 @@
       .sec-chips{ display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
       .sec-chip{
         display:inline-flex; align-items:center; gap:3px;
-        background:var(--accent-soft); border:1.5px solid #d9d0fb;
+        background:var(--accent-soft); border:1.5px solid var(--border-soft);
         border-radius:999px; padding:4px 6px 4px 8px;
         max-width:100%;
       }
@@ -484,37 +509,40 @@
         font-size:11px; font-weight:800; margin-right:3px;
       }
       .sec-name{
-        border:0; background:transparent; padding:5px 6px;
+        border:0; background:transparent; padding:4px 10px;
         font-family:inherit; font-size:13.5px; font-weight:600; color:var(--navy);
-        border-radius:999px; text-align:left;
+        border-radius:999px; text-align:left; position:relative;
+        min-height:32px; display:inline-flex; align-items:center;
         overflow-wrap:anywhere;
       }
-      .sec-name:hover{ background:#fff; }
+      .sec-name::after{ content:""; position:absolute; inset:-6px -4px; }
+      .sec-name:hover{ background:var(--card); }
       .sec-name:focus-visible{ outline:3px solid var(--accent); outline-offset:1px; }
       .sec-btn{
-        width:26px; height:26px; flex:none; padding:0;
+        width:32px; height:32px; flex:none; padding:0; position:relative;
         border:0; border-radius:50%;
         background:transparent; color:var(--navy);
         font-size:14px; line-height:1; font-weight:700;
         display:grid; place-items:center;
       }
-      .sec-btn:hover:not(:disabled){ background:#fff; }
+      .sec-btn::after{ content:""; position:absolute; inset:-6px; }
+      .sec-btn:hover:not(:disabled){ background:var(--card); }
       /* Design Web — Brief 1 lần (Hallmark / Taste / Impeccable) */
-      .brief-block{ border:1.5px dashed #d9d0fb; border-radius:14px; padding:12px; background:#fbfaff; }
+      .brief-block{ border:1.5px dashed var(--border-soft); border-radius:14px; padding:12px; background:var(--bg-brief); }
       .brief-block .field{ margin-bottom:10px; }
       .brief-block .field:last-child{ margin-bottom:0; }
       .brief-title{ font-size:13.5px; font-weight:800; color:var(--navy); margin:0 0 4px; }
       .brief-note{ font-size:12.5px; color:var(--muted); margin:0 0 10px; }
-      .mat-checks{ display:flex; flex-wrap:wrap; gap:8px; }
+      .mat-checks{ display:flex; flex-wrap:wrap; gap:var(--space-sm); }
       .sec-btn:disabled{ opacity:.3; cursor:not-allowed; }
       .sec-btn.remove:hover{ background:var(--red); color:#fff; }
-      .sec-chip.editing{ background:#fff; border-color:var(--accent); }
+      .sec-chip.editing{ background:var(--card); border-color:var(--accent); }
       .sec-edit{
         font-family:inherit; font-size:13.5px; font-weight:600; color:var(--ink);
         background:var(--stage); border:1.5px solid var(--accent); border-radius:999px;
         padding:5px 12px; height:32px; min-width:0; width:150px; max-width:56vw;
       }
-      .sec-edit:focus{ outline:3px solid var(--accent); outline-offset:1px; background:#fff; }
+      .sec-edit:focus{ outline:3px solid var(--accent); outline-offset:1px; background:var(--card); }
       .sec-chip.add{
         border-style:dashed; border-color:var(--accent); background:transparent;
         color:var(--accent); font-size:18px; font-weight:700; line-height:1;
@@ -543,7 +571,7 @@
         border:0; border-radius:999px;
         background:var(--navy); color:#fff;
         font-size:13px; font-weight:700; font-family:inherit;
-        padding:0 16px; height:38px;
+        padding:0 16px; height:44px;
         text-decoration:none; cursor:pointer; white-space:nowrap;
         transition:background .18s ease;
       }
@@ -560,7 +588,7 @@
       .story-summary{
         grid-column:1 / -1; margin:0;
         background:var(--accent-soft); color:var(--navy);
-        border:1px solid #d9d0fb; border-radius:12px;
+        border:1px solid var(--border-soft); border-radius:12px;
         padding:11px 14px; font-size:13.5px; font-weight:600; line-height:1.5;
       }
       .story-summary b{ color:var(--ink); }
@@ -585,7 +613,7 @@
       .ai-picker select{
         margin-left:auto; font-family:inherit; font-size:14px; font-weight:600; color:var(--navy);
         background:var(--accent-soft); border:1.5px solid transparent; border-radius:999px;
-        height:42px; padding:0 16px; max-width:100%;
+        height:44px; padding:0 16px; max-width:100%;
       }
       .ai-picker select:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
       .ai-picker-note{ font-size:12.5px; font-weight:700; color:var(--amber); background:var(--amber-soft); padding:7px 13px; border-radius:999px; }
@@ -595,7 +623,7 @@
       /* Khối nhập dự án mới trong form giao việc */
       .new-project{
         grid-column:1 / -1;
-        background:#fff; border:1.5px dashed var(--accent); border-radius:14px;
+        background:var(--card); border:1.5px dashed var(--accent); border-radius:14px;
         padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:14px 16px;
       }
       .new-project[hidden]{ display:none; }
@@ -605,7 +633,7 @@
       .pass-wrap input{ padding-right:50px; }
       .pass-toggle{
         position:absolute; right:5px; top:50%; transform:translateY(-50%);
-        width:38px; height:38px; border:0; border-radius:10px;
+        width:44px; height:44px; border:0; border-radius:10px;
         background:transparent; color:var(--muted);
         display:grid; place-items:center;
       }
@@ -621,14 +649,15 @@
       .stat-card.active-stat{ box-shadow:0 0 0 2.5px var(--accent), var(--shadow-sm); }
       .stat-card::after{
         content:"Bấm để xem chi tiết";
-        display:block; margin-top:10px;
+        display:none; margin-top:10px;
         font-size:12px; font-weight:700; color:var(--accent);
       }
+      .stat-card:hover::after, .stat-card:focus-visible::after{ display:block; }
       .dash-detail{ margin-top:16px; }
       .dash-detail[hidden]{ display:none; }
       .dash-detail-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px; }
       .dash-detail-head h2{ margin:0; }
-      .btn-sm{ height:36px; padding:0 14px; font-size:12.5px; }
+      .btn-sm{ height:44px; padding:0 14px; font-size:12.5px; }
 
       /* Lịch & Kế hoạch theo dự án */
       .plan-card{ margin-top:16px; }
@@ -672,7 +701,7 @@
       .dock::before{ width:340px; height:340px; right:-90px; top:-190px; }
       .dock::after{ width:220px; height:220px; right:300px; bottom:-150px; background:rgba(124,92,255,.13); }
       .dock-card{ position:relative; z-index:1; border-radius:18px; padding:16px 20px; min-width:0; }
-      .dock-solid{ background:#fff; }
+      .dock-solid{ background:var(--card); }
       .dock-solid .d-label{ font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:6px; }
       .dock-solid .d-big{ font-size:16.5px; font-weight:800; color:var(--ink); line-height:1.4; }
       .dock-solid .d-nums{ display:flex; gap:22px; margin-top:10px; flex-wrap:wrap; }
@@ -689,7 +718,7 @@
       .dock-glass .d-big{ font-size:16px; font-weight:700; line-height:1.45; }
       .dock-glass .d-sub{ font-size:13px; color:rgba(255,255,255,.85); margin-top:3px; }
       .dock-glass .bar{ background:rgba(255,255,255,.25); margin-top:11px; }
-      .dock-glass .bar > i{ background:#fff; }
+      .dock-glass .bar > i{ background:var(--card); }
       .foot-note{
         text-align:center; font-size:12px; color:var(--muted);
         margin:14px 0 0;
@@ -764,7 +793,7 @@
         border-radius:999px; font-size:14.5px; font-weight:700; font-family:inherit;
         display:inline-flex; align-items:center; gap:8px;
       }
-      .btn-demo:hover{ background:#e0d6fc; }
+      .btn-demo:hover{ background:var(--hover-lav); }
       .auth-alt{ margin:18px 0 0; text-align:center; font-size:13.5px; color:var(--muted); }
       .auth-back{ display:inline-flex; align-items:center; gap:6px; margin-bottom:16px; }
       .auth-pending-ic{
@@ -811,14 +840,14 @@
       .p-meta{ font-size:12.5px; color:var(--muted); overflow-wrap:anywhere; }
       .p-actions{ display:flex; gap:8px; flex:none; }
       .btn-approve{
-        border:0; border-radius:999px; height:38px; padding:0 17px;
+        border:0; border-radius:999px; height:44px; padding:0 17px;
         background:var(--green); color:#fff;
         font-size:13px; font-weight:700; font-family:inherit;
         display:inline-flex; align-items:center; gap:6px;
       }
-      .btn-approve:hover{ background:#11704a; }
+      .btn-approve:hover{ background:var(--green); }
       .btn-reject{
-        border:1.5px solid var(--line); border-radius:999px; height:38px; padding:0 17px;
+        border:1.5px solid var(--line); border-radius:999px; height:44px; padding:0 17px;
         background:var(--card); color:var(--red);
         font-size:13px; font-weight:700; font-family:inherit;
         display:inline-flex; align-items:center; gap:6px;
@@ -840,15 +869,16 @@
       @media (max-width:720px){
         .app{ padding:0 0 88px; gap:0; }
         .rail{ display:none; }
-        .stage{ border-radius:0; box-shadow:none; }
+        .stage{ border-radius:0; box-shadow:none; overflow-y:auto; }
+        .content{ overflow:visible; }
         .topbar{
           margin:10px 12px 2px; border-radius:22px;
           flex-wrap:wrap; padding:14px 16px; row-gap:10px;
         }
         .topbar h1{ font-size:17px; }
         .search{ order:3; flex-basis:100%; max-width:none; margin-left:0; }
-        .btn-run{ margin-left:auto; padding:0 16px; height:42px; font-size:13px; }
-        .icon-btn{ width:42px; height:42px; }
+        .btn-run{ margin-left:auto; padding:0 16px; height:44px; font-size:13px; }
+        .icon-btn{ width:44px; height:44px; }
         .content{ padding:12px 12px 20px; }
         .stats{ grid-template-columns:repeat(2,1fr); }
         .stat-num{ font-size:25px; }
@@ -864,9 +894,9 @@
         .dock{ margin:16px 0 0; grid-template-columns:1fr; padding:12px; }
         .assign-form{ grid-template-columns:1fr; }
         .tabbar{
-          display:flex; position:fixed; left:12px; right:12px; bottom:12px; z-index:60;
+          display:flex; position:fixed; left:6px; right:6px; bottom:12px; z-index:60;
           background:var(--card); border-radius:999px; box-shadow:var(--shadow);
-          padding:8px; justify-content:space-between; gap:2px;
+          padding:5px 4px; justify-content:space-between; gap:2px;
         }
         .tab-btn{
           flex:1; border:0; background:transparent; border-radius:999px;
@@ -895,7 +925,7 @@
       }
       .limit-note{
         display:flex; gap:9px; align-items:flex-start;
-        background:var(--amber-soft); color:#7a5205;
+        background:var(--amber-soft); color:var(--amber);
         border-radius:12px; padding:11px 14px; margin:0 0 6px;
         font-size:13.5px; font-weight:600; line-height:1.55;
       }
@@ -915,7 +945,7 @@
         font-family:inherit; font-size:15px; font-weight:700; color:var(--navy);
         background:var(--stage); border:1.5px solid var(--line); border-radius:12px; padding:0 8px;
       }
-      .limit-input input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:#fff; }
+      .limit-input input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:var(--card); }
       .limit-unit{ font-size:12.5px; font-weight:600; color:var(--muted); white-space:nowrap; }
       .limit-foot{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:16px; }
       .limit-foot .lf-note{ font-size:12.5px; color:var(--muted); }
@@ -959,7 +989,7 @@
       .m-date{ white-space:nowrap; }
       .m-usage{ display:flex; justify-content:flex-end; }
       .usage-icon{
-        position:relative; width:40px; height:40px; flex:none;
+        position:relative; width:44px; height:44px; flex:none;
         border:1.5px solid var(--line); border-radius:12px;
         background:var(--card); color:var(--navy);
         display:grid; place-items:center; cursor:pointer;
@@ -982,8 +1012,8 @@
       }
       .usage-modal[hidden]{ display:none; }
       .usage-card{
-        width:480px; max-width:100%; max-height:88vh; overflow:auto;
-        background:var(--card); border-radius:18px; padding:20px;
+        width:480px; max-width:100%; max-height:calc(88vh - 96px); overflow:auto;
+        background:var(--card); border-radius:18px; padding:20px 20px 28px;
         box-shadow:0 24px 60px rgba(15,23,42,.3);
       }
       .usage-head{ display:flex; align-items:center; gap:13px; margin-bottom:6px; }
@@ -1002,17 +1032,18 @@
       /* Sửa lượt dùng ngay trong popup: ô nhập giới hạn từng tính năng + ô Đã nạp + nút Lưu */
       .usage-deposit{ display:flex; align-items:center; gap:10px; margin:12px 0 4px; padding:10px 12px; background:var(--stage); border-radius:12px; }
       .usage-deposit label{ font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; flex:none; }
-      .usage-deposit input{ width:140px; font-family:inherit; font-size:14px; color:var(--ink); background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums; }
+      .usage-deposit input{ width:140px; font-family:inherit; font-size:14px; color:var(--ink); background:var(--card); border:1.5px solid var(--line); border-radius:10px; padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums; }
       .usage-deposit input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
       .usage-deposit .u-dep-unit{ font-size:13px; font-weight:600; color:var(--muted); }
       .usage-deposit .u-dep-note{ margin-left:auto; font-size:12px; color:var(--muted); text-align:right; }
       .u-limit-input{ width:78px; font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--stage); border:1.5px solid var(--line); border-radius:10px; padding:6px 8px; text-align:right; font-variant-numeric:tabular-nums; }
-      .u-limit-input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:#fff; }
-      .usage-actions{ display:flex; align-items:center; gap:12px; margin-top:14px; }
+      .u-limit-input:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:var(--card); }
+      /* M2: footer sticky trong card cuon — nut Luu luon hien o day card, tren thanh tab mobile. */
+      .usage-actions{ display:flex; align-items:center; gap:12px; margin:14px -20px -28px; padding:14px 20px 20px; position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--line); }
       .usage-actions .lf-note{ font-size:12.5px; color:var(--muted); line-height:1.5; }
       .m-actions{ display:flex; gap:7px; flex:none; align-items:center; }
       .btn-lock{
-        width:34px; height:34px; padding:0; flex:none;
+        width:44px; height:44px; padding:0; flex:none;
         border:1.5px solid var(--line); border-radius:50%;
         background:var(--card); color:var(--amber);
         display:grid; place-items:center;
@@ -1024,7 +1055,7 @@
       .btn-lock.unlock .ic-lock{ display:none; }
       .btn-lock.unlock .ic-unlock{ display:block; }
       .btn-del{
-        width:34px; height:34px; padding:0; flex:none;
+        width:44px; height:44px; padding:0; flex:none;
         border:1.5px solid var(--line); border-radius:50%;
         background:var(--card); color:var(--red);
         display:grid; place-items:center;
@@ -1051,7 +1082,7 @@
       .deposit-note{
         display:flex; gap:9px; align-items:flex-start;
         background:var(--accent-soft); color:var(--navy);
-        border:1px solid #d9d0fb; border-radius:12px; padding:11px 14px; margin:10px 0 6px;
+        border:1px solid var(--border-soft); border-radius:12px; padding:11px 14px; margin:10px 0 6px;
         font-size:13.5px; font-weight:600; line-height:1.55;
       }
       .deposit-note .ic{ color:var(--accent); margin-top:1px; }
@@ -1080,13 +1111,13 @@
       .dl-row{ gap:8px; flex-wrap:wrap; }
       .btn-view{
         display:inline-flex; align-items:center; gap:7px;
-        border:1.5px solid #d9d0fb; border-radius:999px;
+        border:1.5px solid var(--border-soft); border-radius:999px;
         background:var(--accent-soft); color:var(--navy);
         font-size:13px; font-weight:700; font-family:inherit;
-        padding:0 16px; height:38px; white-space:nowrap; cursor:pointer;
+        padding:0 16px; height:44px; white-space:nowrap; cursor:pointer;
         transition:background .18s ease, border-color .18s ease;
       }
-      .btn-view:hover{ background:#e0d6fc; border-color:var(--accent); }
+      .btn-view:hover{ background:var(--hover-lav); border-color:var(--accent); }
       .preview-wrap{
         position:fixed; inset:0; z-index:90;
         background:rgba(30,27,60,.55);
@@ -1107,7 +1138,7 @@
       .preview-head p{ margin:0; font-size:13px; color:var(--muted); overflow-wrap:anywhere; }
       .preview-head .tag{ margin-top:4px; }
       .preview-frame-box{
-        background:#fff; border:1.5px solid var(--line); border-radius:18px;
+        background:var(--card); border:1.5px solid var(--line); border-radius:18px;
         overflow:hidden;
       }
       .preview-frame-bar{
@@ -1119,12 +1150,12 @@
       .preview-frame-bar .dot3{ display:flex; gap:5px; flex:none; }
       .preview-frame-bar .dot3 i{ width:9px; height:9px; border-radius:50%; background:var(--line); display:block; }
       .preview-frame-bar .pf-addr{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-      .preview-frame{ display:block; width:100%; height:min(58vh,560px); border:0; background:#fff; }
+      .preview-frame{ display:block; width:100%; height:min(58vh,560px); border:0; background:var(--card); }
       .preview-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center; }
       .preview-actions .btn-run, .preview-actions .btn-ghost{ height:44px; }
       .preview-actions .pa-note{ font-size:12.5px; color:var(--muted); margin-left:auto; }
       .edit-form{
-        margin-top:14px; background:#fff; border:1.5px solid #d9d0fb; border-radius:16px;
+        margin-top:14px; background:var(--card); border:1.5px solid var(--border-soft); border-radius:16px;
         padding:16px;
       }
       .edit-form[hidden]{ display:none; }
@@ -1144,7 +1175,7 @@
       .version-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
       .version-item{
         display:flex; align-items:center; gap:12px; width:100%; text-align:left;
-        background:#fff; border:1.5px solid var(--line); border-radius:14px;
+        background:var(--card); border:1.5px solid var(--line); border-radius:14px;
         padding:11px 14px; font-family:inherit; cursor:pointer;
       }
       .version-item:hover{ border-color:var(--accent); }
@@ -1191,7 +1222,7 @@
       .rt-head h2 .ic{ color:var(--accent); }
       .rt-ver{ font-size:12px; font-weight:700; color:var(--navy); background:var(--accent-soft); padding:4px 11px; border-radius:999px; }
       .rt-actions{ margin-left:auto; display:flex; gap:9px; flex-wrap:wrap; }
-      .rt-frame{ border:0; border-top:1px solid var(--line); width:100%; flex:1; min-height:46dvh; background:#fff; }
+      .rt-frame{ border:0; border-top:1px solid var(--line); width:100%; flex:1; min-height:46dvh; background:var(--card); }
       .rt-edit{ border-top:1px solid var(--line); padding:14px 20px 18px; }
       .rt-edit[hidden]{ display:none; }
       .rt-edit label{ display:block; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px; }
@@ -1200,7 +1231,7 @@
         background:var(--stage); border:1.5px solid var(--line); border-radius:12px;
         padding:11px 14px; min-height:74px; resize:vertical; line-height:1.5;
       }
-      .rt-edit textarea:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:#fff; }
+      .rt-edit textarea:focus{ outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent); background:var(--card); }
       .rt-edit-foot{ display:flex; gap:10px; margin-top:11px; flex-wrap:wrap; }
       @media (max-width:720px){ .rt-actions{ margin-left:0; } .rt-frame{ min-height:52dvh; } }
     </style>
@@ -1397,9 +1428,11 @@
         <main class="content" id="content">
 
           <!-- Banner giải thích quy tắc phân quyền theo chế độ xem -->
-          <div class="view-banner" id="viewBanner" role="status">
+          <div class="view-banner" id="viewBanner">
             <span class="vb-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <div id="viewBannerText"><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b></div>
+            <div class="vb-short" id="viewBannerShort"><span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình</div>
+            <button class="vb-help" type="button" id="viewBannerHelp" aria-label="Giải thích quy tắc phân quyền" aria-expanded="false">?</button>
+            <div class="vb-full" id="viewBannerText" hidden><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b></div>
           </div>
 
           <!-- ======== MÀN HÌNH: DASHBOARD ======== -->
@@ -1411,7 +1444,7 @@
                   <span class="stat-ic violet"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
                   <span class="delta up">+12 hôm nay</span>
                 </div>
-                <div class="stat-num">128</div>
+                <div class="stat-num">—</div>
                 <div class="stat-label">Nhiệm vụ hôm nay</div>
                 <div class="stat-note">Trên cả 6 tính năng</div>
               </div>
@@ -1420,7 +1453,7 @@
                   <span class="stat-ic violet"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8"/><path d="M21 3v5h-5"/></svg></span>
                   <span class="delta up">Ổn định</span>
                 </div>
-                <div class="stat-num">6</div>
+                <div class="stat-num">—</div>
                 <div class="stat-label">Đang chạy</div>
                 <div class="stat-note">3 AI đang xử lý song song</div>
               </div>
@@ -1429,16 +1462,16 @@
                   <span class="stat-ic green"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                   <span class="delta up">Đạt 75%</span>
                 </div>
-                <div class="stat-num">96</div>
+                <div class="stat-num">—</div>
                 <div class="stat-label">Đã hoàn thành</div>
-                <div class="stat-note">Trong tổng 128 nhiệm vụ</div>
+                <div class="stat-note">Trong tổng — nhiệm vụ</div>
               </div>
               <div class="card stat-card">
                 <div class="stat-top">
                   <span class="stat-ic red"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
                   <span class="delta warn">Cần xem</span>
                 </div>
-                <div class="stat-num">3</div>
+                <div class="stat-num">—</div>
                 <div class="stat-label">Lỗi cần xử lý</div>
                 <div class="stat-note">2 ở web, 1 ở kênh video</div>
               </div>
@@ -1462,33 +1495,33 @@
                 <p class="hint">Bấm vào một dòng để mở đúng màn hình tính năng đó.</p>
                 <button class="prog-row" type="button" data-go="web">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Chăm sóc web</span>
-                  <span class="bar"><i style="width:82%"></i></span>
-                  <span class="p-val">82%</span>
+                  <span class="bar"><i style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
                 <button class="prog-row" type="button" data-go="page">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Chăm sóc page</span>
-                  <span class="bar"><i style="width:64%"></i></span>
-                  <span class="p-val">64%</span>
+                  <span class="bar"><i style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
                 <button class="prog-row" type="button" data-go="kenh">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="m10 9.2 5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg>Xây dựng kênh</span>
-                  <span class="bar"><i class="amber" style="width:45%"></i></span>
-                  <span class="p-val">45%</span>
+                  <span class="bar"><i class="amber" style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
                 <button class="prog-row" type="button" data-go="truyen">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="m16 8-14 14"/><path d="M17.5 15H9"/></svg>Viết truyện</span>
-                  <span class="bar"><i class="amber" style="width:30%"></i></span>
-                  <span class="p-val">30%</span>
+                  <span class="bar"><i class="amber" style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
                 <button class="prog-row" type="button" data-go="anh">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg>Thiết kế hình ảnh</span>
-                  <span class="bar"><i style="width:58%"></i></span>
-                  <span class="p-val">58%</span>
+                  <span class="bar"><i style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
                 <button class="prog-row" type="button" data-go="designweb">
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>Design Web</span>
-                  <span class="bar"><i style="width:60%"></i></span>
-                  <span class="p-val">60%</span>
+                  <span class="bar"><i style="width:0%"></i></span>
+                  <span class="p-val">—</span>
                 </button>
               </div>
 
@@ -1516,7 +1549,7 @@
 
             <div class="card" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Danh sách thành viên<span class="count-chip" id="memberCount">4 thành viên</span></h2>
-              <p class="hint">Danh sách nhân viên của ứng dụng (không gồm tài khoản Admin). Mặc định mỗi tài khoản được dùng miễn phí 1 lượt/tuần cho mỗi tính năng; muốn dùng nhiều hơn thì phải mua thêm lượt — Admin setup tăng lượt riêng cho từng người theo số tiền họ đã nạp, bấm icon Setup ở từng thành viên để chỉnh. Khoá tài khoản thì nhân viên không đăng nhập được nữa; xoá là gỡ hẳn khỏi app.</p>
+              <p class="hint">Danh sách nhân viên (không gồm tài khoản Admin). Bấm icon Lượt dùng ở từng thành viên để xem và sửa số lượt ngay trong bảng.</p>
               <div class="member-table" id="memberTable">
                 <div class="member-head" aria-hidden="true"><span>Thành viên</span><span>Vai trò &amp; trạng thái</span><span>Đã nạp</span><span>Lượt dùng</span><span>Ngày tham gia</span><span>Thao tác</span></div>
               <p class="member-empty" id="memberEmpty" hidden>Chưa có thành viên nào.</p>
@@ -1851,7 +1884,6 @@
             <div class="grid cols-ai" data-admin-only>
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách</h2>
-                <p class="hint">Tính năng cố định — AI ngồi vào vị trí này đổi được bất cứ lúc nào.</p>
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7L4.4 10.6l5.7-1.9z"/></svg></span>
                   <div>
@@ -2017,7 +2049,6 @@
             <div class="grid cols-ai" data-admin-only>
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách</h2>
-                <p class="hint">Tính năng cố định — AI ngồi vào vị trí này đổi được bất cứ lúc nào.</p>
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="m10 9.2 5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg></span>
                   <div>
@@ -2216,7 +2247,6 @@
             <div class="grid cols-ai" data-admin-only>
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách</h2>
-                <p class="hint">Tính năng cố định — AI ngồi vào vị trí này đổi được bất cứ lúc nào.</p>
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7L4.4 10.6l5.7-1.9z"/></svg></span>
                   <div>
@@ -2420,7 +2450,6 @@
             <div class="grid cols-ai" data-admin-only>
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách</h2>
-                <p class="hint">Tính năng cố định — AI ngồi vào vị trí này đổi được bất cứ lúc nào.</p>
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg></span>
                   <div>
@@ -2642,7 +2671,6 @@
             <div class="grid cols-ai" data-admin-only>
               <div class="card">
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách</h2>
-                <p class="hint">Tính năng cố định — AI ngồi vào vị trí này đổi được bất cứ lúc nào.</p>
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
                   <div>
@@ -2905,8 +2933,9 @@
       function showToast(msg) {
         toastEl.textContent = msg;
         toastEl.classList.add("show");
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2800);
+        /* M7: 1 timer chung (window.toastTimer) cho ca showToast va toast() — tranh timer cu cat ngan toast moi. */
+        if (window.toastTimer) clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 5000);
       }
 
       var currentScreen = "dashboard";
@@ -2973,6 +3002,8 @@
         dockStats.innerHTML = data.stats;
         dockDetail.innerHTML = data.detail;
         contentEl.scrollTop = 0;
+        var stageEl = document.querySelector(".stage");
+        if (stageEl) stageEl.scrollTop = 0;
         searchInput.value = "";
         applyFilter("");
       }
@@ -3781,6 +3812,12 @@
           avatar.title = staff ? "Tài khoản nhân viên: " + displayName : "Tài khoản của anh Dy";
         }
         var banner = document.getElementById("viewBannerText");
+        var bannerShort = document.getElementById("viewBannerShort");
+        if (bannerShort) {
+          bannerShort.innerHTML = staff
+            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — chỉ thấy việc của mình'
+            : '<span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình';
+        }
         if (banner) {
           banner.innerHTML = staff
             ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — Giao diện này <b>chỉ hiện nhiệm vụ của chính bạn</b>; nhiệm vụ của nhân viên khác đã ẩn, mục <b>Quản lý tài khoản bị ẩn hẳn</b> và số liệu Dashboard chỉ tính phần việc của bạn. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>'
@@ -3808,6 +3845,15 @@
             : "Đã chuyển sang chế độ Admin — thấy tất cả việc của mọi người.");
         }
       }
+      /* M8: nút "?" trên banner phân quyền mở/đóng phần giải thích đầy đủ. */
+      var vbHelp = document.getElementById("viewBannerHelp");
+      if (vbHelp) vbHelp.addEventListener("click", function () {
+        var full = document.getElementById("viewBannerText");
+        if (!full) return;
+        var open = full.hidden;
+        full.hidden = !open;
+        vbHelp.setAttribute("aria-expanded", open ? "true" : "false");
+      });
       // (Da bo: nut chuyen che do xem demo Admin/Nhan vien — quyen lay tu tai khoan dang nhap.)
 
       /* ===== Quản lý tài khoản: setup lượt dùng RIÊNG cho từng thành viên (theo số tiền đã nạp) ===== */
@@ -4225,7 +4271,7 @@
                 li.innerHTML =
                   '<span class="f-ic">' + FEED_ICON + '</span>' +
                   '<span class="f-txt"><b>' + escHtml(r.owner) + '</b> · ' + escHtml(FEATURE_NAMES[r.feature] || r.feature) + ' — ' + escHtml(r.title) +
-                  (r.meta ? '<span class="f-meta">' + escHtml(r.meta) + '</span>' : '') + '</span>' +
+                  (r.meta ? ' · <span class="f-meta">' + escHtml(r.meta) + '</span>' : '') + '</span>' +
                   '<span class="f-time">' + fmtTime(r.created_at) + '</span>';
                 feed.appendChild(li);
               });
@@ -4236,13 +4282,25 @@
             }
             var liveChip = document.getElementById("liveChip");
             if (liveChip) liveChip.innerHTML = '<span class="live-dot"></span>' + (d.running > 0 ? d.running + " AI đang chạy" : "Không có AI đang chạy");
+            if (liveChip) { liveChip.onclick = null; liveChip.style.cursor = ""; }
             AppState.recentFeed = d.recent || [];
             refreshNotifs();
             updateDashStats();
             var cur = screenData(currentScreen);
             if (cur) { dockStats.innerHTML = cur.stats; dockDetail.innerHTML = cur.detail; }
             applyFilter(searchInput.value);
-          }).catch(function () {});
+          }).catch(function () {
+            /* M6: API lỗi thì báo rõ, không để số mẫu hiện như số thật. */
+            var liveChipErr = document.getElementById("liveChip");
+            if (liveChipErr) {
+              liveChipErr.innerHTML = '<span class="live-dot"></span>Không tải được số liệu — bấm để thử lại';
+              liveChipErr.style.cursor = "pointer";
+              liveChipErr.onclick = function () { refreshDashboard(); };
+            }
+            document.querySelectorAll('[data-screen="dashboard"] .stat-num').forEach(function (el) { el.textContent = "—"; });
+            document.querySelectorAll('[data-screen="dashboard"] .p-val').forEach(function (el) { el.textContent = "—"; });
+            document.querySelectorAll('[data-screen="dashboard"] .prog-row .bar i').forEach(function (el) { el.style.width = "0%"; });
+          });
         }
 
         /* ---------- Thong bao (chuong): so lieu that tu API, 0 thi an badge ---------- */
@@ -4498,8 +4556,9 @@
           if (!t) return;
           t.textContent = msg;
           t.classList.add("show");
-          if (toastTimer) clearTimeout(toastTimer);
-          toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3200);
+          if (window.toastTimer) clearTimeout(window.toastTimer);
+          /* Cung chuan M7: toast hien 5 giay (chung #toast voi showToast). */
+          window.toastTimer = setTimeout(function () { t.classList.remove("show"); }, 5000);
         }
         /* ---- API backend (Pages Functions + D1) — gioi han luot do server kiem tra ---- */
         var quotaCache = null;
