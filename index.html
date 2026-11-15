@@ -822,6 +822,288 @@
         .view-toggle button small{ display:none; }
       }
 
+      /* ---------- Màn hình Đăng nhập / Đăng ký kiểu đèn kéo (YC29) ---------- */
+      /* Port cảnh đèn từ bản demo form-dang-nhap-keo-den sang màn đăng nhập thật.
+         Mọi quy tắc đều nằm dưới .auth-wrap.lamp để không đụng phần còn lại của app.
+         Biến --lamp-light (0 = tối om, 1 = đèn sáng) do JS điều khiển từng khung hình.
+         Hình học đèn dùng bản gọn của demo (dây 84px) vì thẻ đăng nhập của app cao hơn
+         thẻ demo — hạt gỗ kết thúc ~206px, không đè lên tiêu đề các panel. */
+      .auth-wrap.lamp{
+        --lamp-light:1;
+        display:block; padding:0; overflow:hidden;
+        background:
+          radial-gradient(ellipse 120% 55% at 50% -10%, #141a22 0%, transparent 60%),
+          linear-gradient(#0a0d12, #05070a 78%);
+      }
+      .auth-wrap.lamp .lamp-ambient{
+        position:absolute; inset:0; pointer-events:none;
+        background:
+          radial-gradient(ellipse 75% 46% at 50% 16%, rgba(255,196,110,.20), transparent 62%),
+          radial-gradient(ellipse 46% 30% at 50% 58%, rgba(255,178,92,.10), transparent 70%);
+        opacity:var(--lamp-light);
+      }
+      .auth-wrap.lamp .lamp-pool{
+        position:absolute; left:50%; bottom:4vh; width:min(680px, 92vw); height:120px;
+        transform:translateX(-50%);
+        background:radial-gradient(ellipse at center, rgba(255,190,105,.28), transparent 68%);
+        opacity:var(--lamp-light); pointer-events:none;
+      }
+      .auth-wrap.lamp .lamp-ceiling{
+        position:absolute; top:0; left:0; right:0; height:10px;
+        background:linear-gradient(#232a33, #12161c);
+        box-shadow:0 2px 10px rgba(0,0,0,.6); z-index:3;
+      }
+      .auth-wrap.lamp .lamp-window{
+        position:absolute; top:19vh; left:4.5vw; width:208px; z-index:1;
+        opacity:calc(.05 + var(--lamp-light) * .95);
+        filter:brightness(calc(.35 + var(--lamp-light) * .75));
+        pointer-events:none;
+      }
+      .auth-wrap.lamp .lamp-window-frame{
+        position:relative; height:252px;
+        border:10px solid #4a3420; border-bottom-width:6px;
+        border-radius:6px 6px 2px 2px;
+        background:linear-gradient(180deg, #9ec7e8 0%, #cfe6f2 38%, #e6efd2 62%, #8fbf7a 63%, #5e9a4e 100%);
+        box-shadow:inset 0 0 0 2px rgba(255,255,255,.35), inset 0 0 34px rgba(30,60,30,.18), 0 18px 34px rgba(0,0,0,.55);
+        overflow:hidden;
+      }
+      .auth-wrap.lamp .lamp-window-frame::before{
+        content:""; position:absolute; inset:0;
+        background:
+          radial-gradient(circle at 78% 16%, rgba(255,244,190,.95) 0 16px, rgba(255,244,190,.35) 17px 30px, transparent 31px),
+          radial-gradient(ellipse 52px 13px at 26% 18%, rgba(255,255,255,.92) 60%, transparent 61%),
+          radial-gradient(ellipse 38px 10px at 58% 27%, rgba(255,255,255,.75) 60%, transparent 61%),
+          radial-gradient(ellipse 130% 42% at 18% 108%, #6fae5c 52%, transparent 53%),
+          radial-gradient(ellipse 120% 38% at 88% 110%, #4d8a42 52%, transparent 53%);
+      }
+      .auth-wrap.lamp .lamp-window-frame::after{
+        content:""; position:absolute; inset:0;
+        background:linear-gradient(112deg, transparent 30%, rgba(255,255,255,.20) 42%, rgba(255,255,255,.05) 50%, transparent 58%);
+      }
+      .auth-wrap.lamp .lamp-mullion-v, .auth-wrap.lamp .lamp-mullion-h{ position:absolute; background:#4a3420; z-index:2; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+      .auth-wrap.lamp .lamp-mullion-v{ top:0; bottom:0; left:50%; width:8px; transform:translateX(-50%); }
+      .auth-wrap.lamp .lamp-mullion-h{ left:0; right:0; top:44%; height:8px; }
+      .auth-wrap.lamp .lamp-window-curtain{
+        position:absolute; top:0; bottom:0; width:30px; z-index:3;
+        background:linear-gradient(90deg, rgba(250,243,225,.95), rgba(238,222,188,.82) 55%, rgba(226,204,160,.55));
+        box-shadow:inset -6px 0 10px rgba(120,90,40,.18);
+      }
+      .auth-wrap.lamp .lamp-window-curtain.left{ left:0; border-radius:0 0 14px 0; }
+      .auth-wrap.lamp .lamp-window-curtain.right{ right:0; transform:scaleX(-1); border-radius:0 0 14px 0; }
+      .auth-wrap.lamp .lamp-window-sill{
+        position:relative; height:14px; margin:0 -12px;
+        background:linear-gradient(180deg, #6b4c2c, #4a3420);
+        border-radius:3px;
+        box-shadow:0 8px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,235,200,.35);
+      }
+      .auth-wrap.lamp .lamp-plants{ position:absolute; left:0; right:0; bottom:8px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 2px; z-index:4; }
+      .auth-wrap.lamp .lamp-plant{ display:block; filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+      @media (max-width:1100px){ .auth-wrap.lamp .lamp-window{ width:172px; left:3vw; } .auth-wrap.lamp .lamp-window-frame{ height:214px; } }
+      @media (max-width:900px){ .auth-wrap.lamp .lamp-window{ display:none; } }
+      .auth-wrap.lamp .lamp-baseboard{
+        position:absolute; left:0; right:0; bottom:0; height:14px;
+        background:linear-gradient(rgba(255,255,255,.05), rgba(0,0,0,.35));
+        opacity:calc(.25 + var(--lamp-light) * .75);
+      }
+      .auth-wrap.lamp .lamp-vignette{
+        position:absolute; inset:0; pointer-events:none;
+        background:radial-gradient(ellipse 105% 90% at 50% 42%, transparent 55%, rgba(0,0,0,.55) 100%);
+      }
+      .auth-wrap.lamp .lamp-swing{
+        position:absolute; top:0; left:50%; width:0; height:0;
+        transform-origin:0 0; z-index:5; will-change:transform;
+      }
+      .auth-wrap.lamp .lamp-cord{
+        position:absolute; top:0; left:-1.5px; width:3px; height:84px;
+        background:linear-gradient(#3d434c, #22272e); border-radius:2px;
+      }
+      .auth-wrap.lamp .lamp-glow{
+        position:absolute; top:158px; left:0; width:380px; height:380px;
+        transform:translate(-50%, -50%);
+        background:radial-gradient(circle, rgba(255,224,166,.9) 0%, rgba(255,186,96,.32) 42%, transparent 68%);
+        opacity:var(--lamp-light); pointer-events:none;
+      }
+      .auth-wrap.lamp .lamp-cone{
+        position:absolute; top:150px; left:0; width:min(900px, 170vw); height:76vh;
+        transform:translateX(-50%);
+        clip-path:polygon(46.5% 0, 53.5% 0, 100% 100%, 0 100%);
+        background:linear-gradient(rgba(255,208,138,.26), rgba(255,182,94,.06) 62%, transparent 92%);
+        opacity:var(--lamp-light); pointer-events:none;
+      }
+      .auth-wrap.lamp .lamp-shade{ position:absolute; top:72px; left:0; transform:translateX(-50%); }
+      .auth-wrap.lamp .lamp-bulb{
+        position:absolute; top:158px; left:0; width:34px; height:34px;
+        transform:translate(-50%, -50%); border-radius:50%;
+        background:radial-gradient(circle at 42% 38%, #fffbe9, #ffd98c 55%, #f7ae4e);
+        opacity:var(--lamp-light);
+        box-shadow:0 0 34px 10px rgba(255,196,100,.55);
+        pointer-events:none;
+      }
+      .auth-wrap.lamp .lamp-mote{
+        position:absolute; border-radius:50%;
+        background:rgba(255,232,190,.85); opacity:0;
+        animation:lamp-drift linear infinite;
+      }
+      @keyframes lamp-drift{
+        0%{ transform:translate(0, 0); opacity:0; }
+        12%{ opacity:calc(var(--lamp-light) * .75); }
+        88%{ opacity:calc(var(--lamp-light) * .6); }
+        100%{ transform:translate(var(--dx, 14px), var(--dy, 90px)); opacity:0; }
+      }
+      .auth-wrap.lamp .lamp-pull{
+        position:absolute; top:92px; left:66px;
+        display:flex; flex-direction:column; align-items:center; z-index:6;
+      }
+      .auth-wrap.lamp .lamp-pull-line{
+        width:3px; height:56px; border-radius:2px;
+        background:repeating-linear-gradient(#cbbfa9 0 4px, #9d8f74 4px 8px);
+        box-shadow:0 0 0 .5px rgba(0,0,0,.35);
+      }
+      .auth-wrap.lamp .lamp-pull-line.lamp-snap{ transition:height .5s cubic-bezier(.3, 1.7, .45, 1); }
+      .auth-wrap.lamp .lamp-bead-btn{
+        position:relative; width:52px; height:58px; margin-top:-2px;
+        padding:0; border:0; background:transparent;
+        cursor:grab; touch-action:none;
+        display:grid; place-items:start center;
+      }
+      .auth-wrap.lamp .lamp-bead-btn:active{ cursor:grabbing; }
+      .auth-wrap.lamp .lamp-bead-btn:focus-visible{ outline:2px solid #f2a93b; outline-offset:4px; border-radius:12px; }
+      .auth-wrap.lamp .lamp-bead{
+        width:24px; height:38px; border-radius:12px / 16px;
+        background:linear-gradient(100deg, #c98d4b, #8a5a24 55%, #6f4519);
+        box-shadow:inset 0 3px 5px rgba(255,235,200,.55), inset 0 -6px 8px rgba(0,0,0,.45), 0 4px 8px rgba(0,0,0,.5);
+        position:relative;
+      }
+      .auth-wrap.lamp .lamp-bead::before, .auth-wrap.lamp .lamp-bead::after{
+        content:""; position:absolute; left:3px; right:3px; height:2px;
+        background:rgba(46,28,8,.5); border-radius:2px;
+      }
+      .auth-wrap.lamp .lamp-bead::before{ top:11px; } .auth-wrap.lamp .lamp-bead::after{ top:25px; }
+      .auth-wrap.lamp .lamp-bead-btn .lamp-ping{
+        position:absolute; top:8px; left:50%; width:34px; height:34px;
+        transform:translateX(-50%); border-radius:50%;
+        border:2px solid rgba(255,196,100,0); pointer-events:none;
+      }
+      .auth-wrap.lamp.off .lamp-bead-btn .lamp-ping{ animation:lamp-ping 1.8s ease-out infinite; }
+      @keyframes lamp-ping{
+        0%{ border-color:rgba(255,196,100,.75); box-shadow:0 0 0 0 rgba(255,196,100,.35); }
+        70%{ border-color:rgba(255,196,100,0); box-shadow:0 0 0 14px rgba(255,196,100,0); }
+        100%{ border-color:rgba(255,196,100,0); box-shadow:0 0 0 0 rgba(255,196,100,0); }
+      }
+      .auth-wrap.lamp.off .lamp-bead{ box-shadow:inset 0 3px 5px rgba(255,235,200,.25), inset 0 -6px 8px rgba(0,0,0,.5), 0 0 12px rgba(255,196,100,.35); }
+      /* Thẻ đăng nhập thật khoác áo giấy ấm của đèn; vị trí + ẩn/hiện theo đèn */
+      .auth-wrap.lamp .auth-card{
+        position:absolute; left:50%; top:55%;
+        transform:translate(-50%, calc(-50% + (1 - var(--lamp-light)) * 22px)) scale(calc(.965 + var(--lamp-light) * .035));
+        width:min(420px, calc(100vw - 36px)); margin:0; z-index:4;
+        background:linear-gradient(175deg, #fffaf0, #fdeed3);
+        color:#2b2115;
+        border:1px solid rgba(122,78,22,.18); border-radius:22px;
+        padding:30px 28px 24px;
+        opacity:var(--lamp-light);
+        box-shadow:0 34px 60px rgba(0,0,0,.55), 0 0 90px rgba(255,190,100, calc(var(--lamp-light) * .30));
+      }
+      .auth-wrap.lamp.off .auth-card{ pointer-events:none; visibility:hidden; transition:visibility 0s .45s; }
+      .auth-wrap.lamp.on .auth-card{ visibility:visible; }
+      .auth-wrap.lamp .auth-name{ color:#2b2115; }
+      .auth-wrap.lamp .auth-sub{ color:#7a6547; }
+      .auth-wrap.lamp .auth-alt{ color:#7a6547; }
+      .auth-wrap.lamp .auth-pending-txt{ color:#5d4a2f; }
+      .auth-wrap.lamp .auth-pending-txt b{ color:#2b2115; }
+      .auth-wrap.lamp .link-btn{ color:#c67f1d; }
+      .auth-wrap.lamp .field label{ color:#5d4a2f; }
+      .auth-wrap.lamp .field input{ background:#fffdf7; border-color:#e3d0ab; color:#2b2115; }
+      .auth-wrap.lamp .field input::placeholder{ color:#b7a37c; }
+      .auth-wrap.lamp .field input:focus{ border-color:#f2a93b; outline-color:#f2a93b; background:#fffdf7; }
+      .auth-wrap.lamp .pass-toggle{ color:#8a6f45; }
+      .auth-wrap.lamp .pass-toggle:hover{ background:rgba(242,169,59,.14); color:#8a6f45; }
+      .auth-wrap.lamp .auth-form .btn-run{
+        background:linear-gradient(180deg, #f5b64a, #d98d22); border:0; color:#fff8ea;
+        box-shadow:0 10px 22px rgba(198,127,29,.38), inset 0 1px 0 rgba(255,255,255,.5);
+      }
+      .auth-wrap.lamp .auth-form .btn-run:hover{ filter:brightness(1.06); }
+      /* Link "Quên mật khẩu?" có handler toast thật — hiện lại trong màn đèn (quy tắc chung đang ẩn nó). */
+      .auth-wrap.lamp #forgotBtn{ display:inline-block !important; }
+      /* Toast báo lỗi đăng nhập: trước đây nằm dưới .auth-wrap (z-index 200 > 100) nên
+         đăng nhập sai không thấy báo lỗi; nâng lên trên + đẩy cao khỏi viên gợi ý. */
+      .auth-wrap.lamp ~ #toast{ z-index:300; bottom:96px; }
+      .auth-wrap.lamp .lamp-hint{
+        position:absolute; left:50%; bottom:max(26px, env(safe-area-inset-bottom));
+        transform:translateX(-50%);
+        z-index:7; width:max-content; max-width:calc(100vw - 32px);
+        text-align:center;
+        background:rgba(10, 13, 18, .86);
+        border:1px solid rgba(255,214,150,.22);
+        color:#f3e3c2; font-size:.9rem; line-height:1.45;
+        padding:10px 18px; border-radius:999px;
+      }
+      .auth-wrap.lamp .lamp-hint b{ color:#f2a93b; }
+      .auth-wrap.lamp .lamp-sound-btn{
+        position:absolute; top:max(18px, env(safe-area-inset-top)); right:18px; z-index:8;
+        width:46px; height:46px; border-radius:50%;
+        border:1px solid rgba(255,214,150,.28);
+        background:rgba(12, 15, 20, .75); color:#f3e3c2;
+        cursor:pointer; display:grid; place-items:center;
+      }
+      .auth-wrap.lamp .lamp-sound-btn:hover{ background:rgba(30, 34, 42, .9); }
+      .auth-wrap.lamp .lamp-sound-btn .icon-off{ display:none; }
+      .auth-wrap.lamp .lamp-sound-btn.muted .icon-on{ display:none; }
+      .auth-wrap.lamp .lamp-sound-btn.muted .icon-off{ display:block; }
+      /* Màn hình thấp: cụm đèn + thẻ đều gọn lại để nút Đăng nhập không bị viên gợi ý che
+         (thẻ đăng nhập cao ~524px không vừa 700px nếu giữ nguyên — phải gọn cả đèn lẫn thẻ) */
+      @media (max-height:800px) and (min-width:641px){
+        .auth-wrap.lamp .lamp-cord{ height:36px; }
+        .auth-wrap.lamp .lamp-shade{ top:28px; width:136px; height:auto; }
+        .auth-wrap.lamp .lamp-glow{ top:94px; width:190px; height:190px; }
+        .auth-wrap.lamp .lamp-bulb{ top:94px; width:26px; height:26px; }
+        .auth-wrap.lamp .lamp-cone{ top:86px; width:125vw; height:46vh; opacity:calc(var(--lamp-light) * .85); }
+        .auth-wrap.lamp .lamp-pull{ top:54px; left:44px; }
+        .auth-wrap.lamp .lamp-pull-line{ height:44px; }
+        .auth-wrap.lamp .lamp-bead-btn{ width:48px; height:48px; }
+        .auth-wrap.lamp .auth-card{
+          top:166px;
+          transform:translateX(-50%) translateY(calc((1 - var(--lamp-light)) * 22px)) scale(calc(.965 + var(--lamp-light) * .035));
+          max-height:calc(100dvh - 254px); overflow-y:auto;
+          padding:20px 22px 16px;
+        }
+        .auth-wrap.lamp .auth-logo{ width:44px; height:44px; margin-bottom:8px; }
+        .auth-wrap.lamp .auth-logo svg{ width:22px; height:22px; }
+        .auth-wrap.lamp .auth-name{ font-size:19px; }
+        .auth-wrap.lamp .auth-sub{ margin-bottom:14px; }
+        .auth-wrap.lamp .auth-form{ gap:10px; }
+        .auth-wrap.lamp .auth-alt{ margin-top:12px; }
+      }
+      /* Mobile: cụm đèn thu gọn hẳn ở trên, form ghim ngay dưới vùng đèn */
+      @media (max-width:640px){
+        .auth-wrap.lamp .lamp-cord{ height:36px; }
+        .auth-wrap.lamp .lamp-shade{ top:28px; width:136px; height:auto; }
+        .auth-wrap.lamp .lamp-glow{ top:94px; width:190px; height:190px; }
+        .auth-wrap.lamp .lamp-bulb{ top:94px; width:26px; height:26px; }
+        .auth-wrap.lamp .lamp-cone{ top:86px; width:125vw; height:46vh; opacity:calc(var(--lamp-light) * .85); }
+        .auth-wrap.lamp .lamp-pull{ top:54px; left:44px; }
+        .auth-wrap.lamp .lamp-pull-line{ height:44px; }
+        .auth-wrap.lamp .lamp-bead-btn{ width:48px; height:48px; }
+        .auth-wrap.lamp .auth-card{
+          top:166px; top:clamp(166px, 24dvh, 232px);
+          transform:translateX(-50%) translateY(calc((1 - var(--lamp-light)) * 22px)) scale(calc(.965 + var(--lamp-light) * .035));
+          width:calc(100vw - 28px);
+          padding:20px 18px 14px; border-radius:18px;
+          max-height:calc(100dvh - 254px); overflow-y:auto;
+        }
+        .auth-wrap.lamp .lamp-hint{
+          font-size:.82rem; line-height:1.4;
+          padding:8px 14px; border-radius:16px;
+          width:calc(100vw - 24px);
+          bottom:max(12px, env(safe-area-inset-bottom));
+        }
+        .auth-wrap.lamp .lamp-sound-btn{ width:42px; height:42px; }
+      }
+      @media (prefers-reduced-motion: reduce){
+        .auth-wrap.lamp .lamp-mote{ display:none; }
+        .auth-wrap.lamp .lamp-pull-line.lamp-snap{ transition:none; }
+        .auth-wrap.lamp.off .lamp-bead-btn .lamp-ping{ animation:none; }
+      }
+
       /* ---------- Dashboard: Tài khoản chờ duyệt ---------- */
       .count-chip{
         margin-left:auto;
@@ -1269,7 +1551,105 @@
          Mỗi màn hình trong file này đều có comment [features/...] ngay phía trên.
          ════════════════════════════════════════════════════════════════════ -->
     <!-- ============ [features/dang-nhap-dang-ky] MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ / CHỜ DUYỆT ============ -->
-    <div class="auth-wrap" id="authWrap">
+    <div class="auth-wrap lamp on" id="authWrap">
+      <!-- Canh den keo (YC29): phong toi, den treo, cua so PC -->
+      <div class="lamp-ambient" aria-hidden="true"></div>
+      <div class="lamp-window" aria-hidden="true">
+        <div class="lamp-window-frame">
+          <div class="lamp-mullion-v"></div>
+          <div class="lamp-mullion-h"></div>
+          <div class="lamp-window-curtain left"></div>
+          <div class="lamp-window-curtain right"></div>
+          <div class="lamp-plants">
+            <svg class="lamp-plant" width="62" height="72" viewBox="0 0 62 72" aria-hidden="true">
+              <path d="M31 44 C28 30 18 24 8 26 C12 36 20 42 31 44Z" fill="#3e7d32"/>
+              <path d="M31 42 C32 27 40 18 52 16 C52 28 44 38 31 42Z" fill="#4c9a45"/>
+              <path d="M31 44 C30 32 24 24 16 18 C14 30 20 40 31 44Z" fill="#5cab52"/>
+              <path d="M31 43 C33 31 40 25 48 27 C46 36 39 42 31 43Z" fill="#35702b"/>
+              <path d="M30 46 L31 34 M31 44 L20 30 M32 42 L44 24" stroke="#2e5e27" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              <path d="M18 46 h26 l-3.2 20 a3 3 0 0 1 -3 2.6 H24.2 a3 3 0 0 1 -3 -2.6 Z" fill="#f3ead8"/>
+              <path d="M18 46 h26 l-.7 5 H18.7 Z" fill="#d9c9a8"/>
+            </svg>
+            <svg class="lamp-plant" width="44" height="46" viewBox="0 0 44 46" aria-hidden="true">
+              <g fill="#6db56a">
+                <ellipse cx="22" cy="20" rx="5" ry="9"/>
+                <ellipse cx="13" cy="24" rx="4.4" ry="8" transform="rotate(-38 13 24)"/>
+                <ellipse cx="31" cy="24" rx="4.4" ry="8" transform="rotate(38 31 24)"/>
+                <ellipse cx="17" cy="18" rx="4" ry="7" transform="rotate(-16 17 18)" fill="#84c47f"/>
+                <ellipse cx="27" cy="18" rx="4" ry="7" transform="rotate(16 27 18)" fill="#84c47f"/>
+              </g>
+              <circle cx="22" cy="22" r="4.2" fill="#9ed195"/>
+              <path d="M12 30 h20 l-2.4 11 a3 3 0 0 1 -2.9 2.4 H17.3 a3 3 0 0 1 -2.9 -2.4 Z" fill="#b85c38"/>
+              <rect x="10.5" y="27.5" width="23" height="4" rx="1.6" fill="#9c4a2c"/>
+            </svg>
+            <svg class="lamp-plant" width="58" height="76" viewBox="0 0 58 76" aria-hidden="true">
+              <path d="M14 30 C10 44 12 56 8 68 M29 32 C28 46 30 58 27 72 M44 30 C47 42 44 54 48 66" stroke="#3e7d32" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <g fill="#4c9a45">
+                <ellipse cx="10" cy="46" rx="5" ry="3.4" transform="rotate(-32 10 46)"/><ellipse cx="12" cy="60" rx="5" ry="3.4" transform="rotate(24 12 60)"/>
+                <ellipse cx="29" cy="50" rx="5" ry="3.4" transform="rotate(28 29 50)"/><ellipse cx="27" cy="64" rx="5" ry="3.4" transform="rotate(-22 27 64)"/>
+                <ellipse cx="46" cy="44" rx="5" ry="3.4" transform="rotate(30 46 44)"/><ellipse cx="48" cy="58" rx="5" ry="3.4" transform="rotate(-26 48 58)"/>
+              </g>
+              <g fill="#5cab52">
+                <ellipse cx="20" cy="22" rx="7" ry="4.4" transform="rotate(-24 20 22)"/><ellipse cx="38" cy="21" rx="7" ry="4.4" transform="rotate(22 38 21)"/><ellipse cx="29" cy="16" rx="6" ry="4"/>
+              </g>
+              <path d="M16 28 h26 l-2.8 15 a3 3 0 0 1 -3 2.5 H21.8 a3 3 0 0 1 -3 -2.5 Z" fill="#3f6d6a"/>
+              <path d="M16 28 h26 l-.6 3.6 H16.6 Z" fill="#2f5451"/>
+            </svg>
+          </div>
+        </div>
+        <div class="lamp-window-sill"></div>
+      </div>
+      <div class="lamp-pool" aria-hidden="true"></div>
+      <div class="lamp-ceiling" aria-hidden="true"></div>
+
+      <!-- Cum den: day treo, chao den, bong, chum sang va day keo — tat ca du dua cung nhau -->
+      <div class="lamp-swing" id="lampSwing">
+        <div class="lamp-cone" id="lampCone"></div>
+        <div class="lamp-glow"></div>
+        <div class="lamp-cord"></div>
+        <svg class="lamp-shade" width="190" height="104" viewBox="0 0 190 104" role="img" aria-label="Bóng đèn treo">
+          <path d="M95 14 L150 66 Q153 70 148 70 L42 70 Q37 70 40 66 Z" fill="#1e3a30"/>
+          <path d="M95 14 L150 66 Q153 70 148 70 L42 70 Q37 70 40 66 Z" fill="url(#lampShadeSheen)"/>
+          <path d="M42 70 L148 70 Q146 78 138 78 L52 78 Q44 78 42 70 Z" fill="#f4ead2"/>
+          <rect x="86" y="2" width="18" height="16" rx="3" fill="#b9863c"/>
+          <rect x="89" y="16" width="12" height="7" rx="2" fill="#8f6527"/>
+          <defs>
+            <linearGradient id="lampShadeSheen" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".16"/>
+              <stop offset=".5" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="1" stop-color="#000000" stop-opacity=".28"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="lamp-bulb"></div>
+
+        <div class="lamp-pull">
+          <div class="lamp-pull-line" id="lampPullLine"></div>
+          <button class="lamp-bead-btn" id="lampBeadBtn" type="button"
+                  aria-pressed="true"
+                  aria-label="Dây kéo đèn — kéo xuống hoặc bấm để bật tắt đèn">
+            <span class="lamp-ping"></span>
+            <span class="lamp-bead"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lamp-baseboard" aria-hidden="true"></div>
+      <div class="lamp-vignette" aria-hidden="true"></div>
+
+      <button class="lamp-sound-btn" id="lampSoundBtn" type="button" aria-label="Tắt tiếng" aria-pressed="false">
+        <svg class="icon-on" width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" fill="currentColor"/>
+          <path d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <svg class="icon-off" width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" fill="currentColor"/>
+          <path d="M15.5 9.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <p class="lamp-hint" id="lampHint" aria-live="polite">Đèn đang <b>sáng</b> — nắm hạt gỗ ở dây đèn, <b>kéo xuống</b> để tắt đèn và giấu form.</p>
+
       <div class="auth-card">
 
         <!-- Đăng nhập -->
@@ -1278,7 +1658,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
           </div>
           <h1 class="auth-name">Ứng Dụng Điều Khiển AI</h1>
-          <p class="auth-sub">Đăng nhập để vào khu vực làm việc của đội AI.</p>
+          <p class="auth-sub">Mời các bạn nhập thông tin để đăng nhập, nếu bạn đi ngủ — hãy tắt đèn</p>
           <form class="auth-form" id="loginForm" novalidate>
             <div class="field">
               <label for="loginEmail">Email</label>
@@ -4143,6 +4523,224 @@
         if (forgotBtn) forgotBtn.addEventListener("click", function () {
           showToast("Bản v1 chưa có lấy lại mật khẩu — liên hệ Admin để được cấp lại.");
         });
+
+        /* ---------- Man dang nhap kieu den keo (YC29) ---------- */
+        /* Port tu ban demo form-dang-nhap-keo-den: chi them canh den + keo day.
+           Form dang nhap / dang ky / quen mat khau cua app giu nguyen hoan toan. */
+        (function lampAuth() {
+          var wrap = document.getElementById("authWrap");
+          if (!wrap) return;
+          var swing = document.getElementById("lampSwing");
+          var cone = document.getElementById("lampCone");
+          var pullLine = document.getElementById("lampPullLine");
+          var beadBtn = document.getElementById("lampBeadBtn");
+          var hint = document.getElementById("lampHint");
+          var soundBtn = document.getElementById("lampSoundBtn");
+          if (!swing || !pullLine || !beadBtn || !hint) return;
+          var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          var isOn = true;
+
+          /* Hat bui trong chum sang (chi desktop — mobile tat han cho muot) */
+          var coarse = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 640;
+          if (!reduced && !coarse && cone) {
+            for (var i = 0; i < 14; i++) {
+              var m = document.createElement("span");
+              m.className = "lamp-mote";
+              var size = 1.5 + Math.random() * 2.6;
+              m.style.width = size + "px";
+              m.style.height = size + "px";
+              m.style.left = (30 + Math.random() * 40) + "%";
+              m.style.top = (Math.random() * 55) + "%";
+              m.style.setProperty("--dx", (Math.random() * 46 - 23) + "px");
+              m.style.setProperty("--dy", (50 + Math.random() * 110) + "px");
+              m.style.animationDuration = (7 + Math.random() * 9) + "s";
+              m.style.animationDelay = (-Math.random() * 10) + "s";
+              cone.appendChild(m);
+            }
+          }
+
+          /* Am thanh: tieng "tach" + tieng u u cua den (Web Audio) */
+          var actx = null, humNodes = null, masterGain = null, muted = false;
+          function ensureAudio() {
+            if (actx) { if (actx.state === "suspended") actx.resume(); return; }
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            actx = new AC();
+            masterGain = actx.createGain();
+            masterGain.gain.value = muted ? 0 : 1;
+            masterGain.connect(actx.destination);
+          }
+          function clickSound(turningOn) {
+            if (!actx) return;
+            var t = actx.currentTime;
+            var dur = 0.05;
+            var buffer = actx.createBuffer(1, actx.sampleRate * dur, actx.sampleRate);
+            var data = buffer.getChannelData(0);
+            for (var j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * (1 - j / data.length);
+            var src = actx.createBufferSource(); src.buffer = buffer;
+            var bp = actx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = turningOn ? 2600 : 1900; bp.Q.value = 1.1;
+            var g = actx.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            src.connect(bp); bp.connect(g); g.connect(masterGain); src.start(t);
+            if (turningOn) {
+              var osc = actx.createOscillator(); osc.type = "sine"; osc.frequency.setValueAtTime(1480, t);
+              osc.frequency.exponentialRampToValueAtTime(880, t + 0.09);
+              var og = actx.createGain(); og.gain.setValueAtTime(0.06, t); og.gain.exponentialRampToValueAtTime(0.0008, t + 0.12);
+              osc.connect(og); og.connect(masterGain); osc.start(t); osc.stop(t + 0.13);
+            }
+          }
+          function startHum() {
+            if (!actx || humNodes) return;
+            var t = actx.currentTime;
+            var g = actx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.016, t + 0.4);
+            var lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 320;
+            var o1 = actx.createOscillator(); o1.type = "sawtooth"; o1.frequency.value = 50;
+            var o2 = actx.createOscillator(); o2.type = "sine"; o2.frequency.value = 100;
+            var g2 = actx.createGain(); g2.gain.value = 0.5;
+            o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(masterGain);
+            o1.start(); o2.start();
+            humNodes = { g: g, o1: o1, o2: o2 };
+          }
+          function stopHum() {
+            if (!actx || !humNodes) return;
+            var t = actx.currentTime, h = humNodes; humNodes = null;
+            h.g.gain.cancelScheduledValues(t);
+            h.g.gain.setValueAtTime(h.g.gain.value, t);
+            h.g.gain.linearRampToValueAtTime(0, t + 0.08);
+            setTimeout(function () { try { h.o1.stop(); h.o2.stop(); } catch (e) {} }, 140);
+          }
+          if (soundBtn) soundBtn.addEventListener("click", function () {
+            ensureAudio();
+            muted = !muted;
+            soundBtn.classList.toggle("muted", muted);
+            soundBtn.setAttribute("aria-pressed", String(muted));
+            soundBtn.setAttribute("aria-label", muted ? "Bật tiếng" : "Tắt tiếng");
+            if (masterGain) masterGain.gain.value = muted ? 0 : 1;
+          });
+
+          /* Vat ly: con lac den + do sang */
+          var angle = 0, vel = 0;
+          var light = 1, lightTarget = 1;
+          var swayPhase = 0.6;
+          var swayBoostStart = performance.now();
+          var flicker = null;
+          var last = performance.now();
+
+          function flickerValue(now) {
+            var el = now - flicker.start;
+            var keys = flicker.keys;
+            if (el >= keys[keys.length - 1][0]) { flicker = null; return lightTarget; }
+            for (var k = 1; k < keys.length; k++) {
+              if (el <= keys[k][0]) {
+                var p = (el - keys[k - 1][0]) / (keys[k][0] - keys[k - 1][0]);
+                return keys[k - 1][1] + (keys[k][1] - keys[k - 1][1]) * p;
+              }
+            }
+            return lightTarget;
+          }
+
+          var rafId = null, shownLight = -1;
+          function frame(now) {
+            rafId = null;
+            /* Dang nhap xong man auth bi an (hidden) thi dung han vong lap, khoi ton CPU. */
+            if (wrap.hidden) return;
+            var dt = Math.min(0.05, (now - last) / 1000); last = now;
+            if (!reduced) {
+              var speedMul = 1 + Math.exp(-(now - swayBoostStart) / 1500);
+              if (isOn) swayPhase += dt * 1.05 * speedMul;
+              var swayTarget = isOn
+                ? Math.sin(swayPhase) * 0.042 + Math.sin(swayPhase * 0.58 + 1.3) * 0.013
+                : 0;
+              var acc = -18 * (angle - swayTarget) - 1.35 * vel;
+              vel += acc * dt; angle += vel * dt;
+              swing.style.transform = "rotate(" + angle.toFixed(4) + "rad)";
+            }
+            if (flicker) {
+              light = flickerValue(now);
+            } else {
+              var rate = lightTarget > light ? 0.35 : 0.22;
+              light += (lightTarget - light) * Math.min(1, rate * dt * 8);
+              if (Math.abs(lightTarget - light) < 0.002) light = lightTarget;
+            }
+            var v = Math.round(light * 100) / 100;
+            if (v !== shownLight) { shownLight = v; wrap.style.setProperty("--lamp-light", v.toFixed(2)); }
+            var settled = !flicker && light === lightTarget &&
+              (reduced || (!isOn && Math.abs(angle) < 0.0012 && Math.abs(vel) < 0.0012));
+            if (settled) {
+              if (!reduced && angle !== 0) { angle = 0; vel = 0; swing.style.transform = "rotate(0rad)"; }
+              return;
+            }
+            rafId = requestAnimationFrame(frame);
+          }
+          function wake() {
+            if (wrap.hidden) return;
+            if (rafId === null) { last = performance.now(); rafId = requestAnimationFrame(frame); }
+          }
+          wake();
+
+          /* Bat / tat den */
+          function setLamp(on, viaPull) {
+            isOn = on;
+            ensureAudio();
+            clickSound(on);
+            wrap.classList.toggle("on", on);
+            wrap.classList.toggle("off", !on);
+            beadBtn.setAttribute("aria-pressed", String(on));
+            vel += (Math.random() > 0.5 ? 1 : -1) * (viaPull ? 0.55 : 0.3);
+            if (on) {
+              lightTarget = 1;
+              swayBoostStart = performance.now();
+              if (!reduced) flicker = { start: performance.now(), keys: [[0, 0], [55, 0.9], [105, 0.12], [165, 1], [235, 0.35], [330, 1]] };
+              setTimeout(startHum, 380);
+              hint.innerHTML = "Đèn đang <b>sáng</b> — nắm hạt gỗ ở dây đèn, <b>kéo xuống</b> để tắt đèn và giấu form.";
+            } else {
+              lightTarget = 0; flicker = null;
+              stopHum();
+              hint.innerHTML = "Tối om rồi, form biến mất luôn. <b>Kéo dây đèn</b> xuống để bật sáng lại anh nhé.";
+            }
+            wake();
+          }
+
+          /* Keo day: keo that bang chuot / cham */
+          var BASE_LINE = pullLine.offsetHeight || 56, drag = null;
+          window.addEventListener("resize", function () {
+            if (drag) return;
+            pullLine.style.height = "";
+            BASE_LINE = pullLine.offsetHeight || BASE_LINE;
+          });
+          function pullRelease(pulled, quickTap) {
+            pullLine.classList.add("lamp-snap");
+            pullLine.style.height = BASE_LINE + "px";
+            setTimeout(function () { pullLine.classList.remove("lamp-snap"); }, 520);
+            if (pulled > 46 || quickTap) setLamp(!isOn, true);
+            else { vel += 0.12; wake(); }
+          }
+          beadBtn.addEventListener("pointerdown", function (e) {
+            e.preventDefault();
+            ensureAudio();
+            beadBtn.setPointerCapture(e.pointerId);
+            drag = { y: e.clientY, t: performance.now(), pull: 0 };
+            pullLine.classList.remove("lamp-snap");
+          });
+          beadBtn.addEventListener("pointermove", function (e) {
+            if (!drag) return;
+            drag.pull = Math.max(0, Math.min(120, e.clientY - drag.y));
+            pullLine.style.height = (BASE_LINE + drag.pull) + "px";
+          });
+          function endDrag(e) {
+            if (!drag) return;
+            var d = drag; drag = null;
+            pullRelease(d.pull, (performance.now() - d.t) < 300 && d.pull < 12);
+          }
+          beadBtn.addEventListener("pointerup", endDrag);
+          beadBtn.addEventListener("pointercancel", endDrag);
+          beadBtn.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            pullLine.style.height = (BASE_LINE + 74) + "px";
+            setTimeout(function () { pullRelease(74, false); }, 130);
+          });
+          beadBtn.addEventListener("click", function (e) { e.preventDefault(); });
+        })();
         var logoutBtn = document.getElementById("logoutBtn");
         if (logoutBtn) logoutBtn.addEventListener("click", function () {
           api("/api/auth/logout", { method: "POST" }).then(function () { location.reload(); }, function () { location.reload(); });
