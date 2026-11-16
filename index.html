@@ -693,6 +693,52 @@
       @media (max-width:720px){
         .ps-nums{ grid-template-columns:repeat(2,1fr); }
       }
+
+      /* ---------- Bảng tín hiệu live (Yêu cầu 32) ---------- */
+      .sig-live{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--green); margin:10px 0 2px; flex-wrap:wrap; }
+      .sig-live .live-dot{ flex:none; }
+      .sig-live.paused{ color:var(--muted); }
+      .sig-live.paused .live-dot{ background:var(--muted); animation:none; }
+      .sig-live.stale{ color:var(--red); }
+      .sig-live.stale .live-dot{ background:var(--red); animation:none; }
+      .sig-updated{ font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums; }
+      .sig-nums{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:14px 0 6px; }
+      .sig-num{ background:var(--bg-soft); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+      .sig-num b{ display:block; font-size:22px; line-height:1.2; color:var(--ink); font-variant-numeric:tabular-nums; }
+      .sig-num span{ font-size:12.5px; color:var(--muted); font-weight:600; }
+      .sig-num.sig-err b{ color:var(--red); }
+      .sig-flow{ display:flex; align-items:stretch; gap:6px; margin:14px 0 4px; flex-wrap:wrap; }
+      .sig-node{ flex:1 1 100px; min-width:100px; display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 8px; border:1.5px solid var(--line); border-radius:14px; background:var(--card); font-family:inherit; cursor:pointer; }
+      .sig-node b{ font-size:20px; line-height:1.2; color:var(--ink); font-variant-numeric:tabular-nums; }
+      .sig-node span{ font-size:12.5px; font-weight:700; color:var(--muted); text-align:center; }
+      .sig-node small{ font-size:11.5px; color:var(--muted); font-weight:600; min-height:14px; }
+      .sig-node:hover{ border-color:var(--accent); }
+      .sig-node.active{ border-color:var(--accent); background:var(--accent-soft); }
+      .sig-node.active span{ color:var(--navy); }
+      .sig-node.sig-err-node b{ color:var(--red); }
+      .sig-node.sig-err-node.active{ border-color:var(--red); background:var(--red-soft); }
+      .sig-arrow{ align-self:center; color:var(--muted); font-weight:800; flex:none; }
+      .sig-group{ display:flex; align-items:baseline; gap:8px; margin:14px 0 2px; }
+      .sig-group b{ font-size:14.5px; color:var(--ink); }
+      .sig-group span{ font-size:12.5px; color:var(--muted); font-weight:700; }
+      .sig-row{ display:flex; align-items:center; gap:12px; width:100%; padding:11px 10px; border:0; border-bottom:1px dashed var(--line); background:transparent; font-family:inherit; text-align:left; cursor:pointer; }
+      .sig-row:last-child{ border-bottom:0; }
+      .sig-row:hover .sig-row-title{ color:var(--accent); }
+      .sig-row-main{ flex:1 1 auto; min-width:0; }
+      .sig-row-title{ display:block; font-size:14px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .sig-row-meta{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+      .sig-row .bar{ flex:0 0 120px; }
+      .sig-row .tag{ flex:none; }
+      .sig-row .bar.indet > i{ width:30% !important; background:var(--blue); animation:sigslide 1.4s ease-in-out infinite alternate; }
+      @keyframes sigslide{ from{ margin-left:0; } to{ margin-left:70%; } }
+      @media (prefers-reduced-motion: reduce){ .sig-row .bar.indet > i{ animation:none; } }
+      @media (max-width:720px){
+        .sig-nums{ grid-template-columns:repeat(2,1fr); }
+        .sig-node{ flex:1 1 44%; }
+        .sig-arrow{ display:none; }
+        .sig-row{ flex-wrap:wrap; gap:8px; }
+        .sig-row .bar{ flex:1 1 100%; order:3; }
+      }
       .btn-sm{ height:44px; padding:0 14px; font-size:12.5px; }
 
       /* Lịch & Kế hoạch theo dự án */
@@ -2005,6 +2051,36 @@
                   <table class="usage-table" id="psAppProject"></table>
                 </div>
               </div>
+            </div>
+
+            <!-- ======== Yêu cầu 32: Bảng tín hiệu live (mọi vai trò) ======== -->
+            <div class="card" id="signalBoard" style="margin-top:16px;">
+              <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Bảng tín hiệu</h2>
+              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 5 giây. Bấm một nút trong sơ đồ để lọc danh sách bên dưới; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
+              <div class="sig-live" id="sigLive">
+                <span class="live-dot"></span><span id="sigLiveText">Đang live</span>
+                <span class="sig-updated" id="sigUpdated">Cập nhật lần cuối —</span>
+              </div>
+              <div class="sig-nums" id="sigNums">
+                <div class="sig-num" data-sig="running"><b id="sigNumRunning">—</b><span>Lệnh đang chạy</span></div>
+                <div class="sig-num" data-sig="waiting"><b id="sigNumWaiting">—</b><span>Hàng chờ</span></div>
+                <div class="sig-num" data-sig="review"><b id="sigNumReview">—</b><span>Chờ duyệt</span></div>
+                <div class="sig-num" data-sig="completed"><b id="sigNumDone">—</b><span>Hoàn tất</span></div>
+                <div class="sig-num sig-err" data-sig="error"><b id="sigNumError">—</b><span>Lỗi</span></div>
+              </div>
+              <div class="sig-flow" id="sigFlow" role="group" aria-label="Lọc nhiệm vụ theo trạng thái">
+                <button class="sig-node" type="button" data-sig-filter="waiting"><b id="sigFlowWaiting">—</b><span>Hàng chờ</span></button>
+                <span class="sig-arrow" aria-hidden="true">→</span>
+                <button class="sig-node" type="button" data-sig-filter="running"><b id="sigFlowRunning">—</b><span>Đang chạy</span><small id="sigFlowLuna"></small></button>
+                <span class="sig-arrow" aria-hidden="true">→</span>
+                <button class="sig-node" type="button" data-sig-filter="review"><b id="sigFlowReview">—</b><span>Chờ duyệt</span></button>
+                <span class="sig-arrow" aria-hidden="true">→</span>
+                <button class="sig-node" type="button" data-sig-filter="completed"><b id="sigFlowDone">—</b><span>Hoàn thành</span></button>
+                <span class="sig-arrow" aria-hidden="true">→</span>
+                <button class="sig-node sig-err-node" type="button" data-sig-filter="error"><b id="sigFlowError">—</b><span>Lỗi</span></button>
+              </div>
+              <p class="hint" id="sigLunaLine" hidden></p>
+              <div id="sigList"></div>
             </div>
           </section>
 
@@ -3486,6 +3562,11 @@
         subEl.textContent = data.sub;
         dockStats.innerHTML = data.stats;
         dockDetail.innerHTML = data.detail;
+        /* Yêu cầu 32: chỉ polling bảng tín hiệu khi đang ở màn Dashboard.
+           window.AppState chưa có ở lần go() đầu (script block 1 chạy trước
+           block định nghĩa AppState) nên phải kiểm tra tồn tại. */
+        if (key === "dashboard" && window.AppState && window.AppState.me) startSignalPolling();
+        else stopSignalPolling();
         contentEl.scrollTop = 0;
         var stageEl = document.querySelector(".stage");
         if (stageEl) stageEl.scrollTop = 0;
@@ -4483,6 +4564,192 @@
         var projEl = document.getElementById("psAppProject");
         if (projEl) projEl.innerHTML = projHtml;
       }
+
+      /* ---------- Bảng tín hiệu live (Yêu cầu 32) ----------
+         Số đếm lấy từ /api/dashboard (byStatus, có phạm vi theo vai trò);
+         danh sách nhiệm vụ lấy từ AppState.tasks (đã tải qua /api/tasks).
+         Polling 5 giây khi đang ở màn Dashboard và tab hiện; tab ẩn thì dừng.
+         Render tiêu đề/nội dung nhiệm vụ LUÔN qua escHtml (rút kinh nghiệm
+         soát bảo mật run-1: XSS qua nội dung người dùng). Tiến độ % hiển thị
+         đúng giá trị server đang lưu (nhiệm vụ running thường là 0% cho tới
+         khi xong — phần mô phỏng tiến độ của app chỉ chạy ở giao diện danh
+         sách, không ghi lên server); với running/luna ở 0% thì thanh bar
+         chạy hiệu ứng trượt để báo đang hoạt động, không bịa số %. */
+      var SIG_FILTERS = { waiting: ["waiting", "scheduled"], running: ["running", "luna"], review: ["review"], completed: ["completed"], error: ["error"] };
+      var SIG_FILTER = "running";
+      var SIG_POLL_MS = 5000;
+      var SIG_LIST_MAX = 50;
+      var sigTimer = null;
+      var sigLastSig = "";
+      var sigWired = false;
+      /* Khối này nằm ở script block 1 (top-level) nên KHÔNG thấy các biến trong
+         IIFE AppBackend (FEATURE_KEYS / FEATURE_NAMES / fmtTime) — dùng bản sao
+         cục bộ, và gọi AppBackend qua window.AppBackend (chẩn đoán QA32 16/11). */
+      var SIG_FEATURE_KEYS = ["web", "page", "kenh", "truyen", "anh", "designweb"];
+      var SIG_FEATURE_NAMES = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
+      function sigFmtTime(iso) {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
+      }
+      function sigCounts(d) {
+        var bs = (d && d.byStatus) || null;
+        if (bs) {
+          return {
+            running: (bs.running || 0) + (bs.luna || 0),
+            luna: bs.luna || 0,
+            waiting: (bs.waiting || 0) + (bs.scheduled || 0),
+            review: bs.review || 0,
+            completed: bs.completed || 0,
+            error: bs.error || 0
+          };
+        }
+        // Dự phòng: API cũ chưa có byStatus thì đếm từ danh sách nhiệm vụ đã tải.
+        var c = { running: 0, luna: 0, waiting: 0, review: 0, completed: 0, error: 0 };
+        (AppState.tasks || []).forEach(function (t) {
+          if (t.status === "running") c.running++;
+          else if (t.status === "luna") { c.running++; c.luna++; }
+          else if (t.status === "waiting" || t.status === "scheduled") c.waiting++;
+          else if (t.status === "review") c.review++;
+          else if (t.status === "completed") c.completed++;
+          else if (t.status === "error") c.error++;
+        });
+        return c;
+      }
+      function sigSetText(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
+      function sigStatusLabel(t) {
+        if (t.status === "luna") return { cls: "luna", text: "Thư Ký Mỹ Linh đang làm" };
+        if (t.status === "running") return { cls: "run", text: "Đang chạy · " + (t.progress || 0) + "%" };
+        if (t.status === "waiting") return { cls: "wait", text: "Hàng chờ" };
+        if (t.status === "scheduled") return { cls: "sched", text: "Đã lên lịch" };
+        if (t.status === "review") return { cls: "wait", text: "Chờ duyệt" };
+        if (t.status === "completed") return { cls: "done", text: "Hoàn thành" };
+        if (t.status === "error") return { cls: "err", text: "Lỗi" };
+        return { cls: "", text: t.status || "" };
+      }
+      function sigFilteredTasks() {
+        var want = SIG_FILTERS[SIG_FILTER] || SIG_FILTERS.running;
+        return (AppState.tasks || []).filter(function (t) { return want.indexOf(t.status) !== -1; });
+      }
+      function renderSignalBoard(d) {
+        var board = document.getElementById("signalBoard");
+        if (!board) return;
+        if (d) AppState.dashData = d;
+        var c = sigCounts(AppState.dashData);
+        sigSetText("sigNumRunning", c.running);
+        sigSetText("sigNumWaiting", c.waiting);
+        sigSetText("sigNumReview", c.review);
+        sigSetText("sigNumDone", c.completed);
+        sigSetText("sigNumError", c.error);
+        sigSetText("sigFlowWaiting", c.waiting);
+        sigSetText("sigFlowRunning", c.running);
+        sigSetText("sigFlowReview", c.review);
+        sigSetText("sigFlowDone", c.completed);
+        sigSetText("sigFlowError", c.error);
+        var lunaSmall = document.getElementById("sigFlowLuna");
+        if (lunaSmall) lunaSmall.textContent = c.luna > 0 ? "· " + c.luna + " qua Thư Ký Mỹ Linh" : "";
+        var lunaLine = document.getElementById("sigLunaLine");
+        if (lunaLine) {
+          if (c.luna > 0) {
+            lunaLine.hidden = false;
+            lunaLine.textContent = "Trong đó Thư Ký Mỹ Linh đang làm: " + c.luna + " nhiệm vụ (status luna — chờ Luna trả kết quả qua cầu nối Telegram).";
+          } else { lunaLine.hidden = true; lunaLine.textContent = ""; }
+        }
+        var nodes = document.querySelectorAll("#sigFlow .sig-node");
+        for (var i = 0; i < nodes.length; i++) {
+          nodes[i].classList.toggle("active", nodes[i].getAttribute("data-sig-filter") === SIG_FILTER);
+        }
+        var listEl = document.getElementById("sigList");
+        if (!listEl) return;
+        var items = sigFilteredTasks();
+        var sig = SIG_FILTER + "|" + items.map(function (t) { return t.id + ":" + t.status + ":" + (t.progress || 0); }).join(",");
+        if (sig === sigLastSig) return; // Dữ liệu không đổi thì không đụng DOM.
+        sigLastSig = sig;
+        if (!items.length) {
+          listEl.innerHTML = '<p class="hint">' + ((AppState.tasks || []).length ? "Không có nhiệm vụ nào ở trạng thái này." : "Chưa có nhiệm vụ nào — giao việc đầu tiên ở form từng tính năng.") + "</p>";
+          return;
+        }
+        var shown = items.slice(0, SIG_LIST_MAX);
+        var html = "";
+        SIG_FEATURE_KEYS.forEach(function (key) {
+          var group = shown.filter(function (t) { return t.feature === key; });
+          if (!group.length) return;
+          html += '<div class="sig-group"><b>' + escHtml(SIG_FEATURE_NAMES[key] || key) + '</b><span>' + group.length + ' nhiệm vụ</span></div>';
+          group.forEach(function (t) {
+            var lab = sigStatusLabel(t);
+            var pct = Math.max(0, Math.min(100, t.progress || 0));
+            var indet = (t.status === "running" || t.status === "luna") && pct === 0;
+            html += '<button type="button" class="sig-row" data-sig-go="' + escHtml(t.feature) + '">' +
+              '<span class="sig-row-main"><span class="sig-row-title">' + escHtml(t.title || "Không tiêu đề") + '</span>' +
+              '<span class="sig-row-meta">' + escHtml(t.user_name || "") + " · " + escHtml(sigFmtTime(t.created_at)) + '</span></span>' +
+              '<span class="bar' + (indet ? " indet" : "") + '"><i style="width:' + pct + '%"></i></span>' +
+              '<span class="tag ' + lab.cls + '">' + escHtml(lab.text) + '</span></button>';
+          });
+        });
+        if (items.length > SIG_LIST_MAX) {
+          html += '<p class="hint">Hiển thị ' + SIG_LIST_MAX + "/" + items.length + " nhiệm vụ gần nhất ở trạng thái này.</p>";
+        }
+        listEl.innerHTML = html;
+      }
+      function signalMarkOk() {
+        var live = document.getElementById("sigLive");
+        var txt = document.getElementById("sigLiveText");
+        var upd = document.getElementById("sigUpdated");
+        if (live) { live.classList.remove("paused"); live.classList.remove("stale"); }
+        if (txt) txt.textContent = "Đang live";
+        if (upd) {
+          var now = new Date();
+          upd.textContent = "Cập nhật lần cuối " + ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2) + ":" + ("0" + now.getSeconds()).slice(-2);
+        }
+      }
+      function signalMarkPaused() {
+        var live = document.getElementById("sigLive");
+        var txt = document.getElementById("sigLiveText");
+        if (live) { live.classList.add("paused"); live.classList.remove("stale"); }
+        if (txt) txt.textContent = "Đã tạm dừng (tab đang ẩn)";
+      }
+      function signalMarkError() {
+        var live = document.getElementById("sigLive");
+        var txt = document.getElementById("sigLiveText");
+        if (live) { live.classList.add("stale"); live.classList.remove("paused"); }
+        if (txt) txt.textContent = "Mất kết nối — sẽ thử lại";
+      }
+      function signalTick() {
+        if (!AppState.me || document.hidden || currentScreen !== "dashboard" || !window.AppBackend) return;
+        window.AppBackend.api("/api/tasks?limit=500").then(function (res) { AppState.tasks = res.tasks || []; })
+          .catch(function () { /* Giữ danh sách cũ, vẫn thử tải dashboard. */ })
+          .then(function () { return window.AppBackend.refreshDashboard(); });
+      }
+      function startSignalPolling() {
+        if (sigTimer || !AppState.me) return;
+        signalTick();
+        sigTimer = setInterval(signalTick, SIG_POLL_MS);
+      }
+      function stopSignalPolling() {
+        if (sigTimer) { clearInterval(sigTimer); sigTimer = null; }
+      }
+      function wireSignalBoard() {
+        if (sigWired) return;
+        sigWired = true;
+        var board = document.getElementById("signalBoard");
+        if (!board) return;
+        board.addEventListener("click", function (e) {
+          var node = e.target && e.target.closest ? e.target.closest("[data-sig-filter]") : null;
+          if (node) {
+            SIG_FILTER = node.getAttribute("data-sig-filter") || "running";
+            sigLastSig = ""; // Đổi bộ lọc thì vẽ lại danh sách.
+            renderSignalBoard();
+            return;
+          }
+          var row = e.target && e.target.closest ? e.target.closest("[data-sig-go]") : null;
+          if (row) go(row.getAttribute("data-sig-go"));
+        });
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) { stopSignalPolling(); signalMarkPaused(); }
+          else if (AppState.me && currentScreen === "dashboard") { startSignalPolling(); }
+        });
+      }
+      wireSignalBoard();
       function setViewMode(mode, silent) {
         VIEW_MODE = mode === "staff" ? "staff" : "admin";
         var staff = VIEW_MODE === "staff";
@@ -5040,6 +5307,7 @@
           refreshQuota();
           loadTasks();
           refreshDashboard();
+          if (currentScreen === "dashboard") startSignalPolling();
           if (AppState.me && AppState.me.role === "admin") loadAdminUsers();
         }
         function refreshQuota() {
@@ -5054,6 +5322,9 @@
         function loadTasks() {
           return api("/api/tasks?limit=500").then(function (res) {
             AppState.tasks = res.tasks || [];
+            /* Yêu cầu 32: nhiệm vụ vừa tải xong thì vẽ lại bảng tín hiệu
+               (nếu dashboard đã có số liệu) — không đụng danh sách từng tính năng. */
+            if (AppState.dashData) renderSignalBoard(AppState.dashData);
             FEATURE_KEYS.forEach(function (key) {
               var list = document.querySelector('[data-tasks="' + key + '"]');
               if (!list) return;
@@ -5110,6 +5381,7 @@
         /* ---------- Dashboard ---------- */
         function refreshDashboard() {
           return api("/api/dashboard").then(function (d) {
+            AppState.dashData = d;
             var pct = d.total ? Math.round((d.done * 100) / d.total) : 0;
             DASH_STATS.admin = [
               { num: String(d.today), delta: "Hôm nay", note: "Trên cả 6 tính năng — toàn app" },
@@ -5192,11 +5464,15 @@
             updateDashStats();
             /* Yêu cầu 31: khối thống kê theo dự án chỉ có ở response của Admin. */
             if (d.projectStats && AppState.me && AppState.me.role === "admin") initProjectStats(d.projectStats);
+            /* Yêu cầu 32: bảng tín hiệu live — vẽ lại từ số liệu vừa tải. */
+            renderSignalBoard(d);
+            signalMarkOk();
             var cur = screenData(currentScreen);
             if (cur) { dockStats.innerHTML = cur.stats; dockDetail.innerHTML = cur.detail; }
             applyFilter(searchInput.value);
           }).catch(function () {
             /* M6: API lỗi thì báo rõ, không để số mẫu hiện như số thật. */
+            signalMarkError();
             var liveChipErr = document.getElementById("liveChip");
             if (liveChipErr) {
               liveChipErr.innerHTML = '<span class="live-dot"></span>Không tải được số liệu — bấm để thử lại';

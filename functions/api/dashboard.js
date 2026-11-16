@@ -39,7 +39,20 @@ export async function onRequestGet(context) {
     }
     return { id: r.id, feature: r.feature, title: r.title, meta, status: r.status, progress: r.progress, owner: r.user_name, created_at: r.created_at };
   });
-  const out = { ok: true, today, total, running, done, errors, byFeature, recent };
+  // ---------- Yêu cầu 32: số liệu theo trạng thái cho Bảng tín hiệu ----------
+  // Tính cho MỌI vai trò (đếm có phạm vi: nhân viên chỉ đếm việc của mình).
+  // Trước đây byStatus chỉ có trong projectStats của Admin; nhân viên không có
+  // nguồn đếm chính xác (đếm từ danh sách /api/tasks bị cắt ở limit) nên bổ
+  // sung tại đây. Admin vẫn nhận đúng số cũ (scope rỗng = toàn app).
+  const byStatus = {};
+  for (const s of TASK_STATUS_KEYS) byStatus[s] = 0;
+  const statusQ = await db.prepare(
+    `SELECT status, COUNT(*) AS n FROM tasks t WHERE 1 = 1 ${scope} GROUP BY status`,
+  ).bind(...args).all();
+  for (const r of (statusQ.results || [])) {
+    if (byStatus[r.status] !== undefined) byStatus[r.status] = r.n;
+  }
+  const out = { ok: true, today, total, running, done, errors, byFeature, recent, byStatus };
   if (user.role === 'admin') {
     out.pendingCount = await count(`SELECT COUNT(*) AS n FROM users WHERE status = 'pending'`);
     // ---------- Yêu cầu 31: thống kê theo dự án (CHỈ admin) ----------
@@ -71,11 +84,9 @@ export async function onRequestGet(context) {
     for (const f of FEATURE_KEYS) {
       byFeatureDetail[f] = { total: 0, done: 0, running: 0, luna: 0, review: 0, error: 0 };
     }
-    const byStatus = {};
-    for (const s of TASK_STATUS_KEYS) byStatus[s] = 0;
     const allQ = await db.prepare('SELECT feature, status, title, payload FROM tasks').all();
     for (const t of (allQ.results || [])) {
-      if (byStatus[t.status] !== undefined) byStatus[t.status]++;
+      // byStatus đã tính có phạm vi ở trên (Yêu cầu 32) — dùng chung cho admin.
       const fd = byFeatureDetail[t.feature];
       if (fd) {
         fd.total++;
