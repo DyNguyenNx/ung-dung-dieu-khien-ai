@@ -663,6 +663,36 @@
       .dash-detail[hidden]{ display:none; }
       .dash-detail-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px; }
       .dash-detail-head h2{ margin:0; }
+
+      /* ---------- Thống kê theo dự án (Yêu cầu 31, chỉ Admin) ---------- */
+      #projectStatsBlock[hidden]{ display:none; }
+      .ps-filters{ display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 4px; }
+      .ps-filter{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--muted); flex:1 1 140px; }
+      .ps-filter select{
+        height:44px; padding:0 10px; font-size:14px; font-family:inherit; color:var(--ink);
+        background:var(--card); border:1.5px solid var(--line); border-radius:12px; width:100%;
+      }
+      .ps-nums{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0 6px; }
+      .ps-num{ background:var(--bg-soft); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+      .ps-num b{ display:block; font-size:22px; line-height:1.2; color:var(--ink); font-variant-numeric:tabular-nums; }
+      .ps-num span{ font-size:12.5px; color:var(--muted); font-weight:600; }
+      .ps-num .ps-good{ color:var(--green); }
+      .ps-num .ps-bad{ color:var(--red); }
+      .ps-table-wrap{ overflow-x:auto; margin-top:8px; }
+      .ps-table{ min-width:520px; }
+      .ps-table a{ color:var(--blue); font-weight:600; word-break:break-all; }
+      .ps-table .ps-ok{ color:var(--green); font-weight:700; }
+      .ps-table .ps-no{ color:var(--muted); }
+      .ps-miss{ list-style:none; margin:6px 0 0; padding:0; }
+      .ps-miss li{ font-size:13.5px; color:var(--body); padding:7px 4px; border-bottom:1px dashed var(--line); }
+      .ps-miss li:last-child{ border-bottom:0; }
+      .ps-miss b{ color:var(--ink); }
+      .ps-miss .ps-due{ color:var(--red); font-weight:700; }
+      .ps-sub{ margin-top:18px; }
+      .ps-sub h3{ font-size:16px; color:var(--ink); margin:0 0 2px; }
+      @media (max-width:720px){
+        .ps-nums{ grid-template-columns:repeat(2,1fr); }
+      }
       .btn-sm{ height:44px; padding:0 14px; font-size:12.5px; }
 
       /* Lịch & Kế hoạch theo dự án */
@@ -1934,6 +1964,46 @@
                 <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Hoạt động gần đây</h2>
                 <p class="hint">Những việc đội AI vừa làm xong hoặc vừa báo về.</p>
                 <ul class="feed" id="dashFeed"></ul>
+              </div>
+            </div>
+
+            <!-- ======== Yêu cầu 31: Thống kê theo dự án (CHỈ Admin) ======== -->
+            <div class="card" id="projectStatsBlock" data-admin-only hidden style="margin-top:16px;">
+              <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>Thống kê theo dự án</h2>
+              <p class="hint">Số liệu theo lịch đăng bài / chăm sóc của từng dự án — nguồn trong app + số liệu Thư Ký Mỹ Linh đẩy từ Muse về. Chỉ Admin thấy mục này.</p>
+              <div class="ps-filters">
+                <label class="ps-filter">Dự án
+                  <select id="psProject" aria-label="Chọn dự án"></select>
+                </label>
+                <label class="ps-filter">Tuần
+                  <select id="psWeek" aria-label="Chọn tuần"></select>
+                </label>
+                <label class="ps-filter">Loại
+                  <select id="psKind" aria-label="Chọn loại">
+                    <option value="article">Bài viết</option>
+                    <option value="page">Bài đăng Page</option>
+                    <option value="web">Chăm sóc web</option>
+                  </select>
+                </label>
+              </div>
+              <div class="ps-nums" id="psNums"></div>
+              <p class="hint" id="psIndexLine"></p>
+              <div id="psMissWrap"></div>
+              <div class="ps-table-wrap">
+                <table class="usage-table ps-table">
+                  <thead><tr><th>Ngày</th><th>Bài</th><th>Link</th><th>SEO</th><th>Index</th></tr></thead>
+                  <tbody id="psTableBody"></tbody>
+                </table>
+              </div>
+              <div class="ps-sub">
+                <h3>Nhiệm vụ qua app</h3>
+                <p class="hint">Toàn bộ nhiệm vụ đã giao qua app, gom theo tính năng, trạng thái và dự án (dự án đoán từ nội dung nhiệm vụ; không đoán được gom vào “Chưa gắn dự án”).</p>
+                <div class="ps-table-wrap">
+                  <table class="usage-table" id="psAppFeature"></table>
+                </div>
+                <div class="ps-table-wrap" style="margin-top:10px;">
+                  <table class="usage-table" id="psAppProject"></table>
+                </div>
               </div>
             </div>
           </section>
@@ -4237,6 +4307,182 @@
           if (note) note.textContent = set[i].note;
         }
       }
+
+      /* ---------- Thống kê theo dự án (Yêu cầu 31, chỉ Admin) ----------
+         Số liệu từ /api/dashboard (projectStats). Server chỉ gửi mục này cho
+         Admin; nhân viên không có dữ liệu và khối vẫn ẩn (data-admin-only
+         ẩn thêm ở chế độ xem Nhân viên). Thiếu dữ liệu tuần nào thì hiện
+         "Chưa có số liệu", KHÔNG đoán. */
+      var PS_SEL = { project: "all", week: "", kind: "article" };
+      function psWeekKey(d) {
+        var date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var day = date.getDay() || 7;
+        date.setDate(date.getDate() + 4 - day);
+        var yearStart = new Date(date.getFullYear(), 0, 1);
+        var week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        return date.getFullYear() + "-W" + (week < 10 ? "0" + week : week);
+      }
+      function psWeekMonday(period) {
+        var m = /^(\d{4})-W(\d{2})$/.exec(period || "");
+        if (!m) return null;
+        var jan4 = new Date(+m[1], 0, 4);
+        var day = jan4.getDay() || 7;
+        var monday = new Date(jan4);
+        monday.setDate(jan4.getDate() - (day - 1) + (parseInt(m[2], 10) - 1) * 7);
+        return monday;
+      }
+      function psWeekLabel(period) {
+        var d0 = psWeekMonday(period);
+        if (!d0) return period;
+        var d1 = new Date(d0);
+        d1.setDate(d0.getDate() + 6);
+        return "Tuần " + period.slice(5) + " (" + d0.getDate() + "/" + (d0.getMonth() + 1) + "–" + d1.getDate() + "/" + (d1.getMonth() + 1) + "/" + d1.getFullYear() + ")";
+      }
+      function psScheduledInWeek(p, period) {
+        var d0 = psWeekMonday(period);
+        if (!d0) return 0;
+        var n = 0;
+        for (var i = 0; i < 7; i++) {
+          var d = new Date(d0);
+          d.setDate(d0.getDate() + i);
+          var iso = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+          if (p.endDate && iso > p.endDate) continue;
+          if (p.days.indexOf(d.getDay()) !== -1) n++;
+        }
+        return n;
+      }
+      function initProjectStats(ps) {
+        AppState.projectStats = ps;
+        var block = document.getElementById("projectStatsBlock");
+        if (!block) return;
+        var projSel = document.getElementById("psProject");
+        var weekSel = document.getElementById("psWeek");
+        var kindSel = document.getElementById("psKind");
+        if (!PS_SEL.week) PS_SEL.week = psWeekKey(new Date());
+        if (!AppState.psInit) {
+          AppState.psInit = true;
+          var opts = '<option value="all">Tất cả dự án</option>';
+          (ps.projects || []).forEach(function (p) {
+            opts += '<option value="' + escHtml(p.slug) + '">' + escHtml(p.name) + ' · ' + escHtml(p.domain) + '</option>';
+          });
+          projSel.innerHTML = opts;
+          var weeks = [];
+          var monday = psWeekMonday(PS_SEL.week);
+          for (var i = 0; i < 6; i++) {
+            var d = new Date(monday);
+            d.setDate(monday.getDate() - i * 7);
+            weeks.push(psWeekKey(d));
+          }
+          weekSel.innerHTML = weeks.map(function (w) {
+            return '<option value="' + w + '"' + (w === PS_SEL.week ? ' selected' : '') + '>' + escHtml(psWeekLabel(w)) + '</option>';
+          }).join("");
+          projSel.value = PS_SEL.project;
+          kindSel.value = PS_SEL.kind;
+          projSel.addEventListener("change", function () { PS_SEL.project = projSel.value; renderProjectStats(); });
+          weekSel.addEventListener("change", function () { PS_SEL.week = weekSel.value; renderProjectStats(); });
+          kindSel.addEventListener("change", function () { PS_SEL.kind = kindSel.value; renderProjectStats(); });
+        }
+        block.hidden = false;
+        renderProjectStats();
+      }
+      function renderProjectStats() {
+        var ps = AppState.projectStats;
+        if (!ps) return;
+        var projects = ps.projects || [];
+        var rows = (ps.rows || []).filter(function (r) { return r.kind === PS_SEL.kind; });
+        var selected = PS_SEL.project === "all" ? projects : projects.filter(function (p) { return p.slug === PS_SEL.project; });
+        var scheduled = 0;
+        if (PS_SEL.kind === "article") {
+          selected.forEach(function (p) { scheduled += psScheduledInWeek(p, PS_SEL.week); });
+        }
+        var matched = rows.filter(function (r) {
+          return r.period === PS_SEL.week && (PS_SEL.project === "all" || r.project === PS_SEL.project);
+        });
+        var hasData = matched.length > 0;
+        var posted = 0;
+        matched.forEach(function (r) { posted += r.posted || 0; });
+        var missingProjects = [];
+        if (PS_SEL.project === "all") {
+          selected.forEach(function (p) {
+            if (!matched.some(function (r) { return r.project === p.slug; })) missingProjects.push(p.name);
+          });
+        }
+        var pct = (!hasData || !scheduled) ? null : Math.round((posted * 100) / scheduled);
+        var articles = [];
+        var miss = [];
+        var idxReq = 0, idxDone = 0, idxKnown = false;
+        matched.forEach(function (r) {
+          var d = r.details || {};
+          (Array.isArray(d.articles) ? d.articles : []).forEach(function (a) { articles.push(a); });
+          (Array.isArray(d.late) ? d.late : []).forEach(function (m) { miss.push({ title: m.title, due: m.due, late: true }); });
+          (Array.isArray(d.missing) ? d.missing : []).forEach(function (m) { miss.push({ title: m.title, due: m.due, late: false }); });
+          if (d.index) { idxKnown = true; idxReq += d.index.requested || 0; idxDone += d.index.indexed || 0; }
+        });
+        if (!idxKnown && articles.length) {
+          idxKnown = true;
+          idxReq = articles.length;
+          idxDone = articles.filter(function (a) { return a.indexed; }).length;
+        }
+        var nums = document.getElementById("psNums");
+        function numCell(big, label, cls) {
+          return '<div class="ps-num"><b class="' + (cls || "") + '">' + big + '</b><span>' + label + '</span></div>';
+        }
+        nums.innerHTML =
+          numCell(PS_SEL.kind === "article" ? String(scheduled) : "—", "Bài theo lịch") +
+          numCell(hasData ? String(posted) : "Chưa có số liệu", "Đã đăng") +
+          numCell(pct === null ? "—" : pct + "%", "Tỉ lệ đúng hẹn", pct === null ? "" : (pct >= 100 ? "ps-good" : "ps-bad")) +
+          numCell(String(miss.length), "Bài trễ / thiếu", miss.length ? "ps-bad" : "ps-good");
+        var idxLine = document.getElementById("psIndexLine");
+        idxLine.textContent = !hasData
+          ? "Trạng thái index: Chưa có số liệu — Thư Ký Mỹ Linh chưa đẩy bản tổng kết tuần này."
+          : (idxKnown ? ("Trạng thái index: đã xin index " + idxReq + " bài · đã index " + idxDone + " bài.") : "Trạng thái index: chưa có dữ liệu index trong bản tổng kết.");
+        if (missingProjects.length) idxLine.textContent += " Chưa có số liệu: " + missingProjects.join(", ") + ".";
+        var missWrap = document.getElementById("psMissWrap");
+        missWrap.innerHTML = miss.length
+          ? '<ul class="ps-miss">' + miss.map(function (m) {
+              return '<li><b>' + escHtml(m.title) + '</b> — ' + (m.late ? 'trễ' : 'thiếu') + (m.due ? ', hẹn <span class="ps-due">' + escHtml(m.due) + '</span>' : '') + '</li>';
+            }).join("") + '</ul>'
+          : (hasData ? '<p class="hint">Không có bài trễ / thiếu trong tuần này.</p>' : '');
+        var tb = document.getElementById("psTableBody");
+        if (!articles.length) {
+          tb.innerHTML = '<tr><td colspan="5" class="ps-no">' + (hasData ? 'Bản tổng kết không liệt kê bài cụ thể.' : 'Chưa có số liệu tuần này — Thư Ký Mỹ Linh chưa đẩy bản tổng kết.') + '</td></tr>';
+        } else {
+          tb.innerHTML = articles.map(function (a) {
+            return '<tr><td>' + escHtml(a.date || '—') + '</td><td>' + escHtml(a.title) + '</td><td>' +
+              (a.link ? '<a href="' + escHtml(a.link) + '" target="_blank" rel="noopener">' + escHtml(a.link) + '</a>' : '—') +
+              '</td><td>' + (typeof a.seo === 'number' ? a.seo + '/100' : '—') + '</td><td>' +
+              (a.indexed === true ? '<span class="ps-ok">Đã index</span>' : (a.indexed === false ? '<span class="ps-no">Chưa index</span>' : '—')) + '</td></tr>';
+          }).join("");
+        }
+        renderPsAppTables(ps);
+      }
+      function renderPsAppTables(ps) {
+        var at = ps.appTasks || {};
+        var featNames = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
+        var bf = at.byFeature || {};
+        var featHtml = '<thead><tr><th>Tính năng</th><th>Tổng</th><th>Xong</th><th>Đang chạy</th><th>Chờ Luna</th><th>Chờ duyệt</th><th>Lỗi</th></tr></thead><tbody>';
+        Object.keys(featNames).forEach(function (k) {
+          var f = bf[k];
+          if (!f) return;
+          featHtml += '<tr><td>' + featNames[k] + '</td><td>' + f.total + '</td><td>' + f.done + '</td><td>' + (f.running || 0) + '</td><td>' + (f.luna || 0) + '</td><td>' + (f.review || 0) + '</td><td>' + (f.error || 0) + '</td></tr>';
+        });
+        featHtml += '</tbody>';
+        var featEl = document.getElementById("psAppFeature");
+        if (featEl) featEl.innerHTML = featHtml;
+        var bp = at.byProject || {};
+        var projNames = {};
+        (ps.projects || []).forEach(function (p) { projNames[p.slug] = p.name; });
+        projNames.unassigned = "Chưa gắn dự án";
+        var projHtml = '<thead><tr><th>Dự án</th><th>Tổng</th><th>Xong</th><th>Đang chạy</th><th>Chờ Luna</th><th>Chờ duyệt</th><th>Lỗi</th></tr></thead><tbody>';
+        Object.keys(projNames).forEach(function (slug) {
+          var b = bp[slug];
+          if (!b || !b.total) return;
+          projHtml += '<tr><td>' + escHtml(projNames[slug]) + '</td><td>' + b.total + '</td><td>' + b.done + '</td><td>' + (b.running || 0) + '</td><td>' + (b.luna || 0) + '</td><td>' + (b.review || 0) + '</td><td>' + (b.error || 0) + '</td></tr>';
+        });
+        projHtml += '</tbody>';
+        var projEl = document.getElementById("psAppProject");
+        if (projEl) projEl.innerHTML = projHtml;
+      }
       function setViewMode(mode, silent) {
         VIEW_MODE = mode === "staff" ? "staff" : "admin";
         var staff = VIEW_MODE === "staff";
@@ -4944,6 +5190,8 @@
             AppState.recentFeed = d.recent || [];
             refreshNotifs();
             updateDashStats();
+            /* Yêu cầu 31: khối thống kê theo dự án chỉ có ở response của Admin. */
+            if (d.projectStats && AppState.me && AppState.me.role === "admin") initProjectStats(d.projectStats);
             var cur = screenData(currentScreen);
             if (cur) { dockStats.innerHTML = cur.stats; dockDetail.innerHTML = cur.detail; }
             applyFilter(searchInput.value);

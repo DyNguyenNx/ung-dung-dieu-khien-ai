@@ -76,3 +76,25 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_feature ON tasks(feature);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+
+-- Yêu cầu 31: số liệu Luna đẩy từ Muse về từng dự án theo tuần
+-- (nguồn 2 của dashboard thống kê theo dự án). Một dòng = 1 dự án +
+-- 1 loại + 1 tuần; đẩy lại cùng khóa thì cập nhật đè (upsert).
+-- links = JSON mảng URL bài đã đăng; details = JSON {seo, index,
+-- late/missing, articles:[{date, title, link, seo, indexed}]}.
+CREATE TABLE IF NOT EXISTS project_stats (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('article', 'page', 'web')),
+  period TEXT NOT NULL,
+  scheduled INTEGER NOT NULL DEFAULT 0,
+  posted INTEGER NOT NULL DEFAULT 0,
+  links TEXT,
+  details TEXT,
+  source TEXT NOT NULL DEFAULT 'luna',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(project, kind, period)
+);
+CREATE INDEX IF NOT EXISTS idx_project_stats_project ON project_stats(project);
+CREATE INDEX IF NOT EXISTS idx_project_stats_period ON project_stats(period);

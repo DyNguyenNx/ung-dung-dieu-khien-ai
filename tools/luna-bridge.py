@@ -9,6 +9,8 @@ roi tra file HTML (Design Web) hoac ket qua text (web/page) ve app.
     python3 luna-bridge.py photos <task-id> [--out DIR]
     python3 luna-bridge.py deliver <task-id> <file.html> [--note "..."]
     python3 luna-bridge.py deliver <task-id> --kind posted|content --text-file <file.txt> [--link <url>] [--note "..."]
+    python3 luna-bridge.py stats push --project <slug> --kind article|page|web --period 2026-W47 --file stats.json
+        (alias cua tools/luna-stats.py push — day so lieu thong ke theo du an, Yeu cau 31)
 
 Ket qua text (Yeu cau 30):
     --kind posted  = Luna da TU DANG len web/page that (du an cua anh Dy):
@@ -291,6 +293,20 @@ def cmd_deliver(args):
     print(f"Da giao ban {data.get('version')} cho nhiem vu {data.get('task_id')} — trang thai: {data.get('status')} (cho anh duyet).")
 
 
+def cmd_stats_push(args):
+    # Yeu cau 31: alias `luna-bridge.py stats push ...` — logic that o
+    # tools/luna-stats.py (cung file stats.json, cung endpoint /api/luna/stats).
+    # File ten luna-stats.py (gach ngang) nen khong import truc tiep duoc:
+    # nap theo duong dan bang importlib.
+    import importlib.util
+    from pathlib import Path
+    here = Path(__file__).resolve().parent
+    spec = importlib.util.spec_from_file_location("luna_stats", here / "luna-stats.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.cmd_push(args)
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cau noi Luna <-> App Dieu Khien AI (Yeu cau 28)")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -310,6 +326,14 @@ def main():
     d.add_argument("--link", default="", help="URL bai da dang (dung kem --kind posted)")
     d.add_argument("--note", default="")
     d.set_defaults(fn=cmd_deliver)
+    st = sub.add_parser("stats", help="So lieu thong ke theo du an (Yeu cau 31)")
+    sts = st.add_subparsers(dest="stats_cmd", required=True)
+    sp = sts.add_parser("push", help="Day ban tong ket 1 tuan cua 1 du an len app")
+    sp.add_argument("--project", required=True, help="bluemax | binhminh | khanhnghi | inox")
+    sp.add_argument("--kind", required=True, choices=["article", "page", "web"])
+    sp.add_argument("--period", required=True, help="Tuan ISO, vd 2026-W47")
+    sp.add_argument("--file", required=True, help="File stats.json (scheduled, posted, links?, details?)")
+    sp.set_defaults(fn=cmd_stats_push)
     args = ap.parse_args()
     args.fn(args)
 

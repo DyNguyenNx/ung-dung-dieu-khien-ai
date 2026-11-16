@@ -1,7 +1,10 @@
 // GET /api/dashboard — Số liệu Dashboard: việc hôm nay, đang chạy, hoàn thành,
 // lỗi, tiến độ từng tính năng, 5 hoạt động gần nhất. Nhân viên chỉ thấy số
 // của chính mình; Admin thấy tất cả (+ số tài khoản đang chờ duyệt).
+// Yêu cầu 31: Admin thấy thêm projectStats (thống kê theo dự án, 2 nguồn:
+// nhiệm vụ trong app + số liệu Luna đẩy từ Muse). Nhân viên KHÔNG có mục này.
 import { json, FEATURE_KEYS, FEATURES, requireAuth } from '../_lib/auth.js';
+import { publicProjects, matchProjectSlug, UNASSIGNED, PROJECT_SLUGS, TASK_STATUS_KEYS } from '../_lib/projects.js';
 
 export async function onRequestGet(context) {
   const { user, response } = await requireAuth(context.env, context.request);
@@ -39,6 +42,70 @@ export async function onRequestGet(context) {
   const out = { ok: true, today, total, running, done, errors, byFeature, recent };
   if (user.role === 'admin') {
     out.pendingCount = await count(`SELECT COUNT(*) AS n FROM users WHERE status = 'pending'`);
+    // ---------- Yêu cầu 31: thống kê theo dự án (CHỈ admin) ----------
+    // Nguồn 2 — số liệu Luna đẩy từ Muse (bảng project_stats).
+    const rowsQ = await db.prepare(
+      'SELECT id, project, kind, period, scheduled, posted, links, details, source, created_at, updated_at FROM project_stats ORDER BY period DESC, project ASC',
+    ).all();
+    const rows = (rowsQ.results || []).map((r) => {
+      let links = [];
+      let details = {};
+      try { links = JSON.parse(r.links || '[]'); } catch { links = []; }
+      try { details = JSON.parse(r.details || '{}'); } catch { details = {}; }
+      if (!Array.isArray(links)) links = [];
+      if (!details || typeof details !== 'object' || Array.isArray(details)) details = {};
+      return {
+        id: r.id, project: r.project, kind: r.kind, period: r.period,
+        scheduled: r.scheduled, posted: r.posted, links, details,
+        source: r.source, updated_at: r.updated_at,
+      };
+    });
+    // Nguồn 1 — nhiệm vụ trong app, gom theo dự án + trạng thái.
+    // Dự án đoán từ payload (lines "Website:/Page:", customer Design Web,
+    // meta); không đoán được → 'unassigned' ("Chưa gắn dự án"), không bỏ mất.
+    const byProject = {};
+    for (const s of [...PROJECT_SLUGS, UNASSIGNED]) {
+      byProject[s] = { total: 0, done: 0, running: 0, luna: 0, review: 0, error: 0 };
+    }
+    const byFeatureDetail = {};
+    for (const f of FEATURE_KEYS) {
+      byFeatureDetail[f] = { total: 0, done: 0, running: 0, luna: 0, review: 0, error: 0 };
+    }
+    const byStatus = {};
+    for (const s of TASK_STATUS_KEYS) byStatus[s] = 0;
+    const allQ = await db.prepare('SELECT feature, status, title, payload FROM tasks').all();
+    for (const t of (allQ.results || [])) {
+      if (byStatus[t.status] !== undefined) byStatus[t.status]++;
+      const fd = byFeatureDetail[t.feature];
+      if (fd) {
+        fd.total++;
+        if (t.status === 'completed') fd.done++;
+        if (t.status === 'running') fd.running++;
+        if (t.status === 'luna') fd.luna++;
+        if (t.status === 'review') fd.review++;
+        if (t.status === 'error') fd.error++;
+      }
+      let text = t.title || '';
+      try {
+        const p = JSON.parse(t.payload || '{}');
+        if (Array.isArray(p.lines)) text += ' ' + p.lines.join(' ');
+        if (p.web && p.web.customer) text += ' ' + p.web.customer;
+        if (p.meta) text += ' ' + p.meta;
+      } catch { /* payload cũ hỏng thì chỉ dùng title */ }
+      const slug = matchProjectSlug(text);
+      const b = byProject[slug];
+      b.total++;
+      if (t.status === 'completed') b.done++;
+      if (t.status === 'running') b.running++;
+      if (t.status === 'luna') b.luna++;
+      if (t.status === 'review') b.review++;
+      if (t.status === 'error') b.error++;
+    }
+    out.projectStats = {
+      projects: publicProjects(),
+      rows,
+      appTasks: { byProject, byStatus, byFeature: byFeatureDetail },
+    };
   }
   return json(out);
 }
