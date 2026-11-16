@@ -1465,6 +1465,18 @@
         display:grid; place-items:center;
       }
       .btn-del:hover{ border-color:var(--red); background:var(--red-soft); }
+      /* Yêu cầu 34: nút Xoá nhiệm vụ trên thẻ đã Hoàn thành — cùng màu đỏ +
+         icon thùng rác với .btn-del (xoá thành viên), thêm chữ để thấy rõ
+         trên thẻ nhiệm vụ; cao 44px theo chuẩn nút chạm. */
+      .btn-del-task{
+        height:44px; padding:0 14px; flex:none;
+        border:1.5px solid var(--line); border-radius:12px;
+        background:var(--card); color:var(--red);
+        display:inline-flex; align-items:center; gap:8px;
+        font:inherit; font-size:14px; font-weight:700; cursor:pointer;
+      }
+      .btn-del-task:hover{ border-color:var(--red); background:var(--red-soft); }
+      .btn-del-task:disabled{ opacity:.55; cursor:default; }
       .btn-setup{
         width:34px; height:34px; padding:0; flex:none;
         border:1.5px solid var(--line); border-radius:50%;
@@ -6176,6 +6188,10 @@
             });
           });
         }
+        /* Yêu cầu 34: icon thùng rác cho nút Xoá nhiệm vụ — SVG_DEL của
+           AppBackend nằm trong IIFE khác nên không dùng được ở đây, định
+           nghĩa lại cục bộ trong AppRuntime (cùng markup). */
+        var SVG_DEL_RT = '<svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
         function renderTaskItem(task) {
           var full = task.payload || {};
           full.key = task.feature;
@@ -6203,6 +6219,9 @@
             if (gErr) side += '<div class="t-note err">' + esc(gErr) + '</div>';
           } else if (task.status === "completed") {
             side += downloadRowHtml(task);
+            /* Yêu cầu 34: nút Xoá nhiệm vụ — CHỈ trên nhiệm vụ đã Hoàn thành
+               (không thêm cho running/error/luna/review/waiting/scheduled). */
+            side += '<div class="t-actions"><button type="button" class="btn-del-task" data-del-task title="Xoá nhiệm vụ này" aria-label="Xoá nhiệm vụ">' + SVG_DEL_RT + '<span>Xoá nhiệm vụ</span></button></div>';
           } else if (task.status === "luna") {
             /* Yêu cầu 28 + 30: đã gửi brief, đang chờ Luna làm — không thanh tiến độ
                giả, không nút tải. Gửi lỗi thì hiện nút gửi lại brief. */
@@ -6226,6 +6245,7 @@
             '<div><div class="t-name">' + esc(task.title) + '</div><div class="t-meta">' + meta + '</div></div>' +
             '<div class="t-side">' + side + '</div>';
           if (task.status === "completed") wireDownloadButtons(li, task, full);
+          if (task.status === "completed") wireDeleteTaskButton(li, task);
           if (task.status === "review" && me && me.role === "admin") wireDownloadButtons(li, task, full);
           if (task.status === "luna" || task.status === "review") wireLunaButtons(li, task);
           return li;
@@ -6262,6 +6282,26 @@
               : api("/api/tasks/" + task.id + "/send-brief", { method: "POST", body: {} });
             p.then(function () { toast("Đã gửi lại brief cho Thư Ký Mỹ Linh."); refreshTaskItem(li, task.id); })
               .catch(function (e) { toast(e.message || "Không gửi lại được brief."); resendBtn.disabled = false; });
+          });
+        }
+        /* Yêu cầu 34: nút Xoá nhiệm vụ trên thẻ đã Hoàn thành (CHỈ completed).
+           Hộp xác nhận ghi rõ tên nhiệm vụ; xoá xong gỡ thẻ khỏi danh sách
+           ngay + cập nhật số liệu dashboard; bấm huỷ thì giữ nguyên. Quyền
+           xoá do server kiểm tra (DELETE /api/tasks/:id: chỉ chủ nhiệm vụ
+           hoặc admin; người khác → 403, hiện lý do bằng toast). */
+        function wireDeleteTaskButton(li, task) {
+          var delBtn = li.querySelector("[data-del-task]");
+          if (!delBtn) return;
+          delBtn.addEventListener("click", function () {
+            if (!confirm("Xoá nhiệm vụ “" + task.title + "”?\nNhiệm vụ đã xoá không khôi phục được.")) return;
+            delBtn.disabled = true;
+            api("/api/tasks/" + task.id, { method: "DELETE" })
+              .then(function () {
+                li.remove();
+                toast("Đã xoá nhiệm vụ.");
+                if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+              })
+              .catch(function (e) { toast(e.message || "Không xoá được nhiệm vụ."); delBtn.disabled = false; });
           });
         }
         /* POST multipart (FormData) — dùng cho Design Web có ảnh đính kèm. */
