@@ -91,3 +91,51 @@ secrets, Production, dạng Secret, 16:51 16/11/2026) — secret mới thêm c�
   lỗi này chỉ ở môi trường QA, không phải lỗi app.)
 - **Còn chờ key live** (sau push + redeploy): gọi thật 1 lần + đo thời gian
   + kiểm dung lượng ảnh thật + watermark SynthID.
+
+## Yêu cầu 35 — Thiết kế hình ảnh qua Pollinations (anh chốt 18:17 16/11/2026)
+
+Thay Gemini (YC33) vì quota free của Gemini cho model tạo ảnh = 0 (kiểm chứng
+18:10 16/11/2026 trên trang rate-limit AI Studio — giới hạn 0 ở cả RPM/TPM/RPD,
+chờ reset không khắc phục được). Model chốt: `black-forest-labs/flux.2-klein-4b`
+(alias flux-klein), 0.005 Pollen/ảnh, tối đa 10 ảnh mẫu, W×H tự chọn.
+
+- Đường chính `POST /v1/images/generations` (JSON, `response_format: "b64_json"`);
+  nhánh có ảnh mẫu `POST /v1/images/edits` multipart, lặp field `image` cho mỗi
+  ảnh mẫu (theo APIDOCS.md chính thức của Pollinations). Auth `Authorization:
+  Bearer <key sk_>` từ env `POLLINATIONS_API_KEY`.
+- Kích thước: klein-4b yêu cầu mỗi cạnh ≥ 256px, tổng ≤ 2.359.296 pixel —
+  `clampSize()` thu nhỏ giữ tỉ lệ khi vượt (vd 2560×1440 → 2048×1152, đã
+  kiểm bằng mock). Mime ảnh đoán từ magic bytes của base64 (`sniffMime`)
+  vì Pollinations không trả mime kèm `b64_json`.
+- Ảnh quá lớn làm D1 trả `SQLITE_TOOBIG` khi lưu `result_image` (mock PNG
+  noise 2048×1152 ~6,5MB, base64 ~8,7 triệu ký tự — phát hiện khi QA):
+  runner dịch thành lý do tiếng Việt, bảo nhân viên giao lại với kích
+  thước nhỏ hơn (vd 1280×720). Ảnh thật từ Pollinations thường nhỏ hơn
+  nhiều, nhưng vẫn cần kiểm dung lượng ảnh thật 2048×1152 khi kiểm live.
+- Lỗi dịch sang tiếng Việt: 401 key sai/thiếu, 402 hết Pollen, 429 quá tải
+  (kèm Retry-After), 422/400 nội dung bị chặn. Thiếu key → nhiệm vụ sang
+  `error` ngay lúc tạo, lý do trong `payload.pollinations.error`.
+- Prompt ẩn dùng chung module `gemini-image-prompts.js` (không chứa gì riêng
+  của Gemini). Khung chạy nền + lưu D1 `result_image` giữ nguyên YC33 —
+  không cần migration. `gemini-image.js` đã xoá (không còn ai dùng).
+- **Key: ĐÃ CÓ** — anh đã tạo key + tự dán vào Cloudflare làm secret
+  `POLLINATIONS_API_KEY` + redeploy (18:25 16/11/2026, 5 secret Production).
+  Key Gemini (`GEMINI_API_KEY`) GIỮ LẠI trên Cloudflare tới khi Pollinations
+  chạy ngon trên live rồi mới xóa. Chỉ còn kiểm live sau khi push: field
+  multipart `image` có được klein-4b nhận đúng nhiều ảnh mẫu không, lỗi
+  402 hết Pollen hiển thị đúng không, ảnh/kích thước/thời gian thật.
+
+### QA (mock — key thật chưa có ở local lúc QA)
+
+- Backend E2E **45/45 PASS** + frontend Chromium thật 390/768/1440
+  **31/31 PASS** (`~/workspace/qa-app2/qa35-pollinations-image/`): mock trả
+  PNG thật đúng kích thước yêu cầu; giao việc thật (có/không ảnh mẫu,
+  1280×720) → tải được ảnh PNG thật 1280×720 (~880KB); đường lỗi
+  401/402/429/422 + thiếu key → error ngay lúc tạo; clamp 2560×1440 →
+  2048×1152; phân quyền 403/401; không lỗi console, không tràn ngang.
+- Hai lỗi phát hiện khi QA, đã sửa trong commit này: (1) ảnh quá lớn →
+  `SQLITE_TOOBIG` (xem trên); (2) `ReferenceError: AppState is not
+  defined` ở `sigFeatCounts` — `document.fonts.ready` có thể gọi
+  `sigDrawLinks` trước khi block script sau định nghĩa `window.AppState`
+  (lỗi có từ YC32, không phải do YC35; đã sửa bằng cách dùng
+  `window.AppState` có kiểm tra tồn tại).

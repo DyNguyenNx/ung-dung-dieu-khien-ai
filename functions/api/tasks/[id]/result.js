@@ -3,7 +3,7 @@
 // Chăm sóc web/page: trả JSON {ok, task_id, version, kind, text, link,
 //   delivered_at, note} — kind 'posted' (báo cáo đã đăng + link) hoặc
 //   'content' (nội dung để nhân viên tự đăng). Chỉ Admin hoặc chủ nhiệm vụ mới xem được.
-// Thiết kế hình ảnh (Yêu cầu 33): trả đúng bytes ảnh Gemini đã tạo
+// Thiết kế hình ảnh (Yêu cầu 35, đổi provider Gemini -> Pollinations): trả đúng bytes ảnh Pollinations đã tạo
 // (Content-Type theo mime đã lưu trong cột result_image), 404 khi chưa có ảnh.
 import { json, err, requireAuth, parseVersionsFull } from '../../../_lib/auth.js';
 
@@ -24,12 +24,12 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const want = url.searchParams.get('version');
 
-  // ---------- Thiết kế hình ảnh: ảnh thật Gemini đã tạo (Yêu cầu 33) ----------
+  // ---------- Thiết kế hình ảnh: ảnh thật Pollinations đã tạo (Yêu cầu 35) ----------
   // result_image = JSON {mime, data (base64), bytes, w, h, aspect, generated_at}.
   // Chỉ lưu 1 ảnh / nhiệm vụ (bản mới nhất) nên không có ?version.
   if (row.feature === 'anh') {
     if (!row.result_image) {
-      return err('Nhiệm vụ này chưa có ảnh — Gemini chưa trả ảnh.', 404);
+      return err('Nhiệm vụ này chưa có ảnh — Pollinations chưa trả ảnh.', 404);
     }
     let stored = null;
     try {

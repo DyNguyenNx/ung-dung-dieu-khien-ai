@@ -2918,7 +2918,8 @@
               <span class="ai-picker-label"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách — Thiết kế hình ảnh</span>
               <span class="ai-picker-note" data-ai-note hidden>Giao cho Thư Ký Mỹ Linh làm</span>
               <select data-ai-select aria-label="Chọn AI phụ trách Thiết kế hình ảnh">
-                <option selected>Gemini</option>
+                <option selected>Pollinations</option>
+                <option>Gemini</option>
                 <option>Leonardo</option>
                 <option>LightVisual</option>
                 <option>Grok</option>
@@ -3072,7 +3073,7 @@
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg></span>
                   <div>
-                    <div class="ai-name">Gemini <span class="status-dot">Đang hoạt động</span></div>
+                    <div class="ai-name">Pollinations <span class="status-dot">Đang hoạt động</span></div>
                     <div class="ai-role">AI chính — tạo và chỉnh sửa hình ảnh theo yêu cầu</div>
                   </div>
                 </div>
@@ -3099,7 +3100,7 @@
                   </div>
                   <div class="step now">
                     <span class="s-dot">2</span>
-                    <div><div class="s-name">Tạo ảnh mẫu</div><div class="s-by">Gemini tạo ảnh thật theo mô tả</div></div>
+                    <div><div class="s-name">Tạo ảnh mẫu</div><div class="s-by">Pollinations tạo ảnh thật theo mô tả</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">3</span>
@@ -3746,7 +3747,7 @@
         page: { main: "Gemini", role: "lên nội dung tuần và soạn bài đăng fanpage" },
         kenh: { main: "Wan 3.0", role: "tạo cảnh video từ kịch bản cho các kênh" },
         truyen: { main: "Gemini", role: "lên dàn ý và viết chương mới mỗi ngày" },
-        anh: { main: "Gemini", role: "tạo và chỉnh sửa hình ảnh theo yêu cầu" },
+        anh: { main: "Pollinations", role: "tạo và chỉnh sửa hình ảnh theo yêu cầu" },
         designweb: { main: "Thư Ký Mỹ Linh", role: "thiết kế giao diện trang chủ website cho khách hàng theo chuẩn chống slop (Hallmark / Taste / Impeccable)" }
       };
       function setAI(key, value) {
@@ -4727,7 +4728,11 @@
       function sigFeatCounts() {
         var c = {};
         SIG_FEATURE_KEYS.forEach(function (k) { c[k] = 0; });
-        (AppState.tasks || []).forEach(function (t) {
+        /* YC35 QA frontend (16/11): document.fonts.ready / resize co the goi
+           sigDrawLinks truoc khi block script sau dinh nghia window.AppState
+           (microtask chen giua 2 block) -> dung window.AppState co kiem tra
+           ton tai nhu cac cho khac trong file, thay vi AppState tran. */
+        ((window.AppState && window.AppState.tasks) || []).forEach(function (t) {
           if ((t.status === "running" || t.status === "luna") && c[t.feature] !== undefined) c[t.feature]++;
         });
         return c;
@@ -6036,7 +6041,7 @@
           page:      { configId: "cham-soc-page",     name: "Chăm sóc page",     aiPrimary: "Gemini API",      aiBackup: "Meta Graph API" },
           kenh:      { configId: "xay-dung-kenh",     name: "Xây dựng kênh",     aiPrimary: "Wan 3.0",         aiBackup: "fal.ai (Kling 3.0)" },
           truyen:    { configId: "viet-truyen",       name: "Viết truyện",       aiPrimary: "Gemini API",      aiBackup: "ElevenLabs / Vbee" },
-          anh:       { configId: "thiet-ke-hinh-anh", name: "Thiết kế hình ảnh", aiPrimary: "Gemini",           aiBackup: "LightVisual / Grok" },
+          anh:       { configId: "thiet-ke-hinh-anh", name: "Thiết kế hình ảnh", aiPrimary: "Pollinations",     aiBackup: "LightVisual / Grok" },
           designweb: { configId: "design-web",        name: "Design Web",        aiPrimary: "Thư Ký Mỹ Linh",  aiBackup: "Leonardo / Gemini" }
         }
       };
@@ -6213,9 +6218,10 @@
           if (task.status === "running") {
             side += '<div class="bar"><i style="width:' + (task.progress || 0) + '%"></i></div>';
           } else if (task.status === "error") {
-            /* Yêu cầu 33: nhiệm vụ 'anh' lỗi (thiếu key / Gemini chặn / timeout)
-               hiện rõ lý do server đã ghi trong payload.gemini.error. */
-            var gErr = full.gemini && full.gemini.error;
+            /* Yêu cầu 35: nhiệm vụ 'anh' lỗi (thiếu key / Pollinations chặn /
+               timeout) hiện rõ lý do server đã ghi trong payload.pollinations
+               .error (fallback payload.gemini.error cho nhiệm vụ cũ trước YC35). */
+            var gErr = (full.pollinations && full.pollinations.error) || (full.gemini && full.gemini.error);
             if (gErr) side += '<div class="t-note err">' + esc(gErr) + '</div>';
           } else if (task.status === "completed") {
             side += downloadRowHtml(task);
@@ -6855,15 +6861,16 @@
                   if (isDesignWeb) clearRefInputs(form);
                 }
               } else if (key === "anh") {
-                /* Yêu cầu 33: Gemini chạy thật ở server — không chạy mô phỏng,
-                   tiến độ thật về qua poller (5 giây/nhịp). Thiếu key thì server
-                   đã trả status 'error' kèm lý do trong payload.gemini. */
+                /* Yêu cầu 35: Pollinations chạy thật ở server — không chạy mô
+                   phỏng, tiến độ thật về qua poller (5 giây/nhịp). Thiếu key
+                   thì server đã trả status 'error' kèm lý do trong
+                   payload.pollinations. */
                 var qAnh = task.quota;
                 if (task.status === "running") {
                   startAnhPolling();
-                  toast("Đã giao việc cho Gemini: " + d.title + (qAnh ? " — " + feat.name + " còn " + qAnh.remaining + " lượt tuần này." : " — ảnh thật sẽ về khi Gemini xong."));
+                  toast("Đã giao việc cho Pollinations: " + d.title + (qAnh ? " — " + feat.name + " còn " + qAnh.remaining + " lượt tuần này." : " — ảnh thật sẽ về khi Pollinations xong."));
                 } else if (task.status === "error") {
-                  var gErr = (task.payload && task.payload.gemini && task.payload.gemini.error) || "Chưa tạo được ảnh — xem lý do trên thẻ nhiệm vụ.";
+                  var gErr = (task.payload && task.payload.pollinations && task.payload.pollinations.error) || (task.payload && task.payload.gemini && task.payload.gemini.error) || "Chưa tạo được ảnh — xem lý do trên thẻ nhiệm vụ.";
                   toast(gErr);
                 }
                 if (qAnh && quotaCache && quotaCache[key]) { quotaCache[key].used = qAnh.used; quotaCache[key].remaining = qAnh.remaining; }

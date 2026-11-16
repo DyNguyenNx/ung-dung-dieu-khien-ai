@@ -7,7 +7,7 @@
 // AI phụ trách là Thư Ký Mỹ Linh (payload.ai) — brief text gửi Telegram, không ảnh.
 import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras, isLunaAi } from '../../_lib/auth.js';
 import { notifyBrief, MAX_CLIENT_PHOTOS, MAX_REF_PHOTOS, MAX_PHOTO_BYTES } from '../../_lib/telegram.js';
-import { runGeminiImageTask, GEMINI_KEY_MISSING_MSG } from '../../_lib/gemini-image.js';
+import { runPollinationsImageTask, POLLINATIONS_KEY_MISSING_MSG } from '../../_lib/pollinations-image.js';
 
 function taskRow(t) {
   return {
@@ -102,8 +102,8 @@ export async function onRequestPost(context) {
       || checkPhotos(refPhotos, MAX_REF_PHOTOS, 'ảnh mẫu / tài liệu tham khảo');
     if (bad) return err(bad, 400);
   } else if (feature === 'anh') {
-    // Yêu cầu 33: Thiết kế hình ảnh nhận ảnh mẫu (tối đa 4, mỗi ảnh ≤ 5MB)
-    // để gửi kèm Gemini làm tham chiếu phong cách / sửa / ghép.
+    // Yêu cầu 35: Thiết kế hình ảnh nhận ảnh mẫu (tối đa 4, mỗi ảnh ≤ 5MB)
+    // để gửi kèm Pollinations làm tham chiếu phong cách / sửa / ghép.
     const bad = checkPhotos(refPhotos, MAX_REF_PHOTOS, 'ảnh mẫu');
     if (bad) return err(bad, 400);
     if (clientPhotos.length) return err('Thiết kế hình ảnh chỉ nhận ảnh mẫu (refPhotos), không nhận ảnh thật của khách.', 400);
@@ -134,14 +134,15 @@ export async function onRequestPost(context) {
   const payloadObj = body.payload ? { ...body.payload } : {};
   const isLunaTask = feature === 'designweb'
     || ((feature === 'web' || feature === 'page') && isLunaAi(payloadObj.ai));
-  // Yêu cầu 33: Thiết kế hình ảnh chạy Gemini thật ở server. Thiếu key thì
-  // nhiệm vụ sang 'error' NGAY lúc tạo (kèm lý do rõ ràng) — không giả vờ
-  // thành công, không chạy mô phỏng.
-  const geminiMissingKey = feature === 'anh' && !context.env.GEMINI_API_KEY;
-  if (geminiMissingKey) {
-    payloadObj.gemini = { error: GEMINI_KEY_MISSING_MSG, at: nowIso() };
+  // Yêu cầu 35: Thiết kế hình ảnh chạy Pollinations thật ở server (thay
+  // Gemini từ YC33 — quota free của Gemini cho model tạo ảnh = 0). Thiếu key
+  // thì nhiệm vụ sang 'error' NGAY lúc tạo (kèm lý do rõ ràng) — không giả
+  // vờ thành công, không chạy mô phỏng.
+  const pollinationsMissingKey = feature === 'anh' && !context.env.POLLINATIONS_API_KEY;
+  if (pollinationsMissingKey) {
+    payloadObj.pollinations = { error: POLLINATIONS_KEY_MISSING_MSG, at: nowIso() };
   }
-  const initialStatus = isLunaTask ? 'luna' : (geminiMissingKey ? 'error' : 'running');
+  const initialStatus = isLunaTask ? 'luna' : (pollinationsMissingKey ? 'error' : 'running');
   const id = uuid();
   const now = nowIso();
   if (isLunaTask) {
@@ -161,11 +162,11 @@ export async function onRequestPost(context) {
     'INSERT INTO tasks (id, user_id, feature, title, status, progress, payload, result_url, result_html, result_text, result_image, result_versions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL, NULL, NULL, NULL, NULL, ?, ?)',
   ).bind(id, user.id, feature, title, initialStatus, JSON.stringify(payloadObj), now, now).run();
 
-  // Yêu cầu 33: gọi Gemini BẤT ĐỒNG BỘ (waitUntil) — Gemini tạo ảnh mất
+  // Yêu cầu 35: gọi Pollinations BẤT ĐỒNG BỘ (waitUntil) — tạo ảnh mất
   // 10–60 giây nên không chặn response tạo nhiệm vụ; tiến độ thật được cập
   // nhật theo từng chặng (10 prompt đã ghép → 30 đã gửi → 80 đã nhận ảnh → 100).
-  if (feature === 'anh' && !geminiMissingKey && context.waitUntil) {
-    context.waitUntil(runGeminiImageTask(context.env, id, refPhotos));
+  if (feature === 'anh' && !pollinationsMissingKey && context.waitUntil) {
+    context.waitUntil(runPollinationsImageTask(context.env, id, refPhotos));
   }
 
   // Gửi brief (+ ảnh, chỉ Design Web) sang Telegram (best-effort — lỗi không làm hỏng nhiệm vụ).
