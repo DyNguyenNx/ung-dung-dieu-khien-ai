@@ -139,3 +139,65 @@ chờ reset không khắc phục được). Model chốt: `black-forest-labs/flu
   `sigDrawLinks` trước khi block script sau định nghĩa `window.AppState`
   (lỗi có từ YC32, không phải do YC35; đã sửa bằng cách dùng
   `window.AppState` có kiểm tra tồn tại).
+
+## Yêu cầu 36 — Nút "Chỉnh tiếp trên Canva" (anh chốt 18:44 16/11/2026)
+
+- Trên thẻ nhiệm vụ Thiết kế hình ảnh ĐÃ HOÀN THÀNH: nút "Chỉnh tiếp trên
+  Canva" (cạnh nút "Tải hình ảnh"). Bấm → server tải ảnh lên Canva làm
+  asset rồi tạo design từ ảnh đó, trả `edit_url` → mở tab mới vào trình
+  sửa Canva. Ảnh vào design dạng 1 ảnh phẳng duy nhất (API không dựng sẵn
+  bố cục/chữ — đã báo anh). Link chỉnh sửa hết hạn sau 30 ngày; design
+  trống tự xoá sau 7 ngày nếu không ai sửa.
+- Chưa kết nối: admin thấy nút "Kết nối Canva" (mở luồng OAuth, cấp quyền
+  một lần); nhân viên thấy dòng "Chưa kết nối Canva — nhờ admin kết nối...".
+  Chưa cấu hình client ID/secret thì admin thấy dòng hướng dẫn thêm secret.
+- Auth: Canva Connect API, OAuth 2.0 Authorization Code + PKCE (S256, bắt
+  buộc), không có key tĩnh. Client ID/secret đọc từ env
+  `CANVA_CLIENT_ID` / `CANVA_CLIENT_SECRET` (Cloudflare secret).
+  Redirect URI đăng ký trên canva.dev:
+  `https://ung-dung-dieu-khien-ai.pages.dev/api/canva/callback`.
+  Scopes: `asset:write design:content:write design:meta:read`.
+- Backend: lib `functions/_lib/canva.js` (PKCE, đổi/refresh token, upload
+  asset + poll job, tạo design, lấy lại design); endpoints
+  `GET /api/canva/auth` (chỉ admin, sinh state + verifier, lưu D1 10 phút),
+  `GET /api/canva/callback` (đổi code lấy token, lưu D1, về app với
+  `?canva=connected|error`), `GET /api/canva/status` (ai cũng gọi được,
+  chỉ trả connected/configured — KHÔNG trả token), `POST
+  /api/tasks/:id/canva` (chủ nhiệm vụ hoặc admin; chỉ nhiệm vụ 'anh' đã
+  hoàn thành và có ảnh).
+- Token: bảng `canva_tokens` (migration 005, CHỈ 1 dòng id='admin').
+  Refresh token xoay 1 lần — lưu ngay token mới sau khi refresh; dùng lại
+  token cũ sẽ thu hồi toàn bộ token nên code có đường đọc lại dòng token
+  khi refresh thất bại invalid_grant (một request khác có thể vừa refresh
+  xong), còn không thì xoá token và báo admin kết nối lại.
+- Bấm lại cùng nhiệm vụ: dùng lại design đã tạo (lấy link mới qua
+  `GET /designs/:id` vì link cũ hết hạn sau 30 ngày) thay vì tải trùng
+  asset; design cũ đã mất thì tạo mới. Thông tin design lưu ở
+  `payload.canva` của nhiệm vụ.
+- API Canva (đã đọc docs chính thức canva.dev 16/11/2026):
+  `POST /v1/asset-uploads` (octet-stream + header `Asset-Upload-Metadata`
+  `{"name_base64": ...}`, trả job `{id, status}`, poll
+  `GET /v1/asset-uploads/{jobId}` tới `success` → `asset.id`; ảnh < 50MB),
+  `POST /v1/designs` (`design_type: {type:'custom', width, height}` 40–8000px,
+  diện tích ≤ 25.000.000px², kèm `asset_id` + `title`, trả
+  `design.urls.edit_url`), authorize
+  `https://www.canva.com/api/oauth/authorize`, token
+  `POST https://api.canva.com/rest/v1/oauth/token` (form-urlencoded, Basic
+  auth `base64(client_id:client_secret)`; access token ~4 giờ).
+- Lỗi dịch tiếng Việt: chưa cấu hình secret, chưa kết nối, phiên hết hạn
+  (cần kết nối lại), upload lỗi (file quá lớn / import thất bại), Canva
+  quá tải (429), design đã mất.
+- PHẦN ANH PHẢI LÀM (builder không tự đăng ký app hay tạo secret thay anh):
+  (1) đăng ký app tại canva.dev (tích đủ 3 scope trên, redirect URI đúng
+  y hệt trên); (2) dán `CANVA_CLIENT_ID` / `CANVA_CLIENT_SECRET` vào
+  Cloudflare (Pages → Settings → Variables, dạng Secret) + redeploy;
+  (3) bấm "Kết nối Canva" trên thẻ nhiệm vụ và cấp quyền một lần.
+  Dùng được cả tài khoản Canva miễn phí cho các endpoint này (upload /
+  tạo design / xuất) theo docs Canva; autofill / brand template mới cần
+  gói Pro trở lên — tính năng này không dùng autofill.
+- CHỈ KIỂM ĐƯỢC SAU KHI CÓ OAUTH THẬT TRÊN LIVE: luồng cấp quyền thật
+  trên canva.dev, upload + tạo design thật, link edit_url mở đúng trình
+  sửa Canva, refresh token xoay thật, tài khoản Canva miễn phí của anh
+  có gọi được API không (có nguồn nói Connect API cần gói Teams — docs
+  chính thức không ghi giới hạn này cho các endpoint dùng ở đây, cần kiểm
+  thật).

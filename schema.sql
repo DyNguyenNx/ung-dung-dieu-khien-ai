@@ -102,3 +102,28 @@ CREATE TABLE IF NOT EXISTS project_stats (
 );
 CREATE INDEX IF NOT EXISTS idx_project_stats_project ON project_stats(project);
 CREATE INDEX IF NOT EXISTS idx_project_stats_period ON project_stats(period);
+
+-- Yêu cầu 36: nút "Chỉnh tiếp trên Canva" — OAuth Canva (xem migration 005).
+-- canva_tokens: CHỈ 1 dòng (id='admin') — access + refresh token của Canva
+-- (tài khoản Canva của admin). Refresh token xoay 1 lần: lưu token mới ngay
+-- sau khi refresh. Token lưu dạng chữ thường trong D1 vì cần dùng được để
+-- refresh; chỉ Worker đọc được, không trả token ra client bao giờ.
+-- canva_oauth_states: state + PKCE code_verifier tạm (1 lần, hết hạn 10 phút).
+CREATE TABLE IF NOT EXISTS canva_tokens (
+  id TEXT PRIMARY KEY,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  scope TEXT NOT NULL DEFAULT '',
+  connected_by TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS canva_oauth_states (
+  state TEXT PRIMARY KEY,
+  code_verifier TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_canva_oauth_states_expires ON canva_oauth_states(expires_at);

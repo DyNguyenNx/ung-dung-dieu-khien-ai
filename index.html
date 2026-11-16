@@ -584,6 +584,21 @@
       .btn-dl:hover{ background:var(--navy-deep); }
       .btn-dl.is-disabled{ background:var(--stage); color:var(--muted); border:1.5px solid var(--line); cursor:not-allowed; }
       .btn-dl.is-disabled:hover{ background:var(--stage); }
+      /* Yêu cầu 36: nút "Chỉnh tiếp trên Canva" / "Kết nối Canva" trên thẻ
+         nhiệm vụ Thiết kế hình ảnh đã hoàn thành — xanh teal đậm của Canva
+         (chữ trắng, tương phản đủ đọc), cùng cỡ 44px như nút Tải. */
+      .dl-row{ gap:8px; flex-wrap:wrap; }
+      .btn-canva{
+        display:inline-flex; align-items:center; gap:7px;
+        border:0; border-radius:999px;
+        background:#0e7c86; color:#fff;
+        font-size:13px; font-weight:700; font-family:inherit;
+        padding:0 16px; height:44px;
+        text-decoration:none; cursor:pointer; white-space:nowrap;
+        transition:background .18s ease;
+      }
+      .btn-canva:hover{ background:#0a616a; }
+      .btn-canva:disabled{ background:var(--stage); color:var(--muted); border:1.5px solid var(--line); cursor:not-allowed; }
       @media (max-width:720px){
         .dl-row{ justify-content:flex-start; }
         .sec-edit{ width:130px; }
@@ -5610,11 +5625,42 @@
           SCREENS.dashboard.sub = "Hoạt động của đội AI hôm nay, " + todayStr();
           setViewMode(user.role === "admin" ? "admin" : "staff", true);
           if (currentScreen === "dashboard") { titleEl.textContent = "Chào buổi sáng, " + user.name; subEl.textContent = SCREENS.dashboard.sub; }
+          /* Yêu cầu 36: quay về từ luồng OAuth Canva — báo kết quả rồi dọn
+             tham số khỏi URL (không để ?canva= nằm lại khi tải lại trang). */
+          try {
+            var q = new URLSearchParams(window.location.search);
+            var canvaRet = q.get("canva");
+            if (canvaRet === "connected") {
+              showToast("Đã kết nối Canva — bấm “Chỉnh tiếp trên Canva” trên thẻ ảnh đã hoàn thành để sửa tiếp.");
+            } else if (canvaRet === "error") {
+              var reason = q.get("reason") || "";
+              var msg = "Không kết nối được Canva.";
+              if (reason === "denied") msg = "Anh đã từ chối cấp quyền cho Canva — bấm “Kết nối Canva” để thử lại.";
+              else if (reason === "not_configured") msg = "Chưa cấu hình CANVA_CLIENT_ID / CANVA_CLIENT_SECRET trên Cloudflare — thêm 2 secret rồi mới kết nối Canva được.";
+              else if (reason === "expired" || reason === "state") msg = "Phiên kết nối Canva đã hết hạn — bấm “Kết nối Canva” để thử lại.";
+              else if (reason === "exchange") msg = "Canva không đổi được mã cấp quyền — bấm “Kết nối Canva” để thử lại.";
+              else if (reason === "auth") msg = "Phiên đăng nhập đã hết — đăng nhập lại rồi kết nối Canva.";
+              showToast(msg);
+            }
+            if (canvaRet) {
+              var clean = window.location.pathname + window.location.hash;
+              window.history.replaceState({}, "", clean);
+            }
+          } catch (e) { /* Bỏ qua — không chặn vào app. */ }
           loadAll();
         }
         function loadAll() {
           refreshQuota();
-          loadTasks();
+          /* Yêu cầu 36: lấy trạng thái kết nối Canva TRƯỚC khi vẽ danh sách
+             nhiệm vụ để thẻ ảnh đã hoàn thành hiện đúng nút (Chỉnh tiếp /
+             Kết nối Canva / dòng nhờ admin). refreshCanvaStatus tự gọi lại
+             loadTasks khi có kết quả (kể cả khi lỗi mạng — lúc đó chỉ hiện
+             nút Tải). */
+          if (window.AppRuntime && window.AppRuntime.refreshCanvaStatus) {
+            window.AppRuntime.refreshCanvaStatus();
+          } else {
+            loadTasks();
+          }
           refreshDashboard();
           if (currentScreen === "dashboard") startSignalPolling();
           if (AppState.me && AppState.me.role === "admin") loadAdminUsers();
@@ -6062,6 +6108,25 @@
         function api(path, opts) { return window.AppBackend.api(path, opts); }
         function setQuotaCache(q) { quotaCache = q; }
 
+        /* ---- Trang thai ket noi Canva (Yeu cau 36) ----
+           GET /api/canva/status tra {connected, configured?} — admin thay them
+           configured (da co CANVA_CLIENT_ID/SECRET tren Cloudflare chua).
+           Lay 1 lan khi vao app (truoc khi ve danh sach nhiem vu) roi cache;
+           cac lan loadTasks sau dung lai gia tri da co. Nhan vien chi thay
+           connected (du de hien nut / thong bao tren the nhiem vu). */
+        var canvaStatus = { loaded: false, connected: false, configured: false };
+        function refreshCanvaStatus() {
+          return api("/api/canva/status").then(function (res) {
+            canvaStatus = { loaded: true, connected: !!res.connected, configured: !!res.configured };
+            if (window.AppBackend && window.AppBackend.loadTasks) window.AppBackend.loadTasks();
+            return canvaStatus;
+          }).catch(function () {
+            canvaStatus = { loaded: true, connected: false, configured: false };
+            if (window.AppBackend && window.AppBackend.loadTasks) window.AppBackend.loadTasks();
+            return canvaStatus;
+          });
+        }
+
         /* ---- Render mot nhiem vu tu API thanh <li class="task"> ---- */
         function taskTag(task) {
           if (task.status === "running") return '<span class="tag run">Đang chạy · ' + (task.progress || 0) + '%</span>';
@@ -6074,12 +6139,36 @@
           if (task.status === "review") return '<span class="tag wait">Chờ anh duyệt</span>';
           return '<span class="tag">' + esc(task.status || "") + '</span>';
         }
-        function downloadRowHtml(task) {
+        function downloadRowHtml(task, me) {
           if (task.feature === "designweb") {
             return '<div class="dl-row"><button type="button" class="btn-ghost btn-sm" data-dl="demo">Xem demo</button><button type="button" class="btn-dl" data-dl="html">Tải HTML</button></div>';
           }
           if (task.feature === "anh") {
-            return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="image">Tải hình ảnh</button></div>';
+            /* Yêu cầu 36: nút "Chỉnh tiếp trên Canva" trên thẻ ảnh đã hoàn
+               thành — chỉ hiện khi Canva đã kết nối (canvaStatus lấy ở
+               refreshCanvaStatus trước khi vẽ danh sách). Chưa kết nối:
+               admin thấy nút "Kết nối Canva" (mở luồng OAuth) nếu đã cấu
+               hình client ID/secret, nhân viên thấy dòng nhờ admin kết nối.
+               Chưa tải xong trạng thái (loaded=false) thì chỉ hiện nút Tải
+               để khỏi nhấp nháy sai. */
+            var row = '<div class="dl-row"><button type="button" class="btn-dl" data-dl="image">Tải hình ảnh</button>';
+            var isAdmin = me && me.role === "admin";
+            if (canvaStatus.loaded) {
+              if (canvaStatus.connected) {
+                row += '<button type="button" class="btn-canva" data-dl="canva">Chỉnh tiếp trên Canva</button>';
+              } else if (isAdmin && canvaStatus.configured) {
+                row += '<button type="button" class="btn-canva" data-dl="canva-connect">Kết nối Canva</button>';
+              }
+            }
+            row += '</div>';
+            if (canvaStatus.loaded && !canvaStatus.connected) {
+              if (isAdmin && !canvaStatus.configured) {
+                row += '<div class="t-note">Chưa cấu hình CANVA_CLIENT_ID / CANVA_CLIENT_SECRET trên Cloudflare — thêm 2 secret rồi mới kết nối Canva được.</div>';
+              } else if (!isAdmin) {
+                row += '<div class="t-note">Chưa kết nối Canva — nhờ admin kết nối để chỉnh tiếp trên Canva.</div>';
+              }
+            }
+            return row;
           }
           /* Yêu cầu 30: web/page qua cầu nối Luna có kết quả text thật — xem + tải
              kết quả đó (không dùng file kết quả mô phỏng resultText nữa). */
@@ -6162,6 +6251,28 @@
                   toast("Đang tải hình ảnh về máy…");
                 }).catch(function (e) { toast(e.message || "Không tải được hình ảnh."); })
                   .then(function () { btn.disabled = false; });
+              } else if (kind === "canva") {
+                /* Yêu cầu 36: mở ảnh trên Canva để chỉnh tiếp — server tải
+                   ảnh lên Canva làm asset rồi tạo design, trả edit_url.
+                   Mở link trong tab mới (noopener); lỗi hiện rõ bằng toast
+                   (chưa kết nối / hết hạn / Canva từ chối...). */
+                btn.disabled = true;
+                var oldLabel = btn.textContent;
+                btn.textContent = "Đang mở Canva…";
+                api("/api/tasks/" + task.id + "/canva", { method: "POST", body: {} }).then(function (res) {
+                  if (res.edit_url) {
+                    window.open(res.edit_url, "_blank", "noopener");
+                    toast("Đã mở thiết kế trong Canva — sửa xong nhớ lưu trong Canva.");
+                  } else {
+                    toast("Canva không trả link chỉnh sửa — thử bấm lại.");
+                  }
+                }).catch(function (e) { toast(e.message || "Không mở được Canva."); })
+                  .then(function () { btn.disabled = false; btn.textContent = oldLabel; });
+              } else if (kind === "canva-connect") {
+                /* Yêu cầu 36: admin chưa kết nối Canva — sang luồng OAuth
+                   (GET /api/canva/auth chuyển tiếp sang trang cấp quyền của
+                   Canva, xong quay về app với ?canva=connected). */
+                window.location.href = "/api/canva/auth";
               } else if (kind === "view-result") {
                 /* Yêu cầu 30: xem kết quả text thật của nhiệm vụ web/page qua cầu nối Luna. */
                 btn.disabled = true;
@@ -6224,7 +6335,7 @@
             var gErr = (full.pollinations && full.pollinations.error) || (full.gemini && full.gemini.error);
             if (gErr) side += '<div class="t-note err">' + esc(gErr) + '</div>';
           } else if (task.status === "completed") {
-            side += downloadRowHtml(task);
+            side += downloadRowHtml(task, me);
             /* Yêu cầu 34: nút Xoá nhiệm vụ — CHỈ trên nhiệm vụ đã Hoàn thành
                (không thêm cho running/error/luna/review/waiting/scheduled). */
             side += '<div class="t-actions"><button type="button" class="btn-del-task" data-del-task title="Xoá nhiệm vụ này" aria-label="Xoá nhiệm vụ">' + SVG_DEL_RT + '<span>Xoá nhiệm vụ</span></button></div>';
@@ -6242,7 +6353,7 @@
             if (me && me.role === "admin") {
               side += '<div class="t-note">Thư Ký Mỹ Linh đã trả ' + (task.feature === "designweb" ? "bản mới" : "kết quả") + ' — bấm Duyệt để trả cho nhân viên.</div>';
               side += '<div class="t-actions"><button type="button" class="btn-approve" data-approve-task>Duyệt</button></div>';
-              side += downloadRowHtml(task);
+              side += downloadRowHtml(task, me);
             } else {
               side += '<div class="t-note">Thư Ký Mỹ Linh đã trả ' + (task.feature === "designweb" ? "bản mới" : "kết quả") + ' — đang chờ anh duyệt.</div>';
             }
@@ -6891,7 +7002,7 @@
             })
             .then(function () { if (btn) btn.disabled = false; });
         }
-        return { onAssign: onAssign, renderTaskItem: renderTaskItem, resumeTask: resumeTask, setQuotaCache: setQuotaCache, getQuotaCache: function () { return quotaCache; } };
+        return { onAssign: onAssign, renderTaskItem: renderTaskItem, resumeTask: resumeTask, setQuotaCache: setQuotaCache, getQuotaCache: function () { return quotaCache; }, refreshCanvaStatus: refreshCanvaStatus };
       })();
     </script>
   </body>
