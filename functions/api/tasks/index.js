@@ -3,7 +3,9 @@
 // POST {feature, title, payload}         (kiểm tra lượt dùng theo tuần ISO)
 // POST multipart (chỉ Design Web): fields + clientPhotos[] + refPhotos[]
 //      (ảnh thật của khách + ảnh tham khảo — gửi kèm brief sang Telegram, Yêu cầu 28)
-import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras } from '../../_lib/auth.js';
+// Yêu cầu 30: Chăm sóc web / Chăm sóc page cũng qua cầu nối Luna KHI VÀ CHỈ KHI
+// AI phụ trách là Thư Ký Mỹ Linh (payload.ai) — brief text gửi Telegram, không ảnh.
+import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras, isLunaAi } from '../../_lib/auth.js';
 import { notifyBrief, MAX_CLIENT_PHOTOS, MAX_REF_PHOTOS, MAX_PHOTO_BYTES } from '../../_lib/telegram.js';
 
 function taskRow(t) {
@@ -118,13 +120,17 @@ export async function onRequestPost(context) {
     }
   }
 
-  // Design Web (Yêu cầu 28): nhiệm vụ vào trạng thái 'luna' — chờ Thư Ký Mỹ Linh vẽ.
-  // Các tính năng khác giữ nguyên 'running' (chạy tiến độ mô phỏng ở frontend).
-  const initialStatus = feature === 'designweb' ? 'luna' : 'running';
+  // Yêu cầu 28 + 30: nhiệm vụ qua cầu nối Luna vào trạng thái 'luna'.
+  // Design Web: mọi nhiệm vụ đều qua Luna (AI mặc định là Thư Ký Mỹ Linh).
+  // Chăm sóc web/page: CHỈ khi AI phụ trách là Thư Ký Mỹ Linh (payload.ai) —
+  // chọn Gemini thì giữ nguyên 'running' (chạy tiến độ mô phỏng ở frontend).
+  const payloadObj = body.payload ? { ...body.payload } : {};
+  const isLunaTask = feature === 'designweb'
+    || ((feature === 'web' || feature === 'page') && isLunaAi(payloadObj.ai));
+  const initialStatus = isLunaTask ? 'luna' : 'running';
   const id = uuid();
   const now = nowIso();
-  const payloadObj = body.payload ? { ...body.payload } : {};
-  if (feature === 'designweb') {
+  if (isLunaTask) {
     payloadObj.luna = {
       notified: false,
       photoCount: clientPhotos.length,
@@ -138,17 +144,17 @@ export async function onRequestPost(context) {
     };
   }
   await context.env.DB.prepare(
-    'INSERT INTO tasks (id, user_id, feature, title, status, progress, payload, result_url, result_html, result_versions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL, NULL, NULL, ?, ?)',
+    'INSERT INTO tasks (id, user_id, feature, title, status, progress, payload, result_url, result_html, result_text, result_versions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL, NULL, NULL, NULL, ?, ?)',
   ).bind(id, user.id, feature, title, initialStatus, JSON.stringify(payloadObj), now, now).run();
 
-  // Gửi brief + ảnh sang Telegram (best-effort — lỗi không làm hỏng nhiệm vụ).
+  // Gửi brief (+ ảnh, chỉ Design Web) sang Telegram (best-effort — lỗi không làm hỏng nhiệm vụ).
   let luna = null;
-  if (feature === 'designweb') {
+  if (isLunaTask) {
     const photoFiles = [];
     for (const f of clientPhotos) photoFiles.push({ name: f.name || 'anh.jpg', type: f.type || 'image/jpeg', data: await f.arrayBuffer() });
     const refFiles = [];
     for (const f of refPhotos) refFiles.push({ name: f.name || 'anh.jpg', type: f.type || 'image/jpeg', data: await f.arrayBuffer() });
-    const taskForBrief = { id, title, payload: payloadObj };
+    const taskForBrief = { id, title, feature, payload: payloadObj };
     const sent = await notifyBrief(context.env, taskForBrief, { name: user.name, email: user.email }, photoFiles, refFiles);
     luna = {
       ...payloadObj.luna,

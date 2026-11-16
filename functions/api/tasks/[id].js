@@ -1,6 +1,6 @@
 // /api/tasks/:id — Xem / cập nhật / xóa một nhiệm vụ.
 // Mọi thao tác đều kiểm tra quyền sở hữu (trừ Admin).
-import { json, err, TASK_STATUSES, requireAuth, nowIso, taskExtras } from '../../_lib/auth.js';
+import { json, err, FEATURES, TASK_STATUSES, requireAuth, nowIso, taskExtras } from '../../_lib/auth.js';
 
 function taskRow(t) {
   return {
@@ -53,11 +53,12 @@ export async function onRequestPatch(context) {
   const args = [];
   if (body.status !== undefined) {
     if (!TASK_STATUSES.includes(body.status)) return err('Trạng thái không hợp lệ.', 400);
-    // Yêu cầu 28: nhiệm vụ Design Web đang chờ Luna / chờ duyệt thì chỉ Admin
-    // mới đổi trạng thái (duyệt qua POST /api/tasks/:id/approve). Nhân viên
-    // không tự chuyển "Chờ Thư Ký Mỹ Linh" / "Chờ anh duyệt" thành Hoàn thành.
-    if (row.feature === 'designweb' && (row.status === 'luna' || row.status === 'review') && user.role !== 'admin') {
-      return err('Nhiệm vụ Design Web đang chờ Thư Ký Mỹ Linh / chờ anh duyệt — chỉ Admin mới đổi trạng thái.', 403);
+    // Yêu cầu 28 + 30: nhiệm vụ qua cầu nối Luna (designweb/web/page) đang chờ
+    // Luna / chờ duyệt thì chỉ Admin mới đổi trạng thái (duyệt qua
+    // POST /api/tasks/:id/approve). Nhân viên không tự chuyển "Chờ Thư Ký
+    // Mỹ Linh" / "Chờ anh duyệt" thành Hoàn thành.
+    if (['designweb', 'web', 'page'].includes(row.feature) && (row.status === 'luna' || row.status === 'review') && user.role !== 'admin') {
+      return err(`Nhiệm vụ ${FEATURES[row.feature]} đang chờ Thư Ký Mỹ Linh / chờ anh duyệt — chỉ Admin mới đổi trạng thái.`, 403);
     }
     sets.push('status = ?');
     args.push(body.status);

@@ -142,14 +142,15 @@ export function publicUser(u) {
 
 // ---------- Nhiệm vụ Design Web — file Luna trả về (Yêu cầu 28) ----------
 // result_versions lưu JSON mảng [{v, delivered_at, size, note, html}].
-// Trả về cho client CHỈ metadata (không kèm html) để danh sách không phình to;
-// html lấy riêng qua GET /api/tasks/:id/result.
+// Yêu cầu 30: bản web/page lưu thêm {kind: 'posted'|'content', text, link}.
+// Trả về cho client CHỈ metadata (không kèm html/text) để danh sách không phình to;
+// nội dung lấy riêng qua GET /api/tasks/:id/result.
 export function parseVersions(row) {
   if (!row || !row.result_versions) return [];
   try {
     const arr = JSON.parse(row.result_versions);
     if (!Array.isArray(arr)) return [];
-    return arr.map((v) => ({ v: v.v, delivered_at: v.delivered_at, size: v.size || 0, note: v.note || '' }));
+    return arr.map((v) => ({ v: v.v, delivered_at: v.delivered_at, size: v.size || 0, note: v.note || '', kind: v.kind || 'html' }));
   } catch {
     return [];
   }
@@ -167,8 +168,18 @@ export function taskExtras(row) {
   const versions = parseVersions(row);
   return {
     has_result: !!(row && row.result_html),
+    // Yêu cầu 30: web/page qua cầu nối Luna trả kết quả text (báo cáo đã đăng / nội dung).
+    has_result_text: !!(row && row.result_text),
     result_versions: versions,
   };
+}
+
+// ---------- Cầu nối Thư Ký Mỹ Linh (Yêu cầu 28 + 30) ----------
+// Nhiệm vụ qua cầu nối khi AI phụ trách là Thư Ký Mỹ Linh. Design Web mặc định
+// là Luna nên không cần kiểm tra; web/page chỉ qua Luna khi nhân viên chọn
+// "Thư Ký Mỹ Linh" ở bộ chọn AI (payload.ai ghi lúc giao việc).
+export function isLunaAi(ai) {
+  return String(ai || '').indexOf('Mỹ Linh') !== -1;
 }
 
 // ---------- Secret của Luna (Yêu cầu 28): so sánh bằng hash, tránh rò rỉ qua timing ----------

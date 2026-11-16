@@ -1,7 +1,7 @@
-// POST /api/tasks/:id/send-brief — Gửi lại brief Design Web sang Telegram (Yêu cầu 28).
+// POST /api/tasks/:id/send-brief — Gửi lại brief sang Telegram (Yêu cầu 28 + 30).
 // Admin hoặc chủ nhiệm vụ. Dùng khi lần gửi đầu lỗi (payload.luna.sendError).
-// Nhận multipart tùy chọn: clientPhotos[] + refPhotos[] để đính kèm lại ảnh;
-// không có ảnh thì chỉ gửi lại brief text.
+// Nhận multipart tùy chọn: clientPhotos[] + refPhotos[] để đính kèm lại ảnh
+// (chỉ Design Web); không có ảnh thì chỉ gửi lại brief text.
 import { json, err, requireAuth, nowIso } from '../../../_lib/auth.js';
 import { notifyBrief, MAX_CLIENT_PHOTOS, MAX_REF_PHOTOS, MAX_PHOTO_BYTES } from '../../../_lib/telegram.js';
 
@@ -12,7 +12,9 @@ export async function onRequestPost(context) {
     'SELECT t.*, u.name AS user_name, u.email AS user_email FROM tasks t JOIN users u ON u.id = t.user_id WHERE t.id = ?',
   ).bind(context.params.id).first();
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
-  if (row.feature !== 'designweb') return err('Nhiệm vụ này không phải Design Web.', 400);
+  if (row.feature !== 'designweb' && row.feature !== 'web' && row.feature !== 'page') {
+    return err('Nhiệm vụ này không qua cầu nối Thư Ký Mỹ Linh.', 400);
+  }
   if (user.role !== 'admin' && row.user_id !== user.id) {
     return err('Không có quyền gửi lại brief cho nhiệm vụ này.', 403);
   }
@@ -30,6 +32,10 @@ export async function onRequestPost(context) {
     } catch {
       return err('Dữ liệu gửi lên không hợp lệ.', 400);
     }
+    // Yêu cầu 30: chỉ Design Web mới nhận ảnh đính kèm (web/page chỉ có brief text).
+    if (row.feature !== 'designweb' && (clientPhotos.length || refPhotos.length)) {
+      return err('Chỉ nhiệm vụ Design Web mới nhận ảnh đính kèm.', 400);
+    }
     if (clientPhotos.length > MAX_CLIENT_PHOTOS) return err(`Tối đa ${MAX_CLIENT_PHOTOS} ảnh thật của khách mỗi lần gửi.`, 400);
     if (refPhotos.length > MAX_REF_PHOTOS) return err(`Tối đa ${MAX_REF_PHOTOS} ảnh mẫu / tài liệu tham khảo mỗi lần gửi.`, 400);
     for (const f of [...clientPhotos, ...refPhotos]) {
@@ -43,7 +49,7 @@ export async function onRequestPost(context) {
   for (const f of clientPhotos) photoFiles.push({ name: f.name || 'anh.jpg', type: f.type || 'image/jpeg', data: await f.arrayBuffer() });
   const refFiles = [];
   for (const f of refPhotos) refFiles.push({ name: f.name || 'anh.jpg', type: f.type || 'image/jpeg', data: await f.arrayBuffer() });
-  const taskForBrief = { id: row.id, title: row.title, payload };
+  const taskForBrief = { id: row.id, title: row.title, feature: row.feature, payload };
   const sent = await notifyBrief(context.env, taskForBrief, { name: row.user_name, email: row.user_email }, photoFiles, refFiles);
   luna.notified = sent.notified;
   luna.sendError = sent.error || '';

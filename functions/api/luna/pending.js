@@ -1,10 +1,11 @@
-// GET /api/luna/pending — Hộp thư brief cho Thư Ký Mỹ Linh (Yêu cầu 28).
+// GET /api/luna/pending — Hộp thư brief cho Thư Ký Mỹ Linh (Yêu cầu 28 + 30).
 // ĐÂY LÀ ĐƯỜNG DỮ LIỆU CHÍNH: Luna poll endpoint này định kỳ (như poll clip
 // 15 phút) để lấy việc — KHÔNG phụ thuộc vào tin nhắn Telegram, vì bot không
 // nhận được tin nhắn do bot khác gửi (Bots FAQ, core.telegram.org/bots/faq).
 // Xác thực: header X-Luna-Secret phải khớp secret LUNA_API_SECRET (Cloudflare secret).
-// ?status=luna (mặc định, đang chờ vẽ) | review (đã trả file, chờ duyệt) | all
-import { json, err, lunaSecretOk, parseVersions } from '../../_lib/auth.js';
+// ?status=luna (mặc định, đang chờ làm) | review (đã trả kết quả, chờ duyệt) | all
+// Trả nhiệm vụ của cả 3 tính năng qua cầu nối: designweb, web, page.
+import { json, err, lunaSecretOk, parseVersions, parseVersionsFull } from '../../_lib/auth.js';
 
 function pendingItem(t) {
   const payload = t.payload ? JSON.parse(t.payload) : null;
@@ -19,6 +20,10 @@ function pendingItem(t) {
     created_at: t.created_at,
     updated_at: t.updated_at,
     owner: { name: t.user_name, email: t.user_email },
+    // Yêu cầu 30: web/page — brief là title + meta + lines (collect() của 2 tính năng này).
+    ai: (payload && payload.ai) || '',
+    meta: (payload && payload.meta) || '',
+    lines: Array.isArray(payload && payload.lines) ? payload.lines : [],
     brief: {
       customer: w.customer || '',
       field: w.field || '',
@@ -55,6 +60,20 @@ function pendingItem(t) {
   };
   // Vòng chỉnh sửa: kèm HTML bản mới nhất để Luna sửa từ đó (không cần vẽ lại từ đầu).
   if (versions.length && t.result_html) item.latest_html = t.result_html;
+  // Yêu cầu 30: vòng chỉnh sửa web/page — kèm kết quả text mới nhất để Luna sửa từ đó.
+  if (versions.length && t.result_text) {
+    const full = parseVersionsFull(t);
+    const last = full.length ? full[full.length - 1] : null;
+    if (last) {
+      item.latest_result = {
+        version: last.v || versions[versions.length - 1].v,
+        kind: last.kind || 'content',
+        text: last.text || t.result_text,
+        link: last.link || '',
+        note: last.note || '',
+      };
+    }
+  }
   return item;
 }
 
@@ -65,7 +84,8 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const status = url.searchParams.get('status') || 'luna';
   const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '50', 10) || 50, 1), 200);
-  let where = "t.feature = 'designweb'";
+  // Yêu cầu 30: cả 3 tính năng qua cầu nối (designweb, web, page).
+  let where = "t.feature IN ('designweb', 'web', 'page')";
   const args = [];
   if (status === 'luna') where += " AND t.status = 'luna'";
   else if (status === 'review') where += " AND t.status = 'review'";

@@ -108,7 +108,39 @@ function line(label, value, max = 300) {
 }
 
 // Brief text gửi cho anh Dy (đọc được) — cũng là nội dung Luna đối chiếu qua /api/luna/pending.
+// Yêu cầu 28: Design Web (đọc payload.web). Yêu cầu 30: web/page đọc
+// payload.lines + title/meta (collect() của 2 tính năng này chỉ có vậy).
 export function formatBrief(task, owner) {
+  const feature = task.feature || '';
+  if (feature === 'web' || feature === 'page') return formatBriefWork(task, owner);
+  return formatBriefDesignWeb(task, owner);
+}
+
+// Brief Chăm sóc web / Chăm sóc page (Yêu cầu 30). Brief CHỈ có tên dự án/site,
+// chủ đề, từ khóa, khung giờ — KHÔNG có credential admin của nhân viên (chỉ nằm
+// ở localStorage trình duyệt nhân viên, không đồng bộ lên server). Luna dùng quyền
+// của mình cho dự án của anh; dự án của nhân viên thì chỉ trả nội dung.
+function formatBriefWork(task, owner) {
+  const payload = task.payload || {};
+  const lines = Array.isArray(payload.lines) ? payload.lines : [];
+  const isWeb = task.feature === 'web';
+  const rows = [
+    (isWeb ? '🌐' : '📣') + ' BRIEF ' + (isWeb ? 'CHĂM SÓC WEB' : 'CHĂM SÓC PAGE') + ' — Mã: ' + task.id,
+    line('Tiêu đề', task.title, 200),
+    line('Tóm tắt', payload.meta || '', 300),
+    ...lines.map((l) => cut(l, 400)),
+    line('AI phụ trách', payload.ai || '', 120),
+    owner ? `Người giao: ${owner.name || ''}${owner.email ? ' (' + owner.email + ')' : ''}` : '',
+    '—',
+    'Brief đầy đủ lấy qua: GET /api/luna/pending (kèm secret).',
+    'Trả kết quả: POST /api/luna/delivery {task_id, kind, text, link?}.',
+    'kind "posted" = Luna đã tự đăng lên web/page thật (kèm link bài đã đăng).',
+    'kind "content" = Luna trả nội dung hoàn chỉnh để nhân viên tự đăng.',
+  ].filter(Boolean);
+  return cut(rows.join('\n'), MAX_BRIEF_CHARS);
+}
+
+function formatBriefDesignWeb(task, owner) {
   const w = (task.payload && task.payload.web) || {};
   const luna = (task.payload && task.payload.luna) || {};
   const mats = Array.isArray(w.materials) ? w.materials : [];
@@ -174,13 +206,29 @@ export async function notifyBrief(env, task, owner, clientPhotos, refPhotos) {
   return out;
 }
 
-export async function notifyDelivery(env, task, version) {
-  const text = `✅ Thư Ký Mỹ Linh đã trả bản ${version} cho nhiệm vụ “${task.title}” (mã: ${task.id}).\nMở app → Design Web → bấm Duyệt để trả cho nhân viên.`;
+export async function notifyDelivery(env, task, version, kind) {
+  const feature = task.feature || 'designweb';
+  if (feature === 'designweb') {
+    const text = `✅ Thư Ký Mỹ Linh đã trả bản ${version} cho nhiệm vụ “${task.title}” (mã: ${task.id}).\nMở app → Design Web → bấm Duyệt để trả cho nhân viên.`;
+    return sendTelegramMessage(env, text);
+  }
+  // Yêu cầu 30: web/page — kind 'posted' (đã tự đăng) hoặc 'content' (trả nội dung).
+  const featureName = feature === 'web' ? 'Chăm sóc web' : feature === 'page' ? 'Chăm sóc page' : feature;
+  const kindText = kind === 'posted'
+    ? 'đã đăng lên web/page thật'
+    : kind === 'content'
+      ? 'đã trả nội dung để nhân viên tự đăng'
+      : 'đã trả kết quả';
+  const text = `✅ Thư Ký Mỹ Linh đã trả bản ${version} (${kindText}) cho nhiệm vụ “${task.title}” (mã: ${task.id}).\nMở app → ${featureName} → bấm Duyệt để trả cho nhân viên.`;
   return sendTelegramMessage(env, text);
 }
 
 export async function notifyRevision(env, task, note, byName) {
-  const text = `✏️ Yêu cầu chỉnh sửa cho nhiệm vụ “${task.title}” (mã: ${task.id}).\n${byName ? 'Người gửi: ' + byName + '\n' : ''}Nội dung: ${cut(note, 800)}\nLuna lấy brief + bản cũ qua GET /api/luna/pending (kèm secret) rồi trả bản mới qua POST /api/luna/delivery.`;
+  const feature = task.feature || 'designweb';
+  const hint = (feature === 'web' || feature === 'page')
+    ? 'Luna lấy brief + kết quả cũ qua GET /api/luna/pending (kèm secret) rồi trả kết quả mới qua POST /api/luna/delivery {kind, text}.'
+    : 'Luna lấy brief + bản cũ qua GET /api/luna/pending (kèm secret) rồi trả bản mới qua POST /api/luna/delivery.';
+  const text = `✏️ Yêu cầu chỉnh sửa cho nhiệm vụ “${task.title}” (mã: ${task.id}).\n${byName ? 'Người gửi: ' + byName + '\n' : ''}Nội dung: ${cut(note, 800)}\n${hint}`;
   return sendTelegramMessage(env, text);
 }
 

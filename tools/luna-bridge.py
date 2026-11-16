@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
-"""Cau noi Luna <-> App Dieu Khien AI (Yeu cau 28).
+"""Cau noi Luna <-> App Dieu Khien AI (Yeu cau 28 + 30).
 
-Luna poll endpoint inbox cua app de lay brief Design Web, tai anh that cua
-khach qua Telegram, roi tra file HTML da ve xong ve app.
+Luna poll endpoint inbox cua app de lay brief Design Web / Cham soc web /
+Cham soc page, tai anh that cua khach qua Telegram (chi Design Web),
+roi tra file HTML (Design Web) hoac ket qua text (web/page) ve app.
 
     python3 luna-bridge.py pending [--status luna|review|all] [--all]
     python3 luna-bridge.py photos <task-id> [--out DIR]
     python3 luna-bridge.py deliver <task-id> <file.html> [--note "..."]
+    python3 luna-bridge.py deliver <task-id> --kind posted|content --text-file <file.txt> [--link <url>] [--note "..."]
+
+Ket qua text (Yeu cau 30):
+    --kind posted  = Luna da TU DANG len web/page that (du an cua anh Dy):
+                     --text-file la bao cao da lam gi, --link la URL bai da dang.
+    --kind content = Luna tra NOI DUNG hoan chinh (du an nhan vien dang ky):
+                     --text-file la bai viet / bai dang de nhan vien tu dang.
 
 Bien moi truong (doc tu Secure Vault / env khi chay, KHONG ghi cung):
     LUNA_API_BASE           mac dinh https://ung-dung-dieu-khien-ai.pages.dev
@@ -101,9 +109,34 @@ def save_state(state):
 def fmt_task(t):
     b = t.get("brief", {})
     p = t.get("photos", {})
+    feature = t.get("feature", "")
     lines = [
         f"[{t.get('id')}] {t.get('title')}",
-        f"  Trang thai: {t.get('status')} | Nguoi giao: {t.get('owner', {}).get('name', '')} ({t.get('owner', {}).get('email', '')})",
+        f"  Tinh nang: {feature} | Trang thai: {t.get('status')} | Nguoi giao: {t.get('owner', {}).get('name', '')} ({t.get('owner', {}).get('email', '')})",
+        f"  AI phu trach: {t.get('ai', '')}",
+    ]
+    # Yeu cau 30: brief web/page la title + meta + lines (collect() cua 2 tinh nang nay).
+    if feature in ("web", "page"):
+        if t.get("meta"):
+            lines.append(f"  Tom tat: {t.get('meta')}")
+        for ln in t.get("lines", []):
+            lines.append(f"  - {ln}")
+        if t.get("latest_result"):
+            lr = t["latest_result"]
+            lines.append(f"  Ket qua moi nhat ({lr.get('version', '?')} — {lr.get('kind', '')}):")
+            if lr.get("link"):
+                lines.append(f"    Link: {lr.get('link')}")
+            lines.append(f"    {(lr.get('text') or '')[:500]}")
+        for rev in t.get("revisions", []):
+            lines.append(f"  Yeu cau sua ({rev.get('at', '')} — {rev.get('by', '')}): {rev.get('note', '')}")
+        vers = t.get("versions", [])
+        if vers:
+            lines.append("  Phien ban da tra: " + ", ".join(
+                f"{v.get('v', '?')}({v.get('kind', '')})" for v in vers))
+        if t.get("sendError"):
+            lines.append(f"  Loi gui brief: {t.get('sendError')}")
+        return "\n".join(lines)
+    lines += [
         f"  Khach: {b.get('customer', '')} | Linh vuc: {b.get('field', '')}",
         f"  Mau: {b.get('color', '')} | Font: {b.get('font', '')}",
         f"  Web tham khao: {b.get('ref', '')}",
@@ -206,6 +239,37 @@ def cmd_photos(args):
 
 
 def cmd_deliver(args):
+    # Yeu cau 30: giao ket qua text cho web/page (kind posted/content).
+    if args.kind:
+        if args.kind not in ("posted", "content"):
+            print("kind phai la 'posted' hoac 'content'.", file=sys.stderr)
+            sys.exit(2)
+        if not args.text_file:
+            print("Giao ket qua text can --text-file <file>.", file=sys.stderr)
+            sys.exit(2)
+        text_path = Path(args.text_file)
+        if not text_path.is_file():
+            print(f"Khong tim thay file: {text_path}", file=sys.stderr)
+            sys.exit(2)
+        text = text_path.read_text(encoding="utf-8")
+        if len(text.encode("utf-8")) > 1024 * 1024:
+            print("Noi dung ket qua nang hon 1MB — hay gui noi dung gon hon.", file=sys.stderr)
+            sys.exit(2)
+        body = {"task_id": args.task_id, "kind": args.kind, "text": text}
+        if args.kind == "posted" and args.link:
+            body["link"] = args.link
+        if args.note:
+            body["note"] = args.note
+        status, data = http_json(
+            "POST", api_base() + "/api/luna/delivery",
+            headers={"X-Luna-Secret": api_secret()}, body=body,
+        )
+        if status != 200 or not data.get("ok"):
+            print(f"Giao ket qua loi: {data.get('error', 'HTTP ' + str(status))}", file=sys.stderr)
+            sys.exit(1)
+        kind_label = "da tu dang" if args.kind == "posted" else "noi dung de nhan vien tu dang"
+        print(f"Da giao ban {data.get('version')} ({kind_label}) cho nhiem vu {data.get('task_id')} — trang thai: {data.get('status')} (cho anh duyet).")
+        return
     html_path = Path(args.file)
     if not html_path.is_file():
         print(f"Khong tim thay file: {html_path}", file=sys.stderr)
@@ -238,9 +302,12 @@ def main():
     ph.add_argument("task_id")
     ph.add_argument("--out", default=None)
     ph.set_defaults(fn=cmd_photos)
-    d = sub.add_parser("deliver", help="Tra file HTML da ve xong ve app")
+    d = sub.add_parser("deliver", help="Tra file HTML (Design Web) hoac ket qua text (web/page) ve app")
     d.add_argument("task_id")
-    d.add_argument("file")
+    d.add_argument("file", nargs="?", default=None, help="File HTML (Design Web). Bo qua khi dung --kind.")
+    d.add_argument("--kind", default=None, choices=["posted", "content"], help="Ket qua text web/page: posted (da tu dang) | content (tra noi dung)")
+    d.add_argument("--text-file", default=None, help="File text chua ket qua (dung kem --kind)")
+    d.add_argument("--link", default="", help="URL bai da dang (dung kem --kind posted)")
     d.add_argument("--note", default="")
     d.set_defaults(fn=cmd_deliver)
     args = ap.parse_args()

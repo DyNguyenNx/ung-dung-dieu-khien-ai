@@ -62,6 +62,12 @@ CREATE TABLE IF NOT EXISTS tasks (
   -- result_html = HTML bản mới nhất; result_versions = JSON mảng
   -- [{v, delivered_at, size, note, html}] (đủ bản để Xem demo / Tải HTML từng bản).
   result_html TEXT,
+  -- Yêu cầu 30: kết quả text Luna trả về cho Chăm sóc web/page.
+  -- result_text = text bản mới nhất; result_versions = JSON mảng
+  -- [{v, delivered_at, size, note, kind, text, link}] với kind 'posted'
+  -- (Luna đã tự đăng — text là báo cáo, link là URL bài đã đăng) hoặc
+  -- 'content' (nội dung hoàn chỉnh để nhân viên tự đăng).
+  result_text TEXT,
   result_versions TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL

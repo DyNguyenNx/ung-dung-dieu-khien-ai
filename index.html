@@ -753,7 +753,11 @@
         display:flex; align-items:flex-start; justify-content:center;
         padding:28px 16px 40px;
       }
-      .auth-wrap[hidden]{ display:none; }
+      .auth-wrap[hidden], .auth-wrap.lamp[hidden]{ display:none; }
+      /* Yêu cầu 30 — QA phát hiện: .auth-wrap.lamp{display:block} (YC29, dòng ~831)
+         cùng độ đặc hiệu với .auth-wrap[hidden] nhưng đứng sau nên thắng, khiến
+         màn đăng nhập sau khi vào app vẫn phủ kín màn hình và chặn mọi cú chạm.
+         Luật này (0,3,0) cho lamp+hidden để màn hình thực sự ẩn sau đăng nhập. */
       .auth-card{
         background:var(--card);
         border-radius:26px;
@@ -1517,6 +1521,15 @@
       .rt-ver-chip{ min-height:32px; padding:4px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:12.5px; font-weight:700; cursor:pointer; }
       .rt-ver-chip[aria-current="true"]{ background:var(--navy); border-color:var(--navy); color:#fff; }
       .rt-frame{ border:0; border-top:1px solid var(--line); width:100%; flex:1; min-height:46dvh; background:var(--card); }
+      /* Yêu cầu 30: overlay xem kết quả text (Chăm sóc web/page) — tái dùng khung .rt-overlay. */
+      .tx-kind{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 20px 0; font-size:13.5px; font-weight:800; color:var(--ink); }
+      .tx-kind[hidden]{ display:none; }
+      .tx-kind .btn-ghost{ margin-left:auto; }
+      .tx-link{ padding:8px 20px 0; font-size:13.5px; }
+      .tx-link[hidden]{ display:none; }
+      .tx-link a{ color:var(--blue); font-weight:700; word-break:break-all; }
+      .tx-body{ border-top:1px solid var(--line); margin:12px 0 0; padding:16px 20px; flex:1; overflow:auto; white-space:pre-wrap; word-break:break-word; font:15px/1.7 "Be Vietnam Pro", system-ui, sans-serif; color:var(--ink); background:var(--card); }
+      .tx-body[hidden]{ display:none; }
       .rt-edit{ border-top:1px solid var(--line); padding:14px 20px 18px; }
       .rt-edit[hidden]{ display:none; }
       .rt-edit label{ display:block; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px; }
@@ -3553,6 +3566,13 @@
           }
         }
         cfg.main = display;
+        /* Yêu cầu 30: đồng bộ lựa chọn AI vào APP_CONFIG — onAssign ghi d.ai từ
+           APP_CONFIG.features[key].aiPrimary. Trước đây setAI chỉ đổi
+           FEATURE_AI.main nên web/page chọn "Thư Ký Mỹ Linh" vẫn gửi
+           ai="Gemini API" và server không đưa nhiệm vụ qua cầu nối Luna. */
+        if (window.APP_CONFIG && window.APP_CONFIG.features[key]) {
+          window.APP_CONFIG.features[key].aiPrimary = display;
+        }
         var note = scr.querySelector("[data-ai-note]");
         if (note) note.hidden = !direct;
         showToast(direct
@@ -5228,6 +5248,11 @@
           if (task.feature === "anh") {
             return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="image">Tải hình ảnh</button></div>';
           }
+          /* Yêu cầu 30: web/page qua cầu nối Luna có kết quả text thật — xem + tải
+             kết quả đó (không dùng file kết quả mô phỏng resultText nữa). */
+          if ((task.feature === "web" || task.feature === "page") && task.has_result_text) {
+            return '<div class="dl-row"><button type="button" class="btn-ghost btn-sm" data-dl="view-result">Xem kết quả</button><button type="button" class="btn-dl" data-dl="text">Tải kết quả</button></div>';
+          }
           return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="text">Tải kết quả</button></div>';
         }
         function buildVersions(task, full) {
@@ -5294,9 +5319,33 @@
                 }
               } else if (kind === "image") {
                 drawImagePNG(full, function (b) { if (b) { saveBlob(b, slug(task.title) + ".png"); toast("Đang tải hình ảnh về máy…"); } });
+              } else if (kind === "view-result") {
+                /* Yêu cầu 30: xem kết quả text thật của nhiệm vụ web/page qua cầu nối Luna. */
+                btn.disabled = true;
+                fetchTaskResult(task.id).then(function (res) {
+                  var vers = (task.result_versions || []).map(function (v) {
+                    return { id: v.v, note: v.note || "", kind: v.kind || "content", doc: "" };
+                  });
+                  if (!vers.length) vers = [{ id: res.version || "v1", note: res.note || "", kind: res.kind || "content", doc: "" }];
+                  vers[vers.length - 1].doc = res.text || "";
+                  vers[vers.length - 1].link = res.link || "";
+                  openOverlay({ title: task.title, data: full, versions: vers, apiId: task.id, luna: true, textMode: true });
+                }).catch(function (e) { toast(e.message || "Không mở được kết quả."); })
+                  .then(function () { btn.disabled = false; });
               } else {
-                saveBlob(new Blob([resultText(full)], { type: "text/plain;charset=utf-8" }), slug(task.title) + "-ket-qua.txt");
-                toast("Đang tải file kết quả về máy…");
+                /* Yêu cầu 30: nhiệm vụ web/page qua cầu nối Luna có kết quả text thật —
+                   tải nội dung đó từ server, không dùng file kết quả mô phỏng nữa. */
+                if (task.has_result_text) {
+                  btn.disabled = true;
+                  fetchTaskResult(task.id).then(function (res) {
+                    saveBlob(new Blob([res.text || ""], { type: "text/plain;charset=utf-8" }), slug(task.title) + "-ket-qua.txt");
+                    toast("Đang tải file kết quả về máy…");
+                  }).catch(function (e) { toast(e.message || "Không tải được file kết quả."); })
+                    .then(function () { btn.disabled = false; });
+                } else {
+                  saveBlob(new Blob([resultText(full)], { type: "text/plain;charset=utf-8" }), slug(task.title) + "-ket-qua.txt");
+                  toast("Đang tải file kết quả về máy…");
+                }
               }
             });
           });
@@ -5324,22 +5373,22 @@
           } else if (task.status === "completed") {
             side += downloadRowHtml(task);
           } else if (task.status === "luna") {
-            /* Yêu cầu 28: đã gửi brief, đang chờ Luna vẽ — không thanh tiến độ giả,
-               không nút tải. Gửi lỗi thì hiện nút gửi lại brief. */
-            side += '<div class="t-note">Đã gửi brief — Thư Ký Mỹ Linh đang vẽ…</div>';
+            /* Yêu cầu 28 + 30: đã gửi brief, đang chờ Luna làm — không thanh tiến độ
+               giả, không nút tải. Gửi lỗi thì hiện nút gửi lại brief. */
+            side += '<div class="t-note">Đã gửi brief — Thư Ký Mỹ Linh ' + (task.feature === "designweb" ? "đang vẽ…" : "đang làm…") + '</div>';
             var sendErr = full.luna && full.luna.sendError;
             if (sendErr) {
               side += '<div class="t-note err">Chưa gửi được brief sang Telegram: ' + esc(sendErr) + '</div>';
               side += '<div class="t-actions"><button type="button" class="btn-ghost btn-sm" data-resend-brief>Gửi lại brief</button></div>';
             }
           } else if (task.status === "review") {
-            /* Yêu cầu 28: Luna đã trả file, chờ anh duyệt — nhân viên chưa thấy file. */
+            /* Yêu cầu 28 + 30: Luna đã trả kết quả, chờ anh duyệt — nhân viên chưa thấy kết quả. */
             if (me && me.role === "admin") {
-              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả bản mới — bấm Duyệt để trả cho nhân viên.</div>';
+              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả ' + (task.feature === "designweb" ? "bản mới" : "kết quả") + ' — bấm Duyệt để trả cho nhân viên.</div>';
               side += '<div class="t-actions"><button type="button" class="btn-approve" data-approve-task>Duyệt</button></div>';
               side += downloadRowHtml(task);
             } else {
-              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả bản mới — đang chờ anh duyệt.</div>';
+              side += '<div class="t-note">Thư Ký Mỹ Linh đã trả ' + (task.feature === "designweb" ? "bản mới" : "kết quả") + ' — đang chờ anh duyệt.</div>';
             }
           }
           li.innerHTML =
@@ -5364,7 +5413,7 @@
           if (approveBtn) approveBtn.addEventListener("click", function () {
             approveBtn.disabled = true;
             api("/api/tasks/" + task.id + "/approve", { method: "POST", body: {} })
-              .then(function () { toast("Đã duyệt — nhân viên đã thấy được file thiết kế."); refreshTaskItem(li, task.id); })
+              .then(function () { toast("Đã duyệt — nhân viên đã thấy được " + (task.feature === "designweb" ? "file thiết kế." : "kết quả.")); refreshTaskItem(li, task.id); })
               .catch(function (e) { toast(e.message || "Không duyệt được."); approveBtn.disabled = false; });
           });
           var resendBtn = li.querySelector("[data-resend-brief]");
@@ -5403,6 +5452,16 @@
           return fetch(url, { credentials: "same-origin" }).then(function (res) {
             if (!res.ok) throw new Error("Không tải được file thiết kế (lỗi " + res.status + ").");
             return res.text();
+          });
+        }
+        /* Yêu cầu 30: lấy kết quả text Luna đã trả về cho web/page (JSON {kind, text, link}). */
+        function fetchTaskResult(taskId, version) {
+          var url = "/api/tasks/" + taskId + "/result" + (version ? "?version=" + encodeURIComponent(version) : "");
+          return fetch(url, { credentials: "same-origin" }).then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok || data.ok === false) throw new Error(data.error || ("Không tải được kết quả (lỗi " + res.status + ")."));
+              return data;
+            });
           });
         }
 
@@ -5603,13 +5662,21 @@
 
         /* ---- Bảng xem demo riêng cho nhiệm vụ Design Web mới ---- */
         var overlay = null, overlayTask = null;
+        /* Yêu cầu 30: fallback sao chép khi clipboard API không dùng được. */
+        function fallbackCopy(txt) {
+          var ta = document.createElement("textarea");
+          ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); } catch (e) { /* bỏ qua */ }
+          ta.remove();
+        }
         function ensureOverlay() {
           if (overlay) return overlay;
           overlay = document.createElement("div");
           overlay.className = "rt-overlay"; overlay.hidden = true;
           overlay.innerHTML =
             '<div class="rt-box" role="dialog" aria-modal="true" aria-label="Xem demo Design Web">' +
-              '<div class="rt-head"><h2>Xem demo — <span data-rt-name></span></h2><span class="rt-ver" data-rt-ver></span>' +
+              '<div class="rt-head"><h2><span data-rt-mode>Xem demo</span> — <span data-rt-name></span></h2><span class="rt-ver" data-rt-ver></span>' +
                 '<div class="rt-actions">' +
                   '<button type="button" class="btn-ghost" data-rt-edit-btn>Yêu cầu chỉnh sửa</button>' +
                   '<button type="button" class="btn-dl" data-rt-dl>Tải HTML</button>' +
@@ -5617,6 +5684,9 @@
                 '</div></div>' +
               '<div class="rt-vers" data-rt-vers hidden></div>' +
               '<iframe class="rt-frame" data-rt-frame title="Bản xem trước thiết kế"></iframe>' +
+              '<div class="tx-kind" data-tx-kind hidden><span data-tx-kind-text></span><button type="button" class="btn-ghost btn-sm" data-tx-copy>Sao chép</button></div>' +
+              '<div class="tx-link" data-tx-link hidden><a target="_blank" rel="noopener"></a></div>' +
+              '<pre class="tx-body" data-rt-text hidden></pre>' +
               '<form class="rt-edit" data-rt-form hidden><label for="rtEditText">Cần sửa những gì?</label>' +
                 '<textarea id="rtEditText" placeholder="Ví dụ: hero đậm màu hơn, thêm mục Bảng giá sau Dịch vụ…"></textarea>' +
                 '<div class="rt-edit-foot"><button type="submit" class="btn-run">Gửi yêu cầu chỉnh sửa</button>' +
@@ -5632,11 +5702,35 @@
           overlay.querySelector("[data-rt-cancel]").addEventListener("click", function () {
             overlay.querySelector("[data-rt-form]").hidden = true;
           });
+          /* Yêu cầu 30: sao chép kết quả text (web/page) — clipboard API, fallback
+             textarea khi trình duyệt không cho (vd file:// hoặc HTTP không an toàn). */
+          overlay.querySelector("[data-tx-copy]").addEventListener("click", function () {
+            var body = overlay.querySelector("[data-rt-text]");
+            var txt = body ? body.textContent : "";
+            if (!txt || txt === "Đang tải kết quả…") { toast("Chưa có nội dung để sao chép."); return; }
+            var done = function () { toast("Đã sao chép kết quả."); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt); done(); });
+            } else { fallbackCopy(txt); done(); }
+          });
           overlay.querySelector("[data-rt-dl]").addEventListener("click", function () {
             if (!overlayTask) return;
             /* Yêu cầu 21: Tải HTML tải đúng phiên bản đang xem. */
             var idx = (overlayTask.currentVersion == null) ? overlayTask.versions.length - 1 : overlayTask.currentVersion;
             var v = overlayTask.versions[idx] || overlayTask.versions[overlayTask.versions.length - 1];
+            if (overlayTask.textMode) {
+              /* Yêu cầu 30: tải file kết quả text của bản đang xem. */
+              var doDl = function (txt) {
+                saveBlob(new Blob([txt || ""], { type: "text/plain;charset=utf-8" }), slug(overlayTask.title) + "-" + v.id + "-ket-qua.txt");
+                toast("Đang tải file kết quả của bản " + v.id + " về máy…");
+              };
+              if (v.doc) { doDl(v.doc); return; }
+              fetchTaskResult(overlayTask.apiId, v.id).then(function (res) {
+                v.doc = res.text || ""; v.link = res.link || ""; v.kind = res.kind || v.kind;
+                doDl(v.doc);
+              }).catch(function (e) { toast(e.message || "Không tải được file kết quả."); });
+              return;
+            }
             saveBlob(new Blob([v.doc], { type: "text/html;charset=utf-8" }), slug(overlayTask.title) + "-" + v.id + ".html");
             toast("Đang tải file HTML của bản " + v.id + " về máy…");
           });
@@ -5655,7 +5749,7 @@
                   overlay.querySelector("#rtEditText").value = "";
                   overlay.querySelector("[data-rt-form]").hidden = true;
                   closeOverlay();
-                  toast("Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — chờ bản mới.");
+                  toast("Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — chờ " + (overlayTask.textMode ? "kết quả mới." : "bản mới."));
                   if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
                   var li = document.querySelector('[data-task-id="' + overlayTask.apiId + '"]');
                   if (li) refreshTaskItem(li, overlayTask.apiId);
@@ -5687,7 +5781,35 @@
           var v = vers[idx];
           overlay.querySelector("[data-rt-name]").textContent = overlayTask.title;
           overlay.querySelector("[data-rt-ver]").textContent = "Bản " + v.id + " / " + vers.length + " bản";
-          overlay.querySelector("[data-rt-frame]").srcdoc = v.doc;
+          var frame = overlay.querySelector("[data-rt-frame]");
+          var kindRow = overlay.querySelector("[data-tx-kind]");
+          var linkRow = overlay.querySelector("[data-tx-link]");
+          var txBody = overlay.querySelector("[data-rt-text]");
+          if (overlayTask.textMode) {
+            /* Yêu cầu 30: hiện kết quả text — loại kết quả + link (nếu đã đăng) + nội dung.
+               Bản chưa tải thì lấy qua API rồi mới hiện. */
+            if (frame) frame.hidden = true;
+            kindRow.hidden = false;
+            overlay.querySelector("[data-tx-kind-text]").textContent = v.kind === "posted" ? "✅ Đã đăng lên web/page thật" : "📝 Nội dung để nhân viên tự đăng";
+            if (v.link) { linkRow.hidden = false; var a0 = linkRow.querySelector("a"); a0.href = v.link; a0.textContent = v.link; }
+            else linkRow.hidden = true;
+            txBody.hidden = false;
+            if (v.doc) { txBody.textContent = v.doc; }
+            else {
+              txBody.textContent = "Đang tải kết quả…";
+              fetchTaskResult(overlayTask.apiId, v.id).then(function (res) {
+                if (!overlayTask || overlayTask.currentVersion !== idx) return; // đã chuyển bản khác
+                v.doc = res.text || ""; v.link = res.link || ""; v.kind = res.kind || v.kind;
+                txBody.textContent = v.doc || "(Kết quả trống.)";
+                overlay.querySelector("[data-tx-kind-text]").textContent = v.kind === "posted" ? "✅ Đã đăng lên web/page thật" : "📝 Nội dung để nhân viên tự đăng";
+                if (v.link) { linkRow.hidden = false; var a2 = linkRow.querySelector("a"); a2.href = v.link; a2.textContent = v.link; }
+                else linkRow.hidden = true;
+              }).catch(function (e) { txBody.textContent = "Không tải được kết quả: " + (e.message || "lỗi."); });
+            }
+          } else {
+            if (frame) { frame.hidden = false; frame.srcdoc = v.doc; }
+            kindRow.hidden = true; linkRow.hidden = true; txBody.hidden = true;
+          }
           /* Yêu cầu 28: Lịch sử phiên bản — ghi nhận từng lần Luna trả file,
              bấm chip để đổi bản đang xem (2 bản trở lên mới hiện). */
           var versBox = overlay.querySelector("[data-rt-vers]");
@@ -5707,7 +5829,23 @@
             });
           }
         }
-        function openOverlay(task) { ensureOverlay(); overlayTask = task; overlayTask.currentVersion = null; loadOverlayVersion(); overlay.hidden = false; }
+        function openOverlay(task) {
+          ensureOverlay(); overlayTask = task; overlayTask.currentVersion = null;
+          /* Yêu cầu 30: chế độ xem kết quả text (web/page) — đổi tiêu đề, nút tải,
+             placeholder ô chỉnh sửa cho đúng loại kết quả. */
+          var isText = !!task.textMode;
+          var modeEl = overlay.querySelector("[data-rt-mode]");
+          if (modeEl) modeEl.textContent = isText ? "Kết quả" : "Xem demo";
+          var dlBtn = overlay.querySelector("[data-rt-dl]");
+          if (dlBtn) dlBtn.textContent = isText ? "Tải kết quả" : "Tải HTML";
+          var box = overlay.querySelector(".rt-box");
+          if (box) box.setAttribute("aria-label", isText ? "Xem kết quả" : "Xem demo Design Web");
+          var editTa = overlay.querySelector("#rtEditText");
+          if (editTa) editTa.placeholder = isText
+            ? "Ví dụ: bài viết cần thêm đoạn kết luận, sửa lại tiêu đề cho ngắn gọn…"
+            : "Ví dụ: hero đậm màu hơn, thêm mục Bảng giá sau Dịch vụ…";
+          loadOverlayVersion(); overlay.hidden = false;
+        }
         function closeOverlay() { if (overlay) overlay.hidden = true; }
 
         /* ---- Tạo nhiệm vụ qua API + chạy tiến độ ---- */
@@ -5777,10 +5915,11 @@
                 if (empty) empty.remove();
                 list.insertBefore(li, list.firstChild);
               }
-              if (isDesignWeb) {
-                /* Yêu cầu 28: không chạy thanh tiến độ giả — nhiệm vụ chờ Luna vẽ thật. */
+              if (task.status === "luna") {
+                /* Yêu cầu 28 + 30: nhiệm vụ qua cầu nối Luna — không chạy thanh tiến độ
+                   giả, chờ Thư Ký Mỹ Linh làm thật rồi trả kết quả về app. */
                 var luna = task.luna || (task.payload && task.payload.luna) || {};
-                if (luna.notified === false) {
+                if (isDesignWeb && luna.notified === false) {
                   /* Giữ lại ảnh đã đính kèm để bấm "Gửi lại brief" thử lại trong phiên này. */
                   li._pendingPhotos = {
                     client: matItems.map(function (it) { return it.file; }).filter(Boolean),
@@ -5788,9 +5927,9 @@
                   };
                   toast("Đã tạo nhiệm vụ nhưng chưa gửi được brief sang Telegram — bấm “Gửi lại brief” trên thẻ nhiệm vụ để thử lại.");
                 } else {
-                  toast("Đã gửi brief cho Thư Ký Mỹ Linh: " + d.title + " — chờ bản vẽ.");
+                  toast("Đã gửi brief cho Thư Ký Mỹ Linh: " + d.title + (isDesignWeb ? " — chờ bản vẽ." : " — chờ kết quả."));
                   if (form.reset) form.reset();
-                  clearRefInputs(form);
+                  if (isDesignWeb) clearRefInputs(form);
                 }
               } else {
                 runSimulation(li, task, task.payload || d, 0);
