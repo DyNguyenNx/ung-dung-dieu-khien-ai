@@ -3,6 +3,8 @@
 // Chăm sóc web/page: trả JSON {ok, task_id, version, kind, text, link,
 //   delivered_at, note} — kind 'posted' (báo cáo đã đăng + link) hoặc
 //   'content' (nội dung để nhân viên tự đăng). Chỉ Admin hoặc chủ nhiệm vụ mới xem được.
+// Thiết kế hình ảnh (Yêu cầu 33): trả đúng bytes ảnh Gemini đã tạo
+// (Content-Type theo mime đã lưu trong cột result_image), 404 khi chưa có ảnh.
 import { json, err, requireAuth, parseVersionsFull } from '../../../_lib/auth.js';
 
 export async function onRequestGet(context) {
@@ -15,12 +17,45 @@ export async function onRequestGet(context) {
   if (user.role !== 'admin' && row.user_id !== user.id) {
     return err('Không có quyền xem nhiệm vụ này.', 403);
   }
-  if (row.feature !== 'designweb' && row.feature !== 'web' && row.feature !== 'page') {
+  if (row.feature !== 'designweb' && row.feature !== 'web' && row.feature !== 'page' && row.feature !== 'anh') {
     return err('Nhiệm vụ này không qua cầu nối Thư Ký Mỹ Linh.', 400);
   }
   const versions = parseVersionsFull(row);
   const url = new URL(context.request.url);
   const want = url.searchParams.get('version');
+
+  // ---------- Thiết kế hình ảnh: ảnh thật Gemini đã tạo (Yêu cầu 33) ----------
+  // result_image = JSON {mime, data (base64), bytes, w, h, aspect, generated_at}.
+  // Chỉ lưu 1 ảnh / nhiệm vụ (bản mới nhất) nên không có ?version.
+  if (row.feature === 'anh') {
+    if (!row.result_image) {
+      return err('Nhiệm vụ này chưa có ảnh — Gemini chưa trả ảnh.', 404);
+    }
+    let stored = null;
+    try {
+      stored = JSON.parse(row.result_image);
+    } catch {
+      stored = null;
+    }
+    if (!stored || !stored.data) {
+      return err('Ảnh đã lưu bị lỗi định dạng.', 500);
+    }
+    const mime = stored.mime || 'image/png';
+    const ext = mime === 'image/jpeg' ? '.jpg' : (mime === 'image/webp' ? '.webp' : '.png');
+    const fileSlug = String(row.title || 'hinh-anh').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'hinh-anh';
+    const bytes = Uint8Array.from(atob(stored.data), (c) => c.charCodeAt(0));
+    return new Response(bytes, {
+      status: 200,
+      headers: {
+        'Content-Type': mime,
+        'Content-Disposition': `attachment; filename="${fileSlug}${ext}"`,
+        'X-Task-Id': row.id,
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
 
   // ---------- Design Web: file HTML (Yêu cầu 28, giữ nguyên) ----------
   if (row.feature === 'designweb') {

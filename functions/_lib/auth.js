@@ -170,6 +170,8 @@ export function taskExtras(row) {
     has_result: !!(row && row.result_html),
     // Yêu cầu 30: web/page qua cầu nối Luna trả kết quả text (báo cáo đã đăng / nội dung).
     has_result_text: !!(row && row.result_text),
+    // Yêu cầu 33: Thiết kế hình ảnh qua Gemini trả ảnh thật (cột result_image).
+    has_result_image: !!(row && row.result_image),
     result_versions: versions,
   };
 }

@@ -2906,10 +2906,10 @@
               <span class="ai-picker-label"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách — Thiết kế hình ảnh</span>
               <span class="ai-picker-note" data-ai-note hidden>Giao cho Thư Ký Mỹ Linh làm</span>
               <select data-ai-select aria-label="Chọn AI phụ trách Thiết kế hình ảnh">
-                <option selected>Leonardo</option>
+                <option selected>Gemini</option>
+                <option>Leonardo</option>
                 <option>LightVisual</option>
                 <option>Grok</option>
-                <option>Gemini</option>
                 <option>fal.ai</option>
                 <option>Thư Ký Mỹ Linh</option>
               </select>
@@ -3060,7 +3060,7 @@
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="7.5" r=".9" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg></span>
                   <div>
-                    <div class="ai-name">Leonardo <span class="status-dot">Đang hoạt động</span></div>
+                    <div class="ai-name">Gemini <span class="status-dot">Đang hoạt động</span></div>
                     <div class="ai-role">AI chính — tạo và chỉnh sửa hình ảnh theo yêu cầu</div>
                   </div>
                 </div>
@@ -3087,7 +3087,7 @@
                   </div>
                   <div class="step now">
                     <span class="s-dot">2</span>
-                    <div><div class="s-name">Tạo ảnh mẫu</div><div class="s-by">Leonardo tạo các phương án đầu tiên</div></div>
+                    <div><div class="s-name">Tạo ảnh mẫu</div><div class="s-by">Gemini tạo ảnh thật theo mô tả</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">3</span>
@@ -3734,7 +3734,7 @@
         page: { main: "Gemini", role: "lên nội dung tuần và soạn bài đăng fanpage" },
         kenh: { main: "Wan 3.0", role: "tạo cảnh video từ kịch bản cho các kênh" },
         truyen: { main: "Gemini", role: "lên dàn ý và viết chương mới mỗi ngày" },
-        anh: { main: "Leonardo", role: "tạo và chỉnh sửa hình ảnh theo yêu cầu" },
+        anh: { main: "Gemini", role: "tạo và chỉnh sửa hình ảnh theo yêu cầu" },
         designweb: { main: "Thư Ký Mỹ Linh", role: "thiết kế giao diện trang chủ website cho khách hàng theo chuẩn chống slop (Hallmark / Taste / Impeccable)" }
       };
       function setAI(key, value) {
@@ -6024,7 +6024,7 @@
           page:      { configId: "cham-soc-page",     name: "Chăm sóc page",     aiPrimary: "Gemini API",      aiBackup: "Meta Graph API" },
           kenh:      { configId: "xay-dung-kenh",     name: "Xây dựng kênh",     aiPrimary: "Wan 3.0",         aiBackup: "fal.ai (Kling 3.0)" },
           truyen:    { configId: "viet-truyen",       name: "Viết truyện",       aiPrimary: "Gemini API",      aiBackup: "ElevenLabs / Vbee" },
-          anh:       { configId: "thiet-ke-hinh-anh", name: "Thiết kế hình ảnh", aiPrimary: "Leonardo AI",     aiBackup: "LightVisual / Grok" },
+          anh:       { configId: "thiet-ke-hinh-anh", name: "Thiết kế hình ảnh", aiPrimary: "Gemini",           aiBackup: "LightVisual / Grok" },
           designweb: { configId: "design-web",        name: "Design Web",        aiPrimary: "Thư Ký Mỹ Linh",  aiBackup: "Leonardo / Gemini" }
         }
       };
@@ -6134,7 +6134,17 @@
                   toast("Đang tải file HTML của bản " + v.id + " về máy…");
                 }
               } else if (kind === "image") {
-                drawImagePNG(full, function (b) { if (b) { saveBlob(b, slug(task.title) + ".png"); toast("Đang tải hình ảnh về máy…"); } });
+                /* Yêu cầu 33: ảnh thật từ Gemini (server) — không vẽ khung giả
+                   bằng canvas nữa. Tên file: tên ảnh người dùng nhập (nếu có),
+                   không thì tiêu đề nhiệm vụ; đuôi theo mime ảnh đã lưu. */
+                btn.disabled = true;
+                fetchTaskImage(task.id).then(function (res) {
+                  var base = (full.img && full.img.name) || task.title;
+                  var name = res.filename || (slug(base) + imageExt(res.mime));
+                  saveBlob(res.blob, name);
+                  toast("Đang tải hình ảnh về máy…");
+                }).catch(function (e) { toast(e.message || "Không tải được hình ảnh."); })
+                  .then(function () { btn.disabled = false; });
               } else if (kind === "view-result") {
                 /* Yêu cầu 30: xem kết quả text thật của nhiệm vụ web/page qua cầu nối Luna. */
                 btn.disabled = true;
@@ -6186,6 +6196,11 @@
           var side = taskTag(task);
           if (task.status === "running") {
             side += '<div class="bar"><i style="width:' + (task.progress || 0) + '%"></i></div>';
+          } else if (task.status === "error") {
+            /* Yêu cầu 33: nhiệm vụ 'anh' lỗi (thiếu key / Gemini chặn / timeout)
+               hiện rõ lý do server đã ghi trong payload.gemini.error. */
+            var gErr = full.gemini && full.gemini.error;
+            if (gErr) side += '<div class="t-note err">' + esc(gErr) + '</div>';
           } else if (task.status === "completed") {
             side += downloadRowHtml(task);
           } else if (task.status === "luna") {
@@ -6280,6 +6295,28 @@
             });
           });
         }
+        /* Yêu cầu 33: tải ảnh thật Gemini đã trả về (GET /api/tasks/:id/result
+           trả bytes ảnh, Content-Type theo mime đã lưu). Trả về {blob, mime, filename}. */
+        function fetchTaskImage(taskId) {
+          return fetch("/api/tasks/" + taskId + "/result", { credentials: "same-origin" }).then(function (res) {
+            if (!res.ok) {
+              return res.text().then(function (txt) {
+                var msg = "";
+                try { msg = JSON.parse(txt).error || ""; } catch (e) { msg = ""; }
+                throw new Error(msg || ("Không tải được hình ảnh (lỗi " + res.status + ")."));
+              });
+            }
+            var mime = res.headers.get("Content-Type") || "image/png";
+            var disp = res.headers.get("Content-Disposition") || "";
+            var m = /filename="([^"]+)"/.exec(disp);
+            return res.blob().then(function (blob) { return { blob: blob, mime: mime, filename: m ? m[1] : "" }; });
+          });
+        }
+        function imageExt(mime) {
+          if (mime === "image/jpeg") return ".jpg";
+          if (mime === "image/webp") return ".webp";
+          return ".png";
+        }
 
         /* ---- Chay tien do mo phong (v1 chua goi AI that) ---- */
         function runSimulation(li, task, full, startProgress) {
@@ -6308,8 +6345,48 @@
           if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
         }
         function resumeTask(task) {
+          /* Yêu cầu 33: nhiệm vụ 'anh' chạy bằng tiến độ thật từ server
+             (Gemini) — không chạy mô phỏng khi tải lại trang; bật poller
+             cập nhật tiến độ thay cho runSimulation. */
+          if (task.feature === "anh") { startAnhPolling(); return; }
           var li = document.querySelector('[data-task-id="' + task.id + '"]');
           if (li) runSimulation(li, task, task.payload || {}, task.progress || 0);
+        }
+        /* ---- Yêu cầu 33: poll tiến độ thật của Thiết kế hình ảnh (Gemini) ----
+           Không có luồng refresh danh sách định kỳ ngoài Dashboard (signal board
+           chỉ poll khi ở màn Dashboard) nên riêng 'anh' cần poller của mình:
+           5 giây/nhịp gọi GET /api/tasks?feature=anh, cập nhật % + thanh tiến
+           độ ngay trên thẻ, nhiệm vụ xong/lỗi thì vẽ lại thẻ (hiện nút tải).
+           Poller chỉ chạy khi còn nhiệm vụ 'anh' đang chạy, tự dừng khi hết. */
+        var anhPollTimer = null;
+        function startAnhPolling() {
+          if (anhPollTimer) return;
+          anhPollTimer = setInterval(pollAnhTasks, 5000);
+          pollAnhTasks();
+        }
+        function pollAnhTasks() {
+          api("/api/tasks?feature=anh&limit=100").then(function (res) {
+            var tasks = res.tasks || [];
+            tasks.forEach(function (t) {
+              var li = document.querySelector('[data-task-id="' + t.id + '"]');
+              if (!li) return;
+              if (t.status === "running") {
+                var tag = li.querySelector(".tag.run");
+                if (tag) tag.textContent = "Đang chạy · " + (t.progress || 0) + "%";
+                var barFill = li.querySelector(".bar > i");
+                if (barFill) barFill.style.width = (t.progress || 0) + "%";
+              } else if ((t.status === "completed" || t.status === "error") && li.querySelector(".tag.run")) {
+                /* Chỉ vẽ lại thẻ đang chạy vừa đổi trạng thái (tránh vẽ lại
+                   thẻ đã xong/lỗi ở các nhịp sau). */
+                var fresh = renderTaskItem(t);
+                li.replaceWith(fresh);
+                toast(t.status === "completed" ? "Hoàn thành: " + t.title : "Nhiệm vụ lỗi: " + t.title);
+                if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+              }
+            });
+            var stillRunning = tasks.some(function (t) { return t.status === "running"; });
+            if (!stillRunning && anhPollTimer) { clearInterval(anhPollTimer); anhPollTimer = null; }
+          }).catch(function () { /* Lỗi mạng 1 nhịp thì nhịp sau thử lại. */ });
         }
         function val(id) { var el = document.getElementById(id); return el ? (el.value || "").trim() : ""; }
         function selText(id) {
@@ -6450,31 +6527,9 @@
           var note = editNote ? '<div class="rev">Bản ' + version + ' — đã chỉnh sửa theo yêu cầu: ' + esc(editNote) + '</div>' : "";
           return "<!doctype html>\n<html lang=\"vi\">\n<head>\n<meta charset=\"utf-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title>" + cust + " — Trang chủ (" + version + ")</title>\n<style>body{font-family:" + esc(w.font || "system-ui") + ",system-ui,sans-serif;margin:0;color:#26233d;background:#fff}header{display:flex;justify-content:" + justify + ";align-items:center;padding:16px 24px;border-bottom:3px solid " + accent + "}.logo{font-weight:800;font-size:19px;color:" + accent + ";letter-spacing:.02em}.hero{padding:64px 24px;text-align:center;background:#f2f1fa}.hero h1{margin:0 0 10px;font-size:32px;color:" + accent + ";line-height:1.3}.hero p{margin:0 auto;max-width:640px;line-height:1.65}main{max-width:840px;margin:0 auto;padding:30px 22px}.blk{border:1px solid #e0dff0;border-radius:14px;padding:20px;margin-bottom:14px}.blk h2{margin:0 0 6px;font-size:19px;color:" + accent + "}.blk p{margin:0;line-height:1.65}.rev{background:#fdf1da;border:1px solid #e8cf9a;border-radius:12px;padding:12px 16px;margin:0 auto 16px;max-width:840px;font-size:14px}footer{background:" + accent + ";color:#fff;text-align:center;padding:16px;font-size:13.5px}</style>\n</head>\n<body>\n<header><div class=\"logo\">" + cust.toUpperCase() + "</div></header>\n<div class=\"hero\"><h1>" + cust + "</h1><p>" + esc(w.field || "Trang chủ website") + " — bản thiết kế " + version + " dựng theo yêu cầu trong app Điều Khiển AI.</p></div>\n<main>\n" + note + secs + "\n</main>\n<footer>" + cust + " — phiên bản " + version + "</footer>\n</body>\n</html>";
         }
-        function drawImagePNG(d, done) {
-          var img = d.img || {};
-          var W = Math.min(img.w || 1200, 1600), H = Math.min(img.h || 800, 1600);
-          var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-          var cx = cv.getContext("2d");
-          cx.fillStyle = "#342a6e"; cx.fillRect(0, 0, W, H);
-          cx.fillStyle = "#6a48d7"; cx.fillRect(0, H - Math.max(10, H * 0.06), W, Math.max(10, H * 0.06));
-          cx.fillStyle = "#ffffff"; cx.textAlign = "center";
-          var title = img.name || img.type || "Thiết kế hình ảnh";
-          cx.font = "800 " + Math.max(26, Math.round(W * 0.045)) + "px system-ui, sans-serif";
-          wrapText(cx, title, W / 2, H / 2 - 20, W * 0.84, Math.max(32, Math.round(W * 0.055)));
-          cx.font = "500 " + Math.max(15, Math.round(W * 0.02)) + "px system-ui, sans-serif";
-          cx.fillStyle = "#cfc8f5";
-          cx.fillText((img.type || "") + (img.style ? " · " + img.style : ""), W / 2, H / 2 + Math.max(30, Math.round(W * 0.045)));
-          cv.toBlob(function (b) { done(b); }, "image/png");
-        }
-        function wrapText(cx, text, x, y, maxW, lh) {
-          var words = String(text).split(" "), line = "", yy = y;
-          for (var i = 0; i < words.length; i++) {
-            var test = line ? line + " " + words[i] : words[i];
-            if (cx.measureText(test).width > maxW && line) { cx.fillText(line, x, yy); line = words[i]; yy += lh; }
-            else line = test;
-          }
-          if (line) cx.fillText(line, x, yy);
-        }
+        /* Yêu cầu 33: drawImagePNG (vẽ khung tím + chữ bằng canvas, ảnh giả)
+           đã xóa — nút "Tải hình ảnh" giờ tải file thật từ server
+           (fetchTaskImage -> GET /api/tasks/:id/result). */
 
         /* ---- Bảng xem demo riêng cho nhiệm vụ Design Web mới ---- */
         var overlay = null, overlayTask = null;
@@ -6702,6 +6757,7 @@
           /* Yêu cầu 28: Design Web gửi multipart kèm ảnh (file gốc từ initRef),
              server tạo nhiệm vụ trạng thái 'luna' và gửi brief sang Telegram. */
           var isDesignWeb = key === "designweb";
+          var isAnh = key === "anh";
           var matItems = [];
           var refItems = [];
           var submitPromise;
@@ -6718,6 +6774,17 @@
             matItems.forEach(function (it) { if (it.file) fd.append("clientPhotos", it.file); });
             refItems.forEach(function (it) { if (it.file) fd.append("refPhotos", it.file); });
             submitPromise = apiForm("/api/tasks", fd);
+          } else if (isAnh) {
+            /* Yêu cầu 33: Thiết kế hình ảnh gửi multipart kèm ảnh mẫu (file gốc
+               từ initRef) — server gọi Gemini thật, không chạy mô phỏng. */
+            var anhRefInput = document.getElementById("anh-ref");
+            refItems = (anhRefInput && anhRefInput._refItems) || [];
+            var badAnh = validatePhotoFiles(refItems, MAX_PHOTOS_REF, "ảnh mẫu");
+            if (badAnh) { toast(badAnh); if (btn) btn.disabled = false; return; }
+            var fdAnh = new FormData();
+            fdAnh.append("payload", JSON.stringify({ feature: key, title: d.title, payload: d }));
+            refItems.forEach(function (it) { if (it.file) fdAnh.append("refPhotos", it.file); });
+            submitPromise = apiForm("/api/tasks", fdAnh);
           } else {
             submitPromise = api("/api/tasks", { method: "POST", body: { feature: key, title: d.title, payload: d } });
           }
@@ -6747,6 +6814,21 @@
                   if (form.reset) form.reset();
                   if (isDesignWeb) clearRefInputs(form);
                 }
+              } else if (key === "anh") {
+                /* Yêu cầu 33: Gemini chạy thật ở server — không chạy mô phỏng,
+                   tiến độ thật về qua poller (5 giây/nhịp). Thiếu key thì server
+                   đã trả status 'error' kèm lý do trong payload.gemini. */
+                var qAnh = task.quota;
+                if (task.status === "running") {
+                  startAnhPolling();
+                  toast("Đã giao việc cho Gemini: " + d.title + (qAnh ? " — " + feat.name + " còn " + qAnh.remaining + " lượt tuần này." : " — ảnh thật sẽ về khi Gemini xong."));
+                } else if (task.status === "error") {
+                  var gErr = (task.payload && task.payload.gemini && task.payload.gemini.error) || "Chưa tạo được ảnh — xem lý do trên thẻ nhiệm vụ.";
+                  toast(gErr);
+                }
+                if (qAnh && quotaCache && quotaCache[key]) { quotaCache[key].used = qAnh.used; quotaCache[key].remaining = qAnh.remaining; }
+                if (form.reset) form.reset();
+                clearRefInputs(form);
               } else {
                 runSimulation(li, task, task.payload || d, 0);
                 var q = task.quota;

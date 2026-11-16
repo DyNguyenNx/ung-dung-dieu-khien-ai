@@ -68,6 +68,10 @@ CREATE TABLE IF NOT EXISTS tasks (
   -- (Luna đã tự đăng — text là báo cáo, link là URL bài đã đăng) hoặc
   -- 'content' (nội dung hoàn chỉnh để nhân viên tự đăng).
   result_text TEXT,
+  -- Yêu cầu 33: ảnh thật Gemini trả về cho Thiết kế hình ảnh.
+  -- result_image = JSON {mime, data (base64), bytes, w, h, aspect, type,
+  -- generated_at, ms} — CHỈ 1 ảnh / nhiệm vụ (bản mới nhất, xem migration 004).
+  result_image TEXT,
   result_versions TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL

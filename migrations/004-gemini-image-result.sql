@@ -1,0 +1,12 @@
+-- Migration 004 — Thiết kế hình ảnh qua Gemini (Yêu cầu 33, 16/11/2026).
+-- Chạy trên D1 live TRƯỚC khi deploy code mới (code mới INSERT/đọc cột result_image).
+--   wrangler d1 execute app-dieu-khien-ai-db --remote --file=migrations/004-gemini-image-result.sql
+--   (hoặc dán vào mục SQL của D1 trên dashboard Cloudflare)
+-- Chỉ thêm 1 cột result_image (JSON {mime, data base64, bytes, w, h, aspect,
+-- type, generated_at, ms} — ảnh Gemini trả về, bản mới nhất).
+-- QUYẾT ĐỊNH LƯU TRỮ: CHỈ 1 ảnh / nhiệm vụ (bản mới nhất ghi đè, không giữ
+-- 5 phiên bản như file HTML — ảnh base64 1,5–2,5MB/phiên bản sẽ phình D1,
+-- theo tinh thần cap phiên bản của soát bảo mật run-1 ngày 16/11/2026).
+-- LƯU Ý: file này KHÔNG có PRAGMA/BEGIN/COMMIT — D1 Console từ chối SQL chứa
+-- BEGIN TRANSACTION (bài học từ migration 001: phải chạy bản đã bỏ PRAGMA/BEGIN/COMMIT).
+ALTER TABLE tasks ADD COLUMN result_image TEXT;
