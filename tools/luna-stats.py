@@ -42,6 +42,9 @@ import urllib.request
 from pathlib import Path
 
 DEFAULT_BASE = "https://ung-dung-dieu-khien-ai.pages.dev"
+# Cloudflare Pages tra 403 voi User-Agent mac dinh cua urllib
+# (Python-urllib/* bi chan) — dung UA trinh duyet de request toi duoc app.
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 PROJECT_SLUGS = ["bluemax", "binhminh", "khanhnghi", "inox"]
 KINDS = ["article", "page", "web"]
 PERIOD_RE = re.compile(r"^20\d\d-W(0[1-9]|[1-4][0-9]|5[0-3])$")
@@ -62,6 +65,7 @@ def api_secret():
 
 def http_json(method, url, headers=None, body=None):
     req = urllib.request.Request(url, method=method)
+    req.add_header("User-Agent", USER_AGENT)
     if headers:
         for k, v in headers.items():
             req.add_header(k, v)

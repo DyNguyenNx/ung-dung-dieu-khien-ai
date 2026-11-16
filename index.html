@@ -694,7 +694,11 @@
         .ps-nums{ grid-template-columns:repeat(2,1fr); }
       }
 
-      /* ---------- Bảng tín hiệu live (Yêu cầu 32) ---------- */
+      /* ---------- Bảng tín hiệu live (Yêu cầu 32) ----------
+         v2 (16/11/2026): đồ họa động như video "Tín hiệu MCP" — nút chỉ huy
+         nối 6 tính năng bằng đường SVG có chấm sáng chạy, luồng có chấm chạy
+         dọc, số đếm lên khi đổi, thanh tiến độ chuyển động. Dữ liệu vẫn thật
+         từ API như v1, không bịa số. */
       .sig-live{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--green); margin:10px 0 2px; flex-wrap:wrap; }
       .sig-live .live-dot{ flex:none; }
       .sig-live.paused{ color:var(--muted); }
@@ -702,6 +706,28 @@
       .sig-live.stale{ color:var(--red); }
       .sig-live.stale .live-dot{ background:var(--red); animation:none; }
       .sig-updated{ font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums; }
+      /* Đồ thị trung tâm: nút chỉ huy + 6 nút tính năng, nối bằng SVG (JS vẽ đường theo vị trí thật). */
+      .sig-hub{ position:relative; margin:16px 0 4px; }
+      .sig-links{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:visible; }
+      .sig-hub-node{ position:relative; z-index:1; display:block; margin:0 auto; max-width:360px; width:100%; background:var(--navy); color:#fff; border:0; border-radius:18px; padding:14px 18px 12px; text-align:center; font-family:inherit; cursor:pointer; box-shadow:var(--shadow-sm); }
+      .sig-hub-node b{ display:block; font-size:17px; line-height:1.3; }
+      .sig-hub-node span{ display:block; font-size:13px; font-weight:600; color:#d9d2f7; margin-top:2px; }
+      .sig-hub-node small{ display:block; font-size:12.5px; font-weight:600; color:#b9aef0; margin-top:4px; font-variant-numeric:tabular-nums; }
+      .sig-hub-node small b{ display:inline; font-size:12.5px; color:#fff; }
+      .sig-hub-ring{ position:absolute; inset:-5px; border:2px solid var(--accent); border-radius:22px; pointer-events:none; animation:sighubpulse 2.2s ease-out infinite; }
+      @keyframes sighubpulse{ 0%{ transform:scale(1); opacity:.75; } 100%{ transform:scale(1.09); opacity:0; } }
+      .sig-feats{ position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:30px; }
+      .sig-feat{ display:flex; flex-direction:column; align-items:center; gap:1px; padding:11px 8px; border:1.5px solid var(--line); border-radius:14px; background:var(--card); font-family:inherit; cursor:pointer; }
+      .sig-feat b{ font-size:20px; line-height:1.2; color:var(--ink); font-variant-numeric:tabular-nums; }
+      .sig-feat span{ font-size:12.5px; font-weight:700; color:var(--muted); text-align:center; }
+      .sig-feat small{ font-size:11.5px; color:var(--muted); font-weight:600; }
+      .sig-feat:hover{ border-color:var(--accent); }
+      .sig-feat.active{ border-color:var(--accent); background:var(--accent-soft); }
+      .sig-feat.active span{ color:var(--navy); }
+      .sig-feat .sig-feat-count.zero{ color:var(--muted); }
+      .sig-feat-filter{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:12px 0 0; font-size:13px; }
+      .sig-feat-filter[hidden]{ display:none; }
+      .sig-feat-filter button{ border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 12px; font-family:inherit; font-size:12.5px; font-weight:700; color:var(--ink); cursor:pointer; min-height:32px; }
       .sig-nums{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:14px 0 6px; }
       .sig-num{ background:var(--bg-soft); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
       .sig-num b{ display:block; font-size:22px; line-height:1.2; color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -717,7 +743,12 @@
       .sig-node.active span{ color:var(--navy); }
       .sig-node.sig-err-node b{ color:var(--red); }
       .sig-node.sig-err-node.active{ border-color:var(--red); background:var(--red-soft); }
-      .sig-arrow{ align-self:center; color:var(--muted); font-weight:800; flex:none; }
+      /* Đoạn nối giữa các chặng: chấm sáng chạy dọc (chặng nào 0 thì thành vạch mờ, không chạy). */
+      .sig-link{ flex:0 0 34px; align-self:center; height:6px; border-radius:999px; background-image:radial-gradient(circle, var(--accent) 2.2px, transparent 2.9px); background-size:12px 6px; background-repeat:repeat-x; background-position:0 0; animation:sigflowx .8s linear infinite; }
+      .sig-link.idle{ background-image:none; background-color:var(--line); height:2px; animation:none; }
+      .sig-link-err{ background-image:radial-gradient(circle, var(--red) 2.2px, transparent 2.9px); }
+      @keyframes sigflowx{ to{ background-position-x:12px; } }
+      @keyframes sigflowy{ to{ background-position-y:12px; } }
       .sig-group{ display:flex; align-items:baseline; gap:8px; margin:14px 0 2px; }
       .sig-group b{ font-size:14.5px; color:var(--ink); }
       .sig-group span{ font-size:12.5px; color:var(--muted); font-weight:700; }
@@ -728,17 +759,22 @@
       .sig-row-title{ display:block; font-size:14px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .sig-row-meta{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
       .sig-row .bar{ flex:0 0 120px; }
+      .sig-row .bar > i{ transition:width .6s ease; }
       .sig-row .tag{ flex:none; }
       .sig-row .bar.indet > i{ width:30% !important; background:var(--blue); animation:sigslide 1.4s ease-in-out infinite alternate; }
       @keyframes sigslide{ from{ margin-left:0; } to{ margin-left:70%; } }
-      @media (prefers-reduced-motion: reduce){ .sig-row .bar.indet > i{ animation:none; } }
+      @media (prefers-reduced-motion: reduce){ .sig-row .bar.indet > i{ animation:none; } .sig-link{ animation:none; } .sig-hub-ring{ animation:none; } }
       @media (max-width:720px){
         .sig-nums{ grid-template-columns:repeat(2,1fr); }
-        .sig-node{ flex:1 1 44%; }
-        .sig-arrow{ display:none; }
+        .sig-feats{ grid-template-columns:repeat(2,1fr); margin-top:24px; }
+        .sig-flow{ flex-direction:column; align-items:stretch; }
+        .sig-node{ flex:none; width:100%; }
+        .sig-link{ flex:none; width:6px; height:22px; margin:1px auto; background-size:6px 12px; background-repeat:repeat-y; background-position:0 0; animation-name:sigflowy; }
+        .sig-link.idle{ width:2px; height:22px; }
         .sig-row{ flex-wrap:wrap; gap:8px; }
         .sig-row .bar{ flex:1 1 100%; order:3; }
       }
+
       .btn-sm{ height:44px; padding:0 14px; font-size:12.5px; }
 
       /* Lịch & Kế hoạch theo dự án */
@@ -2056,11 +2092,31 @@
             <!-- ======== Yêu cầu 32: Bảng tín hiệu live (mọi vai trò) ======== -->
             <div class="card" id="signalBoard" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Bảng tín hiệu</h2>
-              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 5 giây. Bấm một nút trong sơ đồ để lọc danh sách bên dưới; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
+              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 5 giây. Chấm sáng chạy từ nút chỉ huy xuống các tính năng đang có việc; bấm một nút trong sơ đồ để lọc danh sách bên dưới; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
               <div class="sig-live" id="sigLive">
                 <span class="live-dot"></span><span id="sigLiveText">Đang live</span>
                 <span class="sig-updated" id="sigUpdated">Cập nhật lần cuối —</span>
               </div>
+              <!-- Đồ thị trung tâm (Yêu cầu 32 v2): nút chỉ huy nối 6 tính năng, chấm sáng chạy dọc đường nối khi tính năng đó đang có việc. -->
+              <div class="sig-hub" id="sigHub">
+                <svg class="sig-links" id="sigLinks" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+                <button class="sig-hub-node" type="button" id="sigHubNode" title="Bấm để về chế độ xem mặc định (Đang chạy, mọi tính năng)">
+                  <span class="sig-hub-ring" aria-hidden="true"></span>
+                  <b>App Điều Khiển AI</b>
+                  <span>Thư Ký Mỹ Linh — Chỉ huy</span>
+                  <small>Đang chạy: <b id="sigHubNum">—</b> nhiệm vụ</small>
+                </button>
+                <div class="sig-feats" id="sigFeats">
+                  <button class="sig-feat" type="button" data-sig-feat="web"><b class="sig-feat-count" id="sigFeatCount-web">—</b><span>Chăm sóc web</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="page"><b class="sig-feat-count" id="sigFeatCount-page">—</b><span>Chăm sóc page</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="kenh"><b class="sig-feat-count" id="sigFeatCount-kenh">—</b><span>Xây dựng kênh</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="truyen"><b class="sig-feat-count" id="sigFeatCount-truyen">—</b><span>Viết truyện</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="anh"><b class="sig-feat-count" id="sigFeatCount-anh">—</b><span>Thiết kế hình ảnh</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="designweb"><b class="sig-feat-count" id="sigFeatCount-designweb">—</b><span>Design Web</span><small>đang chạy</small></button>
+                </div>
+              </div>
+              <p class="hint sig-feat-filter" id="sigFeatFilterLine" hidden>Đang lọc tính năng: <b id="sigFeatFilterName"></b> · <span id="sigFeatFilterStage"></span> <button type="button" id="sigFeatClear">✕ Bỏ lọc tính năng</button></p>
+
               <div class="sig-nums" id="sigNums">
                 <div class="sig-num" data-sig="running"><b id="sigNumRunning">—</b><span>Lệnh đang chạy</span></div>
                 <div class="sig-num" data-sig="waiting"><b id="sigNumWaiting">—</b><span>Hàng chờ</span></div>
@@ -2070,13 +2126,13 @@
               </div>
               <div class="sig-flow" id="sigFlow" role="group" aria-label="Lọc nhiệm vụ theo trạng thái">
                 <button class="sig-node" type="button" data-sig-filter="waiting"><b id="sigFlowWaiting">—</b><span>Hàng chờ</span></button>
-                <span class="sig-arrow" aria-hidden="true">→</span>
+                <span class="sig-link" data-sig-link="waiting" aria-hidden="true"></span>
                 <button class="sig-node" type="button" data-sig-filter="running"><b id="sigFlowRunning">—</b><span>Đang chạy</span><small id="sigFlowLuna"></small></button>
-                <span class="sig-arrow" aria-hidden="true">→</span>
+                <span class="sig-link" data-sig-link="running" aria-hidden="true"></span>
                 <button class="sig-node" type="button" data-sig-filter="review"><b id="sigFlowReview">—</b><span>Chờ duyệt</span></button>
-                <span class="sig-arrow" aria-hidden="true">→</span>
+                <span class="sig-link" data-sig-link="review" aria-hidden="true"></span>
                 <button class="sig-node" type="button" data-sig-filter="completed"><b id="sigFlowDone">—</b><span>Hoàn thành</span></button>
-                <span class="sig-arrow" aria-hidden="true">→</span>
+                <span class="sig-link sig-link-err" data-sig-link="error" aria-hidden="true"></span>
                 <button class="sig-node sig-err-node" type="button" data-sig-filter="error"><b id="sigFlowError">—</b><span>Lỗi</span></button>
               </div>
               <p class="hint" id="sigLunaLine" hidden></p>
@@ -4566,22 +4622,38 @@
       }
 
       /* ---------- Bảng tín hiệu live (Yêu cầu 32) ----------
+         v2 (16/11/2026): đồ họa ĐỘNG như video "Tín hiệu MCP" — nút chỉ huy
+         nối 6 tính năng bằng đường SVG có chấm sáng chạy (SMIL animateMotion),
+         luồng có chấm chạy dọc, số đếm lên khi đổi, thanh tiến độ chuyển động
+         bằng transition + cập nhật DOM tại chỗ. DỮ LIỆU VẪN THẬT từ API như v1
+         (byStatus + /api/tasks), không bịa số: chấm chỉ chạy khi số lượng thật
+         > 0, tốc độ/số chấm theo đúng số lượng thật.
          Số đếm lấy từ /api/dashboard (byStatus, có phạm vi theo vai trò);
          danh sách nhiệm vụ lấy từ AppState.tasks (đã tải qua /api/tasks).
          Polling 5 giây khi đang ở màn Dashboard và tab hiện; tab ẩn thì dừng.
-         Render tiêu đề/nội dung nhiệm vụ LUÔN qua escHtml (rút kinh nghiệm
-         soát bảo mật run-1: XSS qua nội dung người dùng). Tiến độ % hiển thị
-         đúng giá trị server đang lưu (nhiệm vụ running thường là 0% cho tới
-         khi xong — phần mô phỏng tiến độ của app chỉ chạy ở giao diện danh
-         sách, không ghi lên server); với running/luna ở 0% thì thanh bar
-         chạy hiệu ứng trượt để báo đang hoạt động, không bịa số %. */
+         Render tiêu đề/nội dung nhiệm vụ LUÔN qua textContent (không innerHTML
+         chuỗi người dùng — rút kinh nghiệm soát bảo mật run-1: XSS qua nội
+         dung người dùng). Tiến độ % hiển thị đúng giá trị server đang lưu
+         (nhiệm vụ running thường là 0% cho tới khi xong — phần mô phỏng tiến
+         độ của app chỉ chạy ở giao diện danh sách, không ghi lên server);
+         với running/luna ở 0% thì thanh bar chạy hiệu ứng trượt để báo đang
+         hoạt động, không bịa số %. */
       var SIG_FILTERS = { waiting: ["waiting", "scheduled"], running: ["running", "luna"], review: ["review"], completed: ["completed"], error: ["error"] };
+      var SIG_FILTER_NAMES = { waiting: "Hàng chờ", running: "Đang chạy", review: "Chờ duyệt", completed: "Hoàn thành", error: "Lỗi" };
       var SIG_FILTER = "running";
+      var SIG_FEAT_FILTER = null; // null = mọi tính năng; bấm nút tính năng để lọc thêm
       var SIG_POLL_MS = 5000;
       var SIG_LIST_MAX = 50;
       var sigTimer = null;
-      var sigLastSig = "";
       var sigWired = false;
+      var sigReducedMotion = (typeof window.matchMedia === "function") && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var sigShown = {};      // id phần tử -> số đang hiển thị (cho hiệu ứng đếm lên)
+      var sigTweenToken = {}; // chống 2 lần đếm chồng nhau trên cùng 1 phần tử
+      var sigLinkSig = "";    // chữ ký số lượng chạy theo tính năng (đổi mới vẽ lại đường nối SVG)
+      var sigRowMap = {};     // id nhiệm vụ -> {row, bar, barI, titleEl, metaEl, tagEl}
+      var sigGroupMap = {};   // tính năng -> {wrap, countEl, rowsEl}
+      var sigEmptyEl = null;
+      var sigResizeTimer = null;
       /* Khối này nằm ở script block 1 (top-level) nên KHÔNG thấy các biến trong
          IIFE AppBackend (FEATURE_KEYS / FEATURE_NAMES / fmtTime) — dùng bản sao
          cục bộ, và gọi AppBackend qua window.AppBackend (chẩn đoán QA32 16/11). */
@@ -4616,7 +4688,128 @@
         });
         return c;
       }
-      function sigSetText(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
+      /* Số đếm lên: từ số đang hiển thị tới số mới trong 600ms (ease-out). */
+      function sigSetNum(id, target) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        target = Math.max(0, Math.round(target || 0));
+        var cur = sigShown[id];
+        if (cur === undefined) { var p = parseInt((el.textContent || "").replace(/\D/g, ""), 10); cur = isNaN(p) ? 0 : p; }
+        var token = (sigTweenToken[id] || 0) + 1;
+        sigTweenToken[id] = token;
+        if (cur === target || sigReducedMotion) { el.textContent = String(target); sigShown[id] = target; return; }
+        var from = cur, t0 = null;
+        sigShown[id] = target;
+        function step(ts) {
+          if (sigTweenToken[id] !== token) return; // đã có lần đếm mới hơn
+          if (t0 === null) t0 = ts;
+          var k = Math.min(1, (ts - t0) / 600);
+          var eased = 1 - Math.pow(1 - k, 3);
+          el.textContent = String(Math.round(from + (target - from) * eased));
+          if (k < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+      /* Số nhiệm vụ đang chạy (running + luna) theo từng tính năng — dữ liệu
+         thật từ danh sách đã tải; chấm sáng chỉ chạy khi số này > 0. */
+      function sigFeatCounts() {
+        var c = {};
+        SIG_FEATURE_KEYS.forEach(function (k) { c[k] = 0; });
+        (AppState.tasks || []).forEach(function (t) {
+          if ((t.status === "running" || t.status === "luna") && c[t.feature] !== undefined) c[t.feature]++;
+        });
+        return c;
+      }
+      /* Vẽ đường nối SVG từ nút chỉ huy xuống 6 nút tính năng, chấm sáng chạy
+         dọc bằng SMIL animateMotion. Chỉ vẽ lại khi số lượng đổi (chữ ký đổi)
+         hoặc khi layout đổi (resize/font) — vẽ lại giữa chừng sẽ làm chấm
+         chạy nhảy về đầu, nên không vẽ lại mỗi lần polling. */
+      function sigDrawLinks(force) {
+        var hub = document.getElementById("sigHub");
+        var svg = document.getElementById("sigLinks");
+        var hubNode = document.getElementById("sigHubNode");
+        if (!hub || !svg || !hubNode) return;
+        if (!hub.offsetParent) { sigLinkSig = ""; return; } // đang ẩn (không ở màn Dashboard) thì không đo được; để lần sau vẽ lại
+        var fc = sigFeatCounts();
+        var sig = SIG_FEATURE_KEYS.map(function (k) { return k + ":" + fc[k]; }).join(",");
+        if (!force && sig === sigLinkSig) return;
+        sigLinkSig = sig;
+        var hr = hub.getBoundingClientRect();
+        var hnr = hubNode.getBoundingClientRect();
+        var cx = hnr.left - hr.left + hnr.width / 2;
+        var y0 = hnr.bottom - hr.top + 2;
+        var NS = "http://www.w3.org/2000/svg";
+        var XLINK = "http://www.w3.org/1999/xlink";
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        SIG_FEATURE_KEYS.forEach(function (key) {
+          var node = document.querySelector('[data-sig-feat="' + key + '"]');
+          if (!node) return;
+          var nr = node.getBoundingClientRect();
+          var nx = nr.left - hr.left + nr.width / 2;
+          var ny = nr.top - hr.top - 3;
+          if (ny <= y0) return;
+          var count = fc[key] || 0;
+          var pid = "sigPath-" + key;
+          var path = document.createElementNS(NS, "path");
+          path.setAttribute("id", pid);
+          path.setAttribute("d", "M " + cx.toFixed(1) + " " + y0.toFixed(1) + " L " + nx.toFixed(1) + " " + ny.toFixed(1));
+          path.setAttribute("fill", "none");
+          path.setAttribute("stroke", count > 0 ? "#c9b8f5" : "#e2e3ee");
+          path.setAttribute("stroke-width", count > 0 ? "2" : "1.5");
+          path.setAttribute("stroke-linecap", "round");
+          svg.appendChild(path);
+          if (count > 0 && !sigReducedMotion) {
+            var dots = Math.min(3, count);
+            var dur = count >= 4 ? 1.6 : (count >= 2 ? 2.0 : 2.6);
+            for (var i = 0; i < dots; i++) {
+              var cEl = document.createElementNS(NS, "circle");
+              cEl.setAttribute("r", "4");
+              cEl.setAttribute("fill", "#6a48d7");
+              cEl.setAttribute("style", "filter:drop-shadow(0 0 4px rgba(106,72,215,.8))");
+              var am = document.createElementNS(NS, "animateMotion");
+              am.setAttribute("dur", dur + "s");
+              am.setAttribute("begin", (i * dur / dots).toFixed(2) + "s");
+              am.setAttribute("repeatCount", "indefinite");
+              var mp = document.createElementNS(NS, "mpath");
+              mp.setAttribute("href", "#" + pid);
+              mp.setAttributeNS(XLINK, "xlink:href", "#" + pid);
+              am.appendChild(mp);
+              cEl.appendChild(am);
+              svg.appendChild(cEl);
+            }
+          }
+        });
+      }
+      /* Đoạn nối giữa các chặng: chặng nào có việc thì chấm chạy, chặng nào 0 thì vạch mờ. */
+      function sigUpdateFlowLinks(c) {
+        var map = { waiting: c.waiting, running: c.running, review: c.review, error: c.error };
+        Object.keys(map).forEach(function (k) {
+          var el = document.querySelector('[data-sig-link="' + k + '"]');
+          if (el) el.classList.toggle("idle", !(map[k] > 0));
+        });
+      }
+      function sigUpdateFeatNodes(fc, totalRunning) {
+        SIG_FEATURE_KEYS.forEach(function (key) {
+          sigSetNum("sigFeatCount-" + key, fc[key] || 0);
+          var node = document.querySelector('[data-sig-feat="' + key + '"]');
+          if (node) {
+            node.classList.toggle("active", SIG_FEAT_FILTER === key);
+            var b = node.querySelector(".sig-feat-count");
+            if (b) b.classList.toggle("zero", !(fc[key] > 0));
+          }
+        });
+        sigSetNum("sigHubNum", totalRunning);
+        var line = document.getElementById("sigFeatFilterLine");
+        if (line) {
+          if (SIG_FEAT_FILTER) {
+            line.hidden = false;
+            var nm = document.getElementById("sigFeatFilterName");
+            if (nm) nm.textContent = SIG_FEATURE_NAMES[SIG_FEAT_FILTER] || SIG_FEAT_FILTER;
+            var st = document.getElementById("sigFeatFilterStage");
+            if (st) st.textContent = "· " + (SIG_FILTER_NAMES[SIG_FILTER] || "");
+          } else line.hidden = true;
+        }
+      }
       function sigStatusLabel(t) {
         if (t.status === "luna") return { cls: "luna", text: "Thư Ký Mỹ Linh đang làm" };
         if (t.status === "running") return { cls: "run", text: "Đang chạy · " + (t.progress || 0) + "%" };
@@ -4629,23 +4822,125 @@
       }
       function sigFilteredTasks() {
         var want = SIG_FILTERS[SIG_FILTER] || SIG_FILTERS.running;
-        return (AppState.tasks || []).filter(function (t) { return want.indexOf(t.status) !== -1; });
+        return (AppState.tasks || []).filter(function (t) {
+          if (want.indexOf(t.status) === -1) return false;
+          if (SIG_FEAT_FILTER && t.feature !== SIG_FEAT_FILTER) return false;
+          return true;
+        });
+      }
+      /* Danh sách nhiệm vụ: cập nhật DOM tại chỗ theo id (không innerHTML lại)
+         để thanh tiến độ chuyển động bằng CSS transition khi % đổi, và để
+         tiêu đề luôn qua textContent (chống XSS). */
+      function sigEnsureGroup(key) {
+        var g = sigGroupMap[key];
+        if (g) return g;
+        var listEl = document.getElementById("sigList");
+        var wrap = document.createElement("div");
+        wrap.setAttribute("data-sig-group", key);
+        var head = document.createElement("div");
+        head.className = "sig-group";
+        var b = document.createElement("b");
+        b.textContent = SIG_FEATURE_NAMES[key] || key;
+        var sp = document.createElement("span");
+        head.appendChild(b); head.appendChild(sp);
+        var rowsEl = document.createElement("div");
+        wrap.appendChild(head); wrap.appendChild(rowsEl);
+        listEl.appendChild(wrap);
+        g = { wrap: wrap, countEl: sp, rowsEl: rowsEl };
+        sigGroupMap[key] = g;
+        return g;
+      }
+      function sigEnsureRow(t) {
+        var r = sigRowMap[t.id];
+        if (r) return r;
+        var row = document.createElement("button");
+        row.type = "button";
+        row.className = "sig-row";
+        row.setAttribute("data-sig-go", t.feature || "");
+        var main = document.createElement("span");
+        main.className = "sig-row-main";
+        var titleEl = document.createElement("span");
+        titleEl.className = "sig-row-title";
+        var metaEl = document.createElement("span");
+        metaEl.className = "sig-row-meta";
+        main.appendChild(titleEl); main.appendChild(metaEl);
+        var bar = document.createElement("span");
+        bar.className = "bar";
+        var barI = document.createElement("i");
+        bar.appendChild(barI);
+        var tagEl = document.createElement("span");
+        tagEl.className = "tag";
+        row.appendChild(main); row.appendChild(bar); row.appendChild(tagEl);
+        r = { row: row, bar: bar, barI: barI, titleEl: titleEl, metaEl: metaEl, tagEl: tagEl };
+        sigRowMap[t.id] = r;
+        return r;
+      }
+      function renderSigList(shown, total) {
+        var listEl = document.getElementById("sigList");
+        if (!listEl) return;
+        if (!sigEmptyEl) {
+          sigEmptyEl = document.createElement("p");
+          sigEmptyEl.className = "hint";
+          listEl.appendChild(sigEmptyEl);
+        }
+        if (!shown.length) {
+          sigEmptyEl.hidden = false;
+          sigEmptyEl.textContent = (AppState.tasks || []).length ? "Không có nhiệm vụ nào ở trạng thái này." : "Chưa có nhiệm vụ nào — giao việc đầu tiên ở form từng tính năng.";
+          Object.keys(sigGroupMap).forEach(function (k) { sigGroupMap[k].wrap.remove(); delete sigGroupMap[k]; });
+          Object.keys(sigRowMap).forEach(function (id) { sigRowMap[id].row.remove(); delete sigRowMap[id]; });
+          return;
+        }
+        sigEmptyEl.hidden = true;
+        var seenGroups = {};
+        var seenRows = {};
+        SIG_FEATURE_KEYS.forEach(function (key) {
+          var group = shown.filter(function (t) { return t.feature === key; });
+          if (!group.length) return;
+          seenGroups[key] = true;
+          var g = sigEnsureGroup(key);
+          g.countEl.textContent = group.length + " nhiệm vụ";
+          listEl.appendChild(g.wrap); // append lại để giữ đúng thứ tự nhóm
+          group.forEach(function (t) {
+            seenRows[t.id] = true;
+            var r = sigEnsureRow(t);
+            if (r.row.getAttribute("data-sig-go") !== (t.feature || "")) r.row.setAttribute("data-sig-go", t.feature || "");
+            r.titleEl.textContent = t.title || "Không tiêu đề";
+            r.metaEl.textContent = (t.user_name || "") + " · " + sigFmtTime(t.created_at);
+            var lab = sigStatusLabel(t);
+            var pct = Math.max(0, Math.min(100, t.progress || 0));
+            var indet = (t.status === "running" || t.status === "luna") && pct === 0;
+            r.bar.classList.toggle("indet", indet);
+            r.barI.style.width = pct + "%"; // transition .6s ở CSS làm thanh chạy mượt
+            r.tagEl.className = "tag " + lab.cls;
+            r.tagEl.textContent = lab.text;
+            g.rowsEl.appendChild(r.row);
+          });
+        });
+        if (total > SIG_LIST_MAX) {
+          sigEmptyEl.hidden = false;
+          sigEmptyEl.textContent = "Hiển thị " + SIG_LIST_MAX + "/" + total + " nhiệm vụ gần nhất ở trạng thái này.";
+        }
+        Object.keys(sigGroupMap).forEach(function (k) { if (!seenGroups[k]) { sigGroupMap[k].wrap.remove(); delete sigGroupMap[k]; } });
+        /* BUGFIX v2 (QA 16/11): chỉ xóa mục trong map mà không gỡ phần tử khỏi DOM
+           thì hàng cũ ở lại trong nhóm, lần sau sigEnsureRow lại tạo hàng mới → trùng dòng
+           khi đổi bộ lọc. Phải gỡ cả phần tử. */
+        Object.keys(sigRowMap).forEach(function (id) { if (!seenRows[id]) { sigRowMap[id].row.remove(); delete sigRowMap[id]; } });
       }
       function renderSignalBoard(d) {
         var board = document.getElementById("signalBoard");
         if (!board) return;
         if (d) AppState.dashData = d;
         var c = sigCounts(AppState.dashData);
-        sigSetText("sigNumRunning", c.running);
-        sigSetText("sigNumWaiting", c.waiting);
-        sigSetText("sigNumReview", c.review);
-        sigSetText("sigNumDone", c.completed);
-        sigSetText("sigNumError", c.error);
-        sigSetText("sigFlowWaiting", c.waiting);
-        sigSetText("sigFlowRunning", c.running);
-        sigSetText("sigFlowReview", c.review);
-        sigSetText("sigFlowDone", c.completed);
-        sigSetText("sigFlowError", c.error);
+        sigSetNum("sigNumRunning", c.running);
+        sigSetNum("sigNumWaiting", c.waiting);
+        sigSetNum("sigNumReview", c.review);
+        sigSetNum("sigNumDone", c.completed);
+        sigSetNum("sigNumError", c.error);
+        sigSetNum("sigFlowWaiting", c.waiting);
+        sigSetNum("sigFlowRunning", c.running);
+        sigSetNum("sigFlowReview", c.review);
+        sigSetNum("sigFlowDone", c.completed);
+        sigSetNum("sigFlowError", c.error);
         var lunaSmall = document.getElementById("sigFlowLuna");
         if (lunaSmall) lunaSmall.textContent = c.luna > 0 ? "· " + c.luna + " qua Thư Ký Mỹ Linh" : "";
         var lunaLine = document.getElementById("sigLunaLine");
@@ -4659,37 +4954,12 @@
         for (var i = 0; i < nodes.length; i++) {
           nodes[i].classList.toggle("active", nodes[i].getAttribute("data-sig-filter") === SIG_FILTER);
         }
-        var listEl = document.getElementById("sigList");
-        if (!listEl) return;
+        sigUpdateFlowLinks(c);
+        var fc = sigFeatCounts();
+        sigUpdateFeatNodes(fc, c.running);
         var items = sigFilteredTasks();
-        var sig = SIG_FILTER + "|" + items.map(function (t) { return t.id + ":" + t.status + ":" + (t.progress || 0); }).join(",");
-        if (sig === sigLastSig) return; // Dữ liệu không đổi thì không đụng DOM.
-        sigLastSig = sig;
-        if (!items.length) {
-          listEl.innerHTML = '<p class="hint">' + ((AppState.tasks || []).length ? "Không có nhiệm vụ nào ở trạng thái này." : "Chưa có nhiệm vụ nào — giao việc đầu tiên ở form từng tính năng.") + "</p>";
-          return;
-        }
-        var shown = items.slice(0, SIG_LIST_MAX);
-        var html = "";
-        SIG_FEATURE_KEYS.forEach(function (key) {
-          var group = shown.filter(function (t) { return t.feature === key; });
-          if (!group.length) return;
-          html += '<div class="sig-group"><b>' + escHtml(SIG_FEATURE_NAMES[key] || key) + '</b><span>' + group.length + ' nhiệm vụ</span></div>';
-          group.forEach(function (t) {
-            var lab = sigStatusLabel(t);
-            var pct = Math.max(0, Math.min(100, t.progress || 0));
-            var indet = (t.status === "running" || t.status === "luna") && pct === 0;
-            html += '<button type="button" class="sig-row" data-sig-go="' + escHtml(t.feature) + '">' +
-              '<span class="sig-row-main"><span class="sig-row-title">' + escHtml(t.title || "Không tiêu đề") + '</span>' +
-              '<span class="sig-row-meta">' + escHtml(t.user_name || "") + " · " + escHtml(sigFmtTime(t.created_at)) + '</span></span>' +
-              '<span class="bar' + (indet ? " indet" : "") + '"><i style="width:' + pct + '%"></i></span>' +
-              '<span class="tag ' + lab.cls + '">' + escHtml(lab.text) + '</span></button>';
-          });
-        });
-        if (items.length > SIG_LIST_MAX) {
-          html += '<p class="hint">Hiển thị ' + SIG_LIST_MAX + "/" + items.length + " nhiệm vụ gần nhất ở trạng thái này.</p>";
-        }
-        listEl.innerHTML = html;
+        renderSigList(items.slice(0, SIG_LIST_MAX), items.length);
+        sigDrawLinks(false);
       }
       function signalMarkOk() {
         var live = document.getElementById("sigLive");
@@ -4734,10 +5004,27 @@
         var board = document.getElementById("signalBoard");
         if (!board) return;
         board.addEventListener("click", function (e) {
+          var hub = e.target && e.target.closest ? e.target.closest("#sigHubNode") : null;
+          if (hub) { // Bấm nút chỉ huy: về chế độ xem mặc định
+            SIG_FILTER = "running"; SIG_FEAT_FILTER = null;
+            renderSignalBoard();
+            return;
+          }
+          var feat = e.target && e.target.closest ? e.target.closest("[data-sig-feat]") : null;
+          if (feat) { // Bấm nút tính năng: lọc thêm theo tính năng (bấm lại để bỏ)
+            var key = feat.getAttribute("data-sig-feat");
+            SIG_FEAT_FILTER = (SIG_FEAT_FILTER === key) ? null : key;
+            renderSignalBoard();
+            return;
+          }
+          if (e.target && e.target.closest && e.target.closest("#sigFeatClear")) {
+            SIG_FEAT_FILTER = null;
+            renderSignalBoard();
+            return;
+          }
           var node = e.target && e.target.closest ? e.target.closest("[data-sig-filter]") : null;
           if (node) {
             SIG_FILTER = node.getAttribute("data-sig-filter") || "running";
-            sigLastSig = ""; // Đổi bộ lọc thì vẽ lại danh sách.
             renderSignalBoard();
             return;
           }
@@ -4748,6 +5035,11 @@
           if (document.hidden) { stopSignalPolling(); signalMarkPaused(); }
           else if (AppState.me && currentScreen === "dashboard") { startSignalPolling(); }
         });
+        window.addEventListener("resize", function () { // Đổi cỡ màn hình thì vẽ lại đường nối theo vị trí mới
+          if (sigResizeTimer) clearTimeout(sigResizeTimer);
+          sigResizeTimer = setTimeout(function () { sigDrawLinks(true); }, 150);
+        });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { sigDrawLinks(true); });
       }
       wireSignalBoard();
       function setViewMode(mode, silent) {
