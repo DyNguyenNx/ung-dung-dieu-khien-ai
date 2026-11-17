@@ -70,9 +70,13 @@ async function checkCooldown(env, slug) {
 }
 
 async function writeLog(env, id, slug, startedAt, status, error, rowsSynced) {
+  // Tra ve moc finished_at vua ghi — frontend dung de doi ban doc summary
+  // phan anh dung lan dong bo nay (fix loi 1/3: D1 doc co the tre sau ghi).
+  const finishedAt = nowIso();
   await env.DB.prepare(
     'UPDATE gsc_sync_log SET finished_at = ?, status = ?, error = ?, rows_synced = ? WHERE id = ?',
-  ).bind(nowIso(), status, error || null, rowsSynced || 0, id).run();
+  ).bind(finishedAt, status, error || null, rowsSynced || 0, id).run();
+  return finishedAt;
 }
 
 async function setPropertySync(env, slug, status, lastError) {
@@ -221,8 +225,8 @@ async function syncProject(env, slug) {
     }
     if (inspected > 0) await updateArticlesIndexed(env, slug, verdictMap);
     await setPropertySync(env, slug, 'ok', null);
-    await writeLog(env, logId, slug, startedAt, 'ok', null, rowsSynced);
-    return { project: slug, name: project.name, ok: true, rows: rowsSynced, inspected, site_url: siteUrl, period };
+    const finishedAt = await writeLog(env, logId, slug, startedAt, 'ok', null, rowsSynced);
+    return { project: slug, name: project.name, ok: true, rows: rowsSynced, inspected, site_url: siteUrl, period, synced_at: finishedAt };
   } catch (e) {
     const code = e instanceof GscError ? e.code : 'SYNC_FAILED';
     const message = e instanceof GscError ? e.message : ('Đồng bộ lỗi: ' + (e && e.message ? e.message : 'không rõ nguyên nhân'));

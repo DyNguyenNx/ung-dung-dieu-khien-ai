@@ -4674,49 +4674,129 @@
          (cooldown 15 phút/dự án, server trả 429 rõ khi bấm liên tục).
          Nhân viên không thấy khối này vì cả #projectStatsBlock đã admin-only. */
       var gscWired = false;
+      // Trang thai dong bo theo du an: khoa = PS_SEL.project ('all' hoac slug).
+      // Nut chi khoa khi chinh du an dang xem dang dong bo (fix loi 2: doi
+      // du an giua chung khong duoc lam nut ket cung); doi du an thi reset
+      // nut theo trang thai cua du an moi. Dong bo 2 du an khac nhau cung
+      // luc van an toan: backend chan trung du an bang cooldown 15 phut.
+      var gscSyncing = {};
       function gscFmtNum(n) { return (Number(n) || 0).toLocaleString("vi-VN"); }
       function gscFmtPct(x) { return (Number(x || 0) * 100).toFixed(1) + "%"; }
       function gscFmtPos(x) { return Number(x || 0) ? Number(x).toFixed(1) : "—"; }
+      // Gio VN (UTC+7) dang HH:MM dd/MM/yyyy — hien moc dong bo cho de doc.
+      function gscFmtTime(iso) {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        var v = new Date(d.getTime() + 7 * 3600 * 1000);
+        var p = function (n) { return ("0" + n).slice(-2); };
+        return p(v.getUTCHours()) + ":" + p(v.getUTCMinutes()) + " " + p(v.getUTCDate()) + "/" + p(v.getUTCMonth() + 1) + "/" + v.getUTCFullYear();
+      }
+      function gscRenderNums(d) {
+        var nums = document.getElementById("gscNums");
+        if (!nums) return;
+        var t = d.totals || {};
+        nums.innerHTML =
+          '<div class="ps-num"><b>' + gscFmtNum(t.clicks) + '</b><span>Click (28 ngày)</span></div>' +
+          '<div class="ps-num"><b>' + gscFmtNum(t.impressions) + '</b><span>Hiển thị (28 ngày)</span></div>' +
+          '<div class="ps-num"><b>' + gscFmtPct(t.ctr) + '</b><span>CTR</span></div>' +
+          '<div class="ps-num"><b>' + gscFmtPos(t.position) + '</b><span>Vị trí trung bình</span></div>';
+      }
+      function gscSetLine(text) {
+        var line = document.getElementById("gscSyncLine");
+        if (line) line.textContent = text;
+      }
+      function gscRefreshBtn() {
+        var btn = document.getElementById("gscSyncBtn");
+        if (btn) btn.disabled = !!gscSyncing[PS_SEL.project];
+      }
+      // Doc lai summary cho toi khi ban doc phan anh dung lan dong bo vua
+      // xong (D1 doc co the tre sau ghi vai giay) roi moi ve so cuoi — tranh
+      // so hien thieu nhu truoc (fix loi 3: chi ve so khi da co so cuoi).
+      // Dung som neu nguoi dung doi du an giua chung.
+      function gscPollSummary(key, targetIso, triesLeft, doneText) {
+        if (PS_SEL.project !== key) return;
+        window.AppBackend.api("/api/gsc/summary?project=" + encodeURIComponent(PS_SEL.project)).then(function (d) {
+          if (PS_SEL.project !== key) return;
+          if (!targetIso) { gscRenderNums(d); return; } // khong co moc de doi — giu dong "Dong bo xong"
+          var fresh = !!d.lastSyncAt && d.lastSyncAt >= targetIso;
+          if (fresh) {
+            gscRenderNums(d);
+            gscSetLine(d.note || "");
+            return;
+          }
+          if (triesLeft <= 0) {
+            gscRenderNums(d);
+            gscSetLine(doneText);
+            return;
+          }
+          setTimeout(function () { gscPollSummary(key, targetIso, triesLeft - 1, doneText); }, 1500);
+        }).catch(function () {
+          if (PS_SEL.project !== key) return;
+          if (triesLeft > 0) setTimeout(function () { gscPollSummary(key, targetIso, triesLeft - 1, doneText); }, 1500);
+          else gscSetLine(doneText);
+        });
+      }
+      // Doc summary co thu lai khi ban doc cu: co so lieu ma chua thay moc
+      // dong bo thi doc lai vai lan truoc khi ket luan "chua dong bo" (fix
+      // loi 1 khi tai lai trang — D1 doc tre sau ghi).
+      function gscFetchSummary(keepLine, retriesLeft) {
+        window.AppBackend.api("/api/gsc/summary?project=" + encodeURIComponent(PS_SEL.project)).then(function (d) {
+          var hasData = (((d.totals || {}).clicks || 0) + ((d.totals || {}).impressions || 0)) > 0;
+          if (!d.lastSyncAt && hasData && retriesLeft > 0) {
+            setTimeout(function () { gscFetchSummary(keepLine, retriesLeft - 1); }, 1500);
+            return;
+          }
+          gscRenderNums(d);
+          if (!keepLine) gscSetLine(d.note || "");
+        }).catch(function (e) {
+          var nums = document.getElementById("gscNums");
+          if (nums) nums.innerHTML = "";
+          gscSetLine("Chưa xem được số liệu GSC: " + (e && e.message ? e.message : "không rõ nguyên nhân"));
+        });
+      }
       function loadGscSummary(keepLine) {
         var nums = document.getElementById("gscNums");
         var line = document.getElementById("gscSyncLine");
         var btn = document.getElementById("gscSyncBtn");
         if (!nums || !line || !btn) return;
+        gscRefreshBtn();
         if (!gscWired) {
           gscWired = true;
           btn.addEventListener("click", function () {
-            btn.disabled = true;
-            line.textContent = "Đang đồng bộ GSC…";
+            var key = PS_SEL.project;
+            if (gscSyncing[key]) return; // dang dong bo du an nay roi — bo qua bam doi
+            gscSyncing[key] = true;
+            gscRefreshBtn();
+            gscSetLine("Đang đồng bộ GSC…");
             var body = PS_SEL.project === "all" ? {} : { project: PS_SEL.project };
             window.AppBackend.api("/api/gsc/sync", { method: "POST", body: body }).then(function (res) {
+              delete gscSyncing[key];
+              gscRefreshBtn();
               var results = res.results || [];
               var okCount = results.filter(function (r) { return r.ok; }).length;
               var errs = results.filter(function (r) { return !r.ok; }).map(function (r) { return (r.name || r.project) + ": " + (r.error || "lỗi"); });
-              line.textContent = "Đồng bộ xong: " + okCount + "/" + results.length + " dự án." + (errs.length ? " " + errs.join(" ") : "");
-              btn.disabled = false;
-              // Giữ lại dòng kết quả đồng bộ vừa hiện — loadGscSummary(true)
-              // chỉ làm mới 4 con số, không ghi đè dòng này.
-              loadGscSummary(true);
+              var target = "";
+              results.forEach(function (r) { if (r.synced_at && (!target || r.synced_at > target)) target = r.synced_at; });
+              var doneText = "Đồng bộ xong: " + okCount + "/" + results.length + " dự án" + (target ? " · lúc " + gscFmtTime(target) : "") + "." + (errs.length ? " " + errs.join(" ") : "");
+              if (PS_SEL.project !== key) return; // doi du an giua chung — dong cua du an moi do loadGscSummary lo
+              gscSetLine(doneText);
+              if (okCount === 0) return; // dong bo that het — giu dong loi, khong poll
+              gscPollSummary(key, target, 8, doneText);
             }).catch(function (e) {
-              line.textContent = "Đồng bộ GSC lỗi: " + (e && e.message ? e.message : "không rõ nguyên nhân");
-              btn.disabled = false;
+              delete gscSyncing[key];
+              gscRefreshBtn();
+              if (PS_SEL.project !== key) return;
+              gscSetLine("Đồng bộ GSC lỗi: " + (e && e.message ? e.message : "không rõ nguyên nhân"));
             });
           });
         }
-        window.AppBackend.api("/api/gsc/summary?project=" + encodeURIComponent(PS_SEL.project)).then(function (d) {
-          var t = d.totals || {};
-          nums.innerHTML =
-            '<div class="ps-num"><b>' + gscFmtNum(t.clicks) + '</b><span>Click (28 ngày)</span></div>' +
-            '<div class="ps-num"><b>' + gscFmtNum(t.impressions) + '</b><span>Hiển thị (28 ngày)</span></div>' +
-            '<div class="ps-num"><b>' + gscFmtPct(t.ctr) + '</b><span>CTR</span></div>' +
-            '<div class="ps-num"><b>' + gscFmtPos(t.position) + '</b><span>Vị trí trung bình</span></div>';
-          // keepLine=true (vừa bấm Đồng bộ): giữ dòng kết quả đồng bộ vừa
-          // hiện, chỉ làm mới 4 con số phía trên.
-          if (!keepLine) line.textContent = d.note || "";
-        }).catch(function (e) {
-          nums.innerHTML = "";
-          line.textContent = "Chưa xem được số liệu GSC: " + (e && e.message ? e.message : "không rõ nguyên nhân");
-        });
+        // Du an dang xem dang dong bo thi giu dong "Đang đồng bộ…" — khong
+        // ghi de bang note cu khi doi du an giua chung (fix loi 2).
+        if (gscSyncing[PS_SEL.project]) {
+          gscSetLine("Đang đồng bộ GSC…");
+          return;
+        }
+        gscFetchSummary(keepLine, 2);
       }
       function renderPsAppTables(ps) {
         var at = ps.appTasks || {};

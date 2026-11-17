@@ -8,6 +8,16 @@ import { json, err, requireAdmin } from '../../_lib/auth.js';
 import { isValidProjectSlug, PROJECT_SLUGS, publicProjects } from '../../_lib/projects.js';
 import { vnTodayIso, addDaysIso } from '../../_lib/gsc.js';
 
+// Gio VN (UTC+7) dang HH:MM dd/MM/yyyy — hien moc dong bo cho de doc thay
+// vi ISO tho (fix loi 1: dong trang thai kho doc, de nham la "chua dong bo").
+function fmtVnTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const v = new Date(d.getTime() + 7 * 3600 * 1000);
+  const p = (n) => String(n).padStart(2, '0');
+  return p(v.getUTCHours()) + ':' + p(v.getUTCMinutes()) + ' ' + p(v.getUTCDate()) + '/' + p(v.getUTCMonth() + 1) + '/' + v.getUTCFullYear();
+}
+
 export async function onRequestGet(context) {
   const { user, response } = await requireAdmin(context.env, context.request);
   if (response) return response;
@@ -84,6 +94,6 @@ export async function onRequestGet(context) {
       last_crawl: r.last_crawl, canonical: r.canonical, checked_at: r.checked_at,
     })),
     lastSyncAt,
-    note: 'Số liệu Google Search Console, cập nhật lần cuối ' + (lastSyncAt || 'chưa đồng bộ') + ' (dữ liệu trễ 2–3 ngày). API GSC chỉ đọc trạng thái index, không có nút xin index — muốn xin index vẫn bấm tay trên Search Console.',
+    note: 'Số liệu Google Search Console, cập nhật lần cuối ' + (lastSyncAt ? fmtVnTime(lastSyncAt) : 'chưa đồng bộ') + ' (dữ liệu trễ 2–3 ngày). API GSC chỉ đọc trạng thái index, không có nút xin index — muốn xin index vẫn bấm tay trên Search Console.',
   });
 }
