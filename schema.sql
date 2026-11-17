@@ -145,3 +145,78 @@ CREATE TABLE IF NOT EXISTS websites (
   UNIQUE(user_id, name)
 );
 CREATE INDEX IF NOT EXISTS idx_websites_user_id ON websites(user_id);
+
+-- Yêu cầu 39: Google Search Console (phương án B — service account).
+-- gsc_connections: 1 dòng / tài khoản đã nối (phương án B: 1 dòng service
+-- account, refresh_token_enc NULL; access token chỉ giữ trong bộ nhớ).
+-- gsc_properties: map slug dự án ↔ GSC property (site_url ghi đúng
+-- identifier: URL-prefix https://... hoặc Domain sc-domain:...).
+-- gsc_daily: số liệu ngày (cache 28 ngày gần nhất); gsc_top_queries: top
+-- từ khóa theo kỳ (cap 50 dòng/dự án/kỳ); gsc_url_status: trạng thái index
+-- từng URL (cache verdict 7 ngày); gsc_sync_log: nhật ký đồng bộ.
+-- Xem migration 007.
+CREATE TABLE IF NOT EXISTS gsc_connections (
+  id TEXT PRIMARY KEY,
+  method TEXT NOT NULL CHECK (method IN ('oauth', 'service_account')),
+  account_label TEXT NOT NULL DEFAULT '',
+  refresh_token_enc TEXT,
+  scope TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS gsc_properties (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL UNIQUE,
+  site_url TEXT NOT NULL,
+  connection_id TEXT,
+  status TEXT NOT NULL DEFAULT 'ok' CHECK (status IN ('ok', 'no_access', 'not_found')),
+  last_sync_at TEXT,
+  last_error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gsc_properties_project ON gsc_properties(project);
+CREATE TABLE IF NOT EXISTS gsc_daily (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  date TEXT NOT NULL,
+  clicks INTEGER NOT NULL DEFAULT 0,
+  impressions INTEGER NOT NULL DEFAULT 0,
+  ctr REAL NOT NULL DEFAULT 0,
+  position REAL NOT NULL DEFAULT 0,
+  UNIQUE(project, date)
+);
+CREATE INDEX IF NOT EXISTS idx_gsc_daily_project_date ON gsc_daily(project, date);
+CREATE TABLE IF NOT EXISTS gsc_top_queries (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  period TEXT NOT NULL,
+  query TEXT NOT NULL,
+  clicks INTEGER NOT NULL DEFAULT 0,
+  impressions INTEGER NOT NULL DEFAULT 0,
+  ctr REAL NOT NULL DEFAULT 0,
+  position REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_gsc_top_queries_project_period ON gsc_top_queries(project, period);
+CREATE TABLE IF NOT EXISTS gsc_url_status (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  url TEXT NOT NULL,
+  verdict TEXT NOT NULL DEFAULT '',
+  coverage_state TEXT NOT NULL DEFAULT '',
+  last_crawl TEXT NOT NULL DEFAULT '',
+  canonical TEXT NOT NULL DEFAULT '',
+  checked_at TEXT NOT NULL,
+  UNIQUE(project, url)
+);
+CREATE INDEX IF NOT EXISTS idx_gsc_url_status_project ON gsc_url_status(project);
+CREATE TABLE IF NOT EXISTS gsc_sync_log (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running', 'ok', 'error')),
+  error TEXT,
+  rows_synced INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_gsc_sync_log_project_started ON gsc_sync_log(project, started_at);

@@ -46,6 +46,28 @@ export const PROJECTS = [
     time: '10:54',
     endDate: null,
   },
+  {
+    slug: 'tranvu',
+    name: 'Trần Vũ Furniture',
+    domain: 'noithattranvu.com',
+    kind: 'article',
+    // Yêu cầu 39 (GSC): thêm mới — chưa có lịch đăng bài cố định qua app
+    // nên để lịch trống (số bài theo lịch = 0, chỉ hiện số liệu GSC).
+    days: [],
+    time: null,
+    endDate: null,
+  },
+  {
+    slug: 'nhatlinh',
+    name: 'Nhất Linh Detailing',
+    domain: 'nhatlinhdetailing.com',
+    kind: 'article',
+    // Yêu cầu 39 (GSC): thêm mới — chưa có lịch đăng bài cố định qua app
+    // nên để lịch trống (số bài theo lịch = 0, chỉ hiện số liệu GSC).
+    days: [],
+    time: null,
+    endDate: null,
+  },
 ];
 
 export const PROJECT_SLUGS = PROJECTS.map((p) => p.slug);

@@ -73,3 +73,14 @@ export async function decryptAdminPass(env, enc) {
     throw new CredentialError('DECRYPT_FAILED', 'Mật khẩu đã lưu không giải mã được (sai khóa mã hóa?).');
   }
 }
+
+// ---------- Hàm generic (Yêu cầu 39) ----------
+// Cùng khóa CRED_ENCRYPTION_KEY, cùng định dạng base64(iv||ciphertext) như
+// trên — dùng để mã hóa bất kỳ secret nào khác cần lưu vào D1 (vd refresh
+// token Google nếu sau này đổi sang phương án OAuth). Không tạo khóa thứ hai.
+export async function encryptSecret(env, plaintext) {
+  return encryptAdminPass(env, plaintext);
+}
+export async function decryptSecret(env, enc) {
+  return decryptAdminPass(env, enc);
+}

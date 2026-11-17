@@ -86,7 +86,7 @@ export async function onRequestPost(context) {
   const kind = String(body.kind || '').trim();
   const period = String(body.period || '').trim();
   if (!isValidProjectSlug(project)) {
-    return err('project phải là 1 trong: bluemax, binhminh, khanhnghi, inox.', 400);
+    return err('project phải là 1 trong: bluemax, binhminh, khanhnghi, inox, tranvu, nhatlinh.', 400);
   }
   if (!isValidKind(kind)) {
     return err("kind phải là 'article', 'page' hoặc 'web'.", 400);

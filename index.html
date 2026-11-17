@@ -2116,6 +2116,16 @@
                   <tbody id="psTableBody"></tbody>
                 </table>
               </div>
+
+              <!-- ======== Yêu cầu 39: Google Search Console (CHỈ Admin) ======== -->
+              <div class="ps-gsc" id="gscBlock">
+                <h3>Google Search Console — 28 ngày</h3>
+                <p class="hint">Số liệu tìm kiếm từ Google Search Console của dự án đang chọn (dữ liệu trễ 2–3 ngày). API GSC chỉ đọc trạng thái index, không có nút xin index — muốn xin index vẫn bấm tay trên Search Console.</p>
+                <div class="ps-nums" id="gscNums"></div>
+                <p class="hint" id="gscSyncLine">Chưa đồng bộ GSC.</p>
+                <button class="btn-ghost btn-sm" type="button" id="gscSyncBtn">Đồng bộ GSC</button>
+              </div>
+
               <div class="ps-sub">
                 <h3>Nhiệm vụ qua app</h3>
                 <p class="hint">Toàn bộ nhiệm vụ đã giao qua app, gom theo tính năng, trạng thái và dự án (dự án đoán từ nội dung nhiệm vụ; không đoán được gom vào “Chưa gắn dự án”).</p>
@@ -4655,6 +4665,58 @@
           }).join("");
         }
         renderPsAppTables(ps);
+        loadGscSummary();
+      }
+
+      /* ---------- Google Search Console (Yêu cầu 39, chỉ Admin) ----------
+         Số liệu 28 ngày đã cache trong D1 (GET /api/gsc/summary — KHÔNG gọi
+         Google trực tiếp khi mở trang). Nút Đồng bộ GSC gọi POST /api/gsc/sync
+         (cooldown 15 phút/dự án, server trả 429 rõ khi bấm liên tục).
+         Nhân viên không thấy khối này vì cả #projectStatsBlock đã admin-only. */
+      var gscWired = false;
+      function gscFmtNum(n) { return (Number(n) || 0).toLocaleString("vi-VN"); }
+      function gscFmtPct(x) { return (Number(x || 0) * 100).toFixed(1) + "%"; }
+      function gscFmtPos(x) { return Number(x || 0) ? Number(x).toFixed(1) : "—"; }
+      function loadGscSummary(keepLine) {
+        var nums = document.getElementById("gscNums");
+        var line = document.getElementById("gscSyncLine");
+        var btn = document.getElementById("gscSyncBtn");
+        if (!nums || !line || !btn) return;
+        if (!gscWired) {
+          gscWired = true;
+          btn.addEventListener("click", function () {
+            btn.disabled = true;
+            line.textContent = "Đang đồng bộ GSC…";
+            var body = PS_SEL.project === "all" ? {} : { project: PS_SEL.project };
+            window.AppBackend.api("/api/gsc/sync", { method: "POST", body: body }).then(function (res) {
+              var results = res.results || [];
+              var okCount = results.filter(function (r) { return r.ok; }).length;
+              var errs = results.filter(function (r) { return !r.ok; }).map(function (r) { return (r.name || r.project) + ": " + (r.error || "lỗi"); });
+              line.textContent = "Đồng bộ xong: " + okCount + "/" + results.length + " dự án." + (errs.length ? " " + errs.join(" ") : "");
+              btn.disabled = false;
+              // Giữ lại dòng kết quả đồng bộ vừa hiện — loadGscSummary(true)
+              // chỉ làm mới 4 con số, không ghi đè dòng này.
+              loadGscSummary(true);
+            }).catch(function (e) {
+              line.textContent = "Đồng bộ GSC lỗi: " + (e && e.message ? e.message : "không rõ nguyên nhân");
+              btn.disabled = false;
+            });
+          });
+        }
+        window.AppBackend.api("/api/gsc/summary?project=" + encodeURIComponent(PS_SEL.project)).then(function (d) {
+          var t = d.totals || {};
+          nums.innerHTML =
+            '<div class="ps-num"><b>' + gscFmtNum(t.clicks) + '</b><span>Click (28 ngày)</span></div>' +
+            '<div class="ps-num"><b>' + gscFmtNum(t.impressions) + '</b><span>Hiển thị (28 ngày)</span></div>' +
+            '<div class="ps-num"><b>' + gscFmtPct(t.ctr) + '</b><span>CTR</span></div>' +
+            '<div class="ps-num"><b>' + gscFmtPos(t.position) + '</b><span>Vị trí trung bình</span></div>';
+          // keepLine=true (vừa bấm Đồng bộ): giữ dòng kết quả đồng bộ vừa
+          // hiện, chỉ làm mới 4 con số phía trên.
+          if (!keepLine) line.textContent = d.note || "";
+        }).catch(function (e) {
+          nums.innerHTML = "";
+          line.textContent = "Chưa xem được số liệu GSC: " + (e && e.message ? e.message : "không rõ nguyên nhân");
+        });
       }
       function renderPsAppTables(ps) {
         var at = ps.appTasks || {};
