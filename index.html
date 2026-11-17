@@ -2110,6 +2110,7 @@
               <div class="ps-nums" id="psNums"></div>
               <p class="hint" id="psIndexLine"></p>
               <div id="psMissWrap"></div>
+              <p class="hint" id="psRecentNote">10 bài gần nhất — không giới hạn theo tuần đang chọn.</p>
               <div class="ps-table-wrap">
                 <table class="usage-table ps-table">
                   <thead><tr><th>Ngày</th><th>Bài</th><th>Link</th><th>SEO</th><th>Index</th></tr></thead>
@@ -4618,20 +4619,54 @@
           });
         }
         var pct = (!hasData || !scheduled) ? null : Math.round((posted * 100) / scheduled);
-        var articles = [];
         var miss = [];
-        var idxReq = 0, idxDone = 0, idxKnown = false;
         matched.forEach(function (r) {
           var d = r.details || {};
-          (Array.isArray(d.articles) ? d.articles : []).forEach(function (a) { articles.push(a); });
           (Array.isArray(d.late) ? d.late : []).forEach(function (m) { miss.push({ title: m.title, due: m.due, late: true }); });
           (Array.isArray(d.missing) ? d.missing : []).forEach(function (m) { miss.push({ title: m.title, due: m.due, late: false }); });
-          if (d.index) { idxKnown = true; idxReq += d.index.requested || 0; idxDone += d.index.indexed || 0; }
         });
-        if (!idxKnown && articles.length) {
-          idxKnown = true;
-          idxReq = articles.length;
-          idxDone = articles.filter(function (a) { return a.indexed; }).length;
+        /* Yêu cầu 40 (17/11/2026): bảng bài viết hiển thị 10 bài GẦN NHẤT
+           của dự án đang chọn, KHÔNG giới hạn theo tuần đang chọn. Gom từ
+           TẤT CẢ rows của dự án (backend /api/dashboard đã trả toàn bộ rows,
+           không LIMIT), khử trùng theo link (giữ bản mới nhất), sắp theo
+           ngày đăng giảm dần (không có ngày xếp cuối), lấy 10 bài đầu.
+           Các số theo tuần (Bài theo lịch / Đã đăng / Tỉ lệ / trễ-thiếu)
+           vẫn tính từ `matched` (tuần đang chọn) như cũ. */
+        var articles = [];
+        var byLink = {};
+        rows.filter(function (r) {
+          return PS_SEL.project === "all" || r.project === PS_SEL.project;
+        }).sort(function (a, b) {
+          return (a.period || "") < (b.period || "") ? 1 : ((a.period || "") > (b.period || "") ? -1 : 0);
+        }).forEach(function (r) {
+          var d = r.details || {};
+          (Array.isArray(d.articles) ? d.articles : []).forEach(function (a) {
+            if (!a) return;
+            if (a.link) {
+              var prev = byLink[a.link];
+              if (!prev || (a.date || "") > (prev.date || "")) byLink[a.link] = a;
+            } else {
+              articles.push(a);
+            }
+          });
+        });
+        Object.keys(byLink).forEach(function (k) { articles.push(byLink[k]); });
+        articles.sort(function (a, b) {
+          var da = a.date || "", db = b.date || "";
+          if (!da && !db) return 0;
+          if (!da) return 1;
+          if (!db) return -1;
+          return db < da ? -1 : (db > da ? 1 : 0);
+        });
+        articles = articles.slice(0, 10);
+        /* Dòng trạng thái index tính theo đúng 10 bài đang hiển thị: X = số
+           bài đã có kết quả kiểm tra index, Y = số bài đã index. */
+        var idxReq = 0, idxDone = 0;
+        if (articles.length) {
+          articles.forEach(function (a) {
+            if (a.indexed === true || a.indexed === false) idxReq++;
+            if (a.indexed === true) idxDone++;
+          });
         }
         var nums = document.getElementById("psNums");
         function numCell(big, label, cls) {
@@ -4643,9 +4678,11 @@
           numCell(pct === null ? "—" : pct + "%", "Tỉ lệ đúng hẹn", pct === null ? "" : (pct >= 100 ? "ps-good" : "ps-bad")) +
           numCell(String(miss.length), "Bài trễ / thiếu", miss.length ? "ps-bad" : "ps-good");
         var idxLine = document.getElementById("psIndexLine");
-        idxLine.textContent = !hasData
-          ? "Trạng thái index: Chưa có số liệu — Thư Ký Mỹ Linh chưa đẩy bản tổng kết tuần này."
-          : (idxKnown ? ("Trạng thái index: đã xin index " + idxReq + " bài · đã index " + idxDone + " bài.") : "Trạng thái index: chưa có dữ liệu index trong bản tổng kết.");
+        idxLine.textContent = articles.length
+          ? ("Trạng thái index: đã xin index " + idxReq + " bài · đã index " + idxDone + " bài.")
+          : (!hasData
+            ? "Trạng thái index: Chưa có số liệu — Thư Ký Mỹ Linh chưa đẩy bản tổng kết tuần này."
+            : "Trạng thái index: chưa có dữ liệu index trong bản tổng kết.");
         if (missingProjects.length) idxLine.textContent += " Chưa có số liệu: " + missingProjects.join(", ") + ".";
         var missWrap = document.getElementById("psMissWrap");
         missWrap.innerHTML = miss.length
