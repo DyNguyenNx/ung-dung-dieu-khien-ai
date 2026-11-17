@@ -176,6 +176,18 @@ export function taskExtras(row) {
   };
 }
 
+// ---------- Chăm sóc page CHỈ Admin (Yêu cầu 38, bổ sung 09:27 17/11/2026) ----------
+// Luna chỉ viết/đăng được trên page của anh (qua facebook-cli), không đăng được
+// lên page của nhân viên — nên nhân viên không tạo/dùng được nhiệm vụ page.
+// Trả về response lỗi 403 khi tài khoản không phải admin đụng tới feature 'page',
+// ngược lại trả null. Dùng ở mọi endpoint task (tạo, xem, sửa, xóa, duyệt...).
+export function forbidStaffPage(user, feature) {
+  if (feature === 'page' && user && user.role !== 'admin') {
+    return err('Chăm sóc page chỉ Admin dùng — nhân viên không tạo/xem được nhiệm vụ page.', 403);
+  }
+  return null;
+}
+
 // ---------- Cầu nối Thư Ký Mỹ Linh (Yêu cầu 28 + 30) ----------
 // Nhiệm vụ qua cầu nối khi AI phụ trách là Thư Ký Mỹ Linh. Design Web mặc định
 // là Luna nên không cần kiểm tra; web/page chỉ qua Luna khi nhân viên chọn

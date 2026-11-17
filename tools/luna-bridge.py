@@ -7,6 +7,7 @@ roi tra file HTML (Design Web) hoac ket qua text (web/page) ve app.
 
     python3 luna-bridge.py pending [--status luna|review|all] [--all]
     python3 luna-bridge.py photos <task-id> [--out DIR]
+    python3 luna-bridge.py creds <task-id>
     python3 luna-bridge.py deliver <task-id> <file.html> [--note "..."]
     python3 luna-bridge.py deliver <task-id> --kind posted|content --text-file <file.txt> [--link <url>] [--note "..."]
     python3 luna-bridge.py stats push --project <slug> --kind article|page|web --period 2026-W47 --file stats.json
@@ -17,6 +18,14 @@ Ket qua text (Yeu cau 30):
                      --text-file la bao cao da lam gi, --link la URL bai da dang.
     --kind content = Luna tra NOI DUNG hoan chinh (du an nhan vien dang ky):
                      --text-file la bai viet / bai dang de nhan vien tu dang.
+
+Tai khoan admin (Yeu cau 38):
+    creds <task-id>  = lay tai khoan admin cua website trong nhiem vu web
+                     (GET /api/luna/tasks/<task-id>/credentials) de Luna tu
+                     dang bai len web khach (kind 'posted'). In ra stdout CHI
+                     DE LUNA DUNG LUC LAM VIEC — chua mat khau admin that,
+                     KHONG gui vao Telegram, KHONG ghi vao log/file, KHONG
+                     dan vao brief. Khong co website/mat khau da luu -> 404.
 
 Bien moi truong (doc tu Secure Vault / env khi chay, KHONG ghi cung):
     LUNA_API_BASE           mac dinh https://ung-dung-dieu-khien-ai.pages.dev
@@ -244,6 +253,18 @@ def cmd_photos(args):
     print(f"Xong: {total} anh -> {out}")
 
 
+def cmd_creds(args):
+    # Yeu cau 38: lay tai khoan admin cua website trong nhiem vu web de Luna
+    # tu dang bai len web khach (kind 'posted'). Output CHUA MAT KHAU THAT —
+    # chi in ra stdout de Luna dung luc lam viec, KHONG gui Telegram,
+    # KHONG ghi log/file, KHONG dan vao brief.
+    data = luna_get(f"/api/luna/tasks/{args.task_id}/credentials")
+    print(f"Website: {data.get('website', '')}")
+    print(f"Link admin: {data.get('admin_url', '')}")
+    print(f"ID: {data.get('admin_user', '')}")
+    print(f"Pass: {data.get('admin_pass', '')}")
+
+
 def cmd_deliver(args):
     # Yeu cau 30: giao ket qua text cho web/page (kind posted/content).
     if args.kind:
@@ -322,6 +343,9 @@ def main():
     ph.add_argument("task_id")
     ph.add_argument("--out", default=None)
     ph.set_defaults(fn=cmd_photos)
+    cr = sub.add_parser("creds", help="Lay tai khoan admin cua website trong nhiem vu web (Yeu cau 38)")
+    cr.add_argument("task_id")
+    cr.set_defaults(fn=cmd_creds)
     d = sub.add_parser("deliver", help="Tra file HTML (Design Web) hoac ket qua text (web/page) ve app")
     d.add_argument("task_id")
     d.add_argument("file", nargs="?", default=None, help="File HTML (Design Web). Bo qua khi dung --kind.")

@@ -1916,7 +1916,7 @@
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span class="tip">Chăm sóc web</span>
         </button>
-        <button class="rail-btn" type="button" data-go="page" aria-label="Chăm sóc page">
+        <button class="rail-btn" type="button" data-go="page" data-admin-only aria-label="Chăm sóc page">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
           <span class="tip">Chăm sóc page</span>
         </button>
@@ -2054,7 +2054,7 @@
                   <span class="bar"><i style="width:0%"></i></span>
                   <span class="p-val">—</span>
                 </button>
-                <button class="prog-row" type="button" data-go="page">
+                <button class="prog-row" type="button" data-go="page" data-admin-only>
                   <span class="p-name"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Chăm sóc page</span>
                   <span class="bar"><i style="width:0%"></i></span>
                   <span class="p-val">—</span>
@@ -2147,7 +2147,7 @@
                 </button>
                 <div class="sig-feats" id="sigFeats">
                   <button class="sig-feat" type="button" data-sig-feat="web"><b class="sig-feat-count" id="sigFeatCount-web">—</b><span>Chăm sóc web</span><small>đang chạy</small></button>
-                  <button class="sig-feat" type="button" data-sig-feat="page"><b class="sig-feat-count" id="sigFeatCount-page">—</b><span>Chăm sóc page</span><small>đang chạy</small></button>
+                  <button class="sig-feat" type="button" data-sig-feat="page" data-admin-only><b class="sig-feat-count" id="sigFeatCount-page">—</b><span>Chăm sóc page</span><small>đang chạy</small></button>
                   <button class="sig-feat" type="button" data-sig-feat="kenh"><b class="sig-feat-count" id="sigFeatCount-kenh">—</b><span>Xây dựng kênh</span><small>đang chạy</small></button>
                   <button class="sig-feat" type="button" data-sig-feat="truyen"><b class="sig-feat-count" id="sigFeatCount-truyen">—</b><span>Viết truyện</span><small>đang chạy</small></button>
                   <button class="sig-feat" type="button" data-sig-feat="anh"><b class="sig-feat-count" id="sigFeatCount-anh">—</b><span>Thiết kế hình ảnh</span><small>đang chạy</small></button>
@@ -2236,7 +2236,7 @@
           <section class="screen" data-screen="web" aria-label="Chăm sóc web">
             <div class="ai-picker">
               <span class="ai-picker-label"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách — Chăm sóc web</span>
-              <span class="ai-picker-note" data-ai-note hidden>Giao cho Thư Ký Mỹ Linh làm</span>
+              <span class="ai-picker-note" data-ai-note>Giao cho Thư Ký Mỹ Linh làm</span>
               <select data-ai-select aria-label="Chọn AI phụ trách Chăm sóc web">
                 <option>Gemini</option>
                 <option>Wan 3.0</option>
@@ -2245,7 +2245,7 @@
                 <option>ElevenLabs</option>
                 <option>Vbee</option>
                 <option>Groq</option>
-                <option>Thư Ký Mỹ Linh</option>
+                <option selected>Thư Ký Mỹ Linh</option>
               </select>
             </div>
             <div class="card assign-card">
@@ -2294,7 +2294,7 @@
                       </button>
                     </span>
                   </div>
-                  <p class="np-note">Dùng để kết nối trực tiếp vào web — mật khẩu được lưu bảo mật, không hiển thị ra ngoài.</p>
+                  <p class="np-note">Mật khẩu được mã hóa trước khi lưu trên server, chỉ Thư Ký Mỹ Linh dùng để đăng bài hộ — không hiện lại trong giao diện.</p>
                   <div class="form-foot">
                     <button class="btn-ghost" type="button" data-save-project>
                       <svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -2367,8 +2367,8 @@
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7L4.4 10.6l5.7-1.9z"/></svg></span>
                   <div>
-                    <div class="ai-name">Gemini <span class="status-dot">Đang hoạt động</span></div>
-                    <div class="ai-role">AI chính — viết và tối ưu nội dung SEO cho website</div>
+                    <div class="ai-name">Thư Ký Mỹ Linh <span class="status-dot direct">Trực tiếp</span></div>
+                    <div class="ai-role">Giao trực tiếp cho Thư Ký Mỹ Linh làm — viết và tối ưu nội dung SEO cho website, không qua AI tự động.</div>
                   </div>
                 </div>
                 <div class="ai-backup">
@@ -2393,7 +2393,7 @@
                   </div>
                   <div class="step now">
                     <span class="s-dot">2</span>
-                    <div><div class="s-name">Viết &amp; tối ưu bài SEO</div><div class="s-by">Gemini viết theo từ khóa chính</div></div>
+                    <div><div class="s-name">Viết &amp; tối ưu bài SEO</div><div class="s-by">Thư Ký Mỹ Linh viết theo từ khóa chính</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">3</span>
@@ -2413,7 +2413,7 @@
           <section class="screen" data-screen="page" aria-label="Chăm sóc page">
             <div class="ai-picker">
               <span class="ai-picker-label"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI phụ trách — Chăm sóc page</span>
-              <span class="ai-picker-note" data-ai-note hidden>Giao cho Thư Ký Mỹ Linh làm</span>
+              <span class="ai-picker-note" data-ai-note>Giao cho Thư Ký Mỹ Linh làm</span>
               <select data-ai-select aria-label="Chọn AI phụ trách Chăm sóc page">
                 <option>Gemini</option>
                 <option>Wan 3.0</option>
@@ -2422,7 +2422,7 @@
                 <option>ElevenLabs</option>
                 <option>Vbee</option>
                 <option>Groq</option>
-                <option>Thư Ký Mỹ Linh</option>
+                <option selected>Thư Ký Mỹ Linh</option>
               </select>
             </div>
             <div class="card assign-card">
@@ -2533,8 +2533,8 @@
                 <div class="ai-main">
                   <span class="ai-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.7 5.7 1.9-5.7 1.9L12 18.2l-1.9-5.7L4.4 10.6l5.7-1.9z"/></svg></span>
                   <div>
-                    <div class="ai-name">Gemini <span class="status-dot">Đang hoạt động</span></div>
-                    <div class="ai-role">AI chính — lên nội dung tuần và soạn bài đăng fanpage</div>
+                    <div class="ai-name">Thư Ký Mỹ Linh <span class="status-dot direct">Trực tiếp</span></div>
+                    <div class="ai-role">Giao trực tiếp cho Thư Ký Mỹ Linh làm — lên nội dung tuần và soạn bài đăng fanpage, không qua AI tự động.</div>
                   </div>
                 </div>
                 <div class="ai-backup">
@@ -2555,11 +2555,11 @@
                 <div class="steps" style="--n:4">
                   <div class="step done">
                     <span class="s-dot"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-                    <div><div class="s-name">Lên lịch nội dung tuần</div><div class="s-by">Gemini chia chủ đề theo ngày</div></div>
+                    <div><div class="s-name">Lên lịch nội dung tuần</div><div class="s-by">Thư Ký Mỹ Linh chia chủ đề theo ngày</div></div>
                   </div>
                   <div class="step now">
                     <span class="s-dot">2</span>
-                    <div><div class="s-name">Viết bài &amp; tạo ảnh</div><div class="s-by">Gemini viết, gắn hashtag chuẩn</div></div>
+                    <div><div class="s-name">Viết bài &amp; tạo ảnh</div><div class="s-by">Thư Ký Mỹ Linh viết, gắn hashtag chuẩn</div></div>
                   </div>
                   <div class="step todo">
                     <span class="s-dot">3</span>
@@ -3401,7 +3401,7 @@
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         Web
       </button>
-      <button class="tab-btn" type="button" data-go="page">
+      <button class="tab-btn" type="button" data-go="page" data-admin-only>
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
         Page
       </button>
@@ -3638,6 +3638,12 @@
           showToast("Mục Quản lý tài khoản chỉ Admin mới thấy.");
           key = "dashboard";
         }
+        /* Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — nhân viên không vào
+           được màn hình này dù bấm vào đâu (nút đã ẩn, đây là lớp chặn thứ hai). */
+        if (key === "page" && VIEW_MODE !== "admin") {
+          showToast("Chăm sóc page chỉ Admin dùng.");
+          key = "dashboard";
+        }
         var data = screenData(key);
         if (!data) return;
         currentScreen = key;
@@ -3770,8 +3776,8 @@
 
       /* ===== Tuỳ chọn AI phụ trách cho từng tính năng ===== */
       var FEATURE_AI = {
-        web: { main: "Gemini", role: "viết và tối ưu nội dung SEO cho website" },
-        page: { main: "Gemini", role: "lên nội dung tuần và soạn bài đăng fanpage" },
+        web: { main: "Thư Ký Mỹ Linh", role: "viết và tối ưu nội dung SEO cho website" },
+        page: { main: "Thư Ký Mỹ Linh", role: "lên nội dung tuần và soạn bài đăng fanpage" },
         kenh: { main: "Wan 3.0", role: "tạo cảnh video từ kịch bản cho các kênh" },
         truyen: { main: "Gemini", role: "lên dàn ý và viết chương mới mỗi ngày" },
         anh: { main: "Pollinations", role: "tạo và chỉnh sửa hình ảnh theo yêu cầu" },
@@ -4081,10 +4087,27 @@
           var adminIn = form.querySelector("[data-np-admin]");
           var idIn = form.querySelector("[data-np-id]");
           var passIn = form.querySelector("[data-np-pass]");
+          /* Yêu cầu 38: form Chăm sóc web có 3 ô Link admin / ID / Pass — lấy
+             giá trị TRƯỚC khi xóa ô, rồi lưu lên server (mật khẩu được mã hóa
+             trước khi lưu). Chỉ form web mới có 3 ô này; form khác thì bỏ qua. */
+          var adminUrl = adminIn ? adminIn.value.trim() : "";
+          var adminUser = idIn ? idIn.value.trim() : "";
+          var adminPass = passIn ? passIn.value : "";
           if (adminIn) adminIn.value = "";
           if (idIn) idIn.value = "";
           if (passIn) passIn.value = "";
           showToast("Đã thêm dự án “" + name + "” vào danh sách chọn.");
+          if ((adminUrl || adminUser || adminPass) && window.AppBackend && window.AppBackend.api) {
+            /* addrIn đã bị xóa ở trên — lấy lại địa chỉ từ label
+               ("Tên — địa chỉ" hoặc chỉ "Tên"). */
+            var addrVal = "";
+            var dashIdx = label.indexOf(" — ");
+            if (dashIdx !== -1) addrVal = label.slice(dashIdx + 3);
+            window.AppBackend.api("/api/websites", { method: "POST", body: { name: name, address: addrVal, admin_url: adminUrl, admin_user: adminUser, admin_pass: adminPass } })
+              .catch(function (e) {
+                showToast("Đã thêm dự án nhưng chưa lưu được tài khoản admin: " + (e.message || "lỗi không rõ") + " — mật khẩu chưa lưu, nhập lại ở lần sau.");
+              });
+          }
         });
       }
 
@@ -5116,7 +5139,7 @@
         if (typeof closeDash === "function") closeDash();
         var planKeys = ["web", "page", "kenh", "truyen", "anh", "designweb"];
         for (var pk = 0; pk < planKeys.length; pk++) renderPlan(planKeys[pk]);
-        if (staff && currentScreen === "accounts") {
+        if (staff && (currentScreen === "accounts" || currentScreen === "page")) {
           go("dashboard");
         } else {
           var d = screenData(currentScreen);
@@ -5663,6 +5686,7 @@
         }
         function loadAll() {
           refreshQuota();
+          loadWebsites();
           /* Yêu cầu 36: lấy trạng thái kết nối Canva TRƯỚC khi vẽ danh sách
              nhiệm vụ để thẻ ảnh đã hoàn thành hiện đúng nút (Chỉnh tiếp /
              Kết nối Canva / dòng nhờ admin). refreshCanvaStatus tự gọi lại
@@ -5684,6 +5708,45 @@
           }).catch(function () {});
         }
         function afterTaskChange() { refreshQuota(); refreshDashboard(); }
+
+        /* ---------- Website khách đã lưu (Yêu cầu 38) ---------- */
+        // Lúc mở app: GET /api/websites rồi thêm option vào select dự án
+        // Chăm sóc web (bỏ trùng theo label). Select Chăm sóc page KHÔNG thêm —
+        // page không có tài khoản admin trong bảng websites (form page không có
+        // 3 ô Link admin / ID / Pass), thêm vào đó sẽ sai luồng đăng bài.
+        function loadWebsites() {
+          return api("/api/websites").then(function (res) {
+            var list = (res && res.websites) || [];
+            if (!list.length) return;
+            var sel = document.getElementById("web-site");
+            if (!sel) return;
+            var planSel = document.querySelector('.screen[data-screen="web"] [data-plan-select]');
+            list.forEach(function (w) {
+              var label = w.address ? (w.name + " — " + w.address) : w.name;
+              var exists = false;
+              for (var i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].textContent === label || sel.options[i].textContent === w.name) exists = true;
+              }
+              if (!exists) {
+                var opt = document.createElement("option");
+                opt.textContent = label;
+                var addOpt = sel.querySelector('option[value="__new"]');
+                if (addOpt) sel.insertBefore(opt, addOpt); else sel.appendChild(opt);
+              }
+              if (planSel) {
+                var pExists = false;
+                for (var j = 0; j < planSel.options.length; j++) {
+                  if (planSel.options[j].textContent === label || planSel.options[j].textContent === w.name) pExists = true;
+                }
+                if (!pExists) {
+                  var po = document.createElement("option");
+                  po.textContent = label;
+                  planSel.appendChild(po);
+                }
+              }
+            });
+          }).catch(function () { /* Chưa đăng nhập / lỗi mạng thì thôi — select mẫu vẫn dùng được. */ });
+        }
 
         /* ---------- Nhiem vu ---------- */
         function loadTasks() {
@@ -6095,8 +6158,8 @@
       window.APP_CONFIG = {
         app: { name: "Ứng Dụng Điều Khiển AI", commander: "THƯ KÝ MỸ LINH — CHỈ HUY", version: "v2" },
         features: {
-          web:       { configId: "cham-soc-web",      name: "Chăm sóc web",      aiPrimary: "Gemini API",      aiBackup: "Google Search Console API" },
-          page:      { configId: "cham-soc-page",     name: "Chăm sóc page",     aiPrimary: "Gemini API",      aiBackup: "Meta Graph API" },
+          web:       { configId: "cham-soc-web",      name: "Chăm sóc web",      aiPrimary: "Thư Ký Mỹ Linh",  aiBackup: "Google Search Console API" },
+          page:      { configId: "cham-soc-page",     name: "Chăm sóc page",     aiPrimary: "Thư Ký Mỹ Linh",  aiBackup: "Meta Graph API" },
           kenh:      { configId: "xay-dung-kenh",     name: "Xây dựng kênh",     aiPrimary: "Wan 3.0",         aiBackup: "fal.ai (Kling 3.0)" },
           truyen:    { configId: "viet-truyen",       name: "Viết truyện",       aiPrimary: "Gemini API",      aiBackup: "ElevenLabs / Vbee" },
           anh:       { configId: "thiet-ke-hinh-anh", name: "Thiết kế hình ảnh", aiPrimary: "Pollinations",     aiBackup: "LightVisual / Grok" },

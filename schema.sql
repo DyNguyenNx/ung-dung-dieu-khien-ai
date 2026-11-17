@@ -127,3 +127,21 @@ CREATE TABLE IF NOT EXISTS canva_oauth_states (
   expires_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_canva_oauth_states_expires ON canva_oauth_states(expires_at);
+
+-- Yêu cầu 38: website khách mà nhân viên thêm ở form "Thêm website mới"
+-- (Chăm sóc web). admin_pass_enc = mật khẩu admin đã mã hóa AES-256-GCM
+-- (xem functions/_lib/credentials.js) — KHÔNG BAO GIỜ lưu mật khẩu dạng thường.
+-- Xem migration 006.
+CREATE TABLE IF NOT EXISTS websites (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  address TEXT NOT NULL DEFAULT '',
+  admin_url TEXT NOT NULL DEFAULT '',
+  admin_user TEXT NOT NULL DEFAULT '',
+  admin_pass_enc TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(user_id, name)
+);
+CREATE INDEX IF NOT EXISTS idx_websites_user_id ON websites(user_id);

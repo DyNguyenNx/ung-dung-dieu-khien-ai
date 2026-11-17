@@ -10,8 +10,10 @@ export async function onRequestGet(context) {
   const { user, response } = await requireAuth(context.env, context.request);
   if (response) return response;
   const db = context.env.DB;
-  const scope = user.role === 'admin' ? '' : 'AND t.user_id = ?';
-  const args = user.role === 'admin' ? [] : [user.id];
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — số liệu Dashboard của nhân
+  // viên không đếm nhiệm vụ page (kể cả page cũ của chính mình).
+  const scope = user.role === 'admin' ? '' : 'AND t.user_id = ? AND t.feature != ?';
+  const args = user.role === 'admin' ? [] : [user.id, 'page'];
   const count = async (sql, a = []) => (await db.prepare(sql).bind(...a).first()).n;
   const today = await count(
     `SELECT COUNT(*) AS n FROM tasks t WHERE strftime('%Y-%m-%d', t.created_at, '+7 hours') = strftime('%Y-%m-%d', 'now', '+7 hours') ${scope}`,

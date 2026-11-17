@@ -5,7 +5,7 @@
 //   'content' (nội dung để nhân viên tự đăng). Chỉ Admin hoặc chủ nhiệm vụ mới xem được.
 // Thiết kế hình ảnh (Yêu cầu 35, đổi provider Gemini -> Pollinations): trả đúng bytes ảnh Pollinations đã tạo
 // (Content-Type theo mime đã lưu trong cột result_image), 404 khi chưa có ảnh.
-import { json, err, requireAuth, parseVersionsFull } from '../../../_lib/auth.js';
+import { json, err, requireAuth, parseVersionsFull, forbidStaffPage } from '../../../_lib/auth.js';
 
 export async function onRequestGet(context) {
   const { user, response } = await requireAuth(context.env, context.request);
@@ -14,6 +14,9 @@ export async function onRequestGet(context) {
     'SELECT t.* FROM tasks t WHERE t.id = ?',
   ).bind(context.params.id).first();
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn cả chủ nhiệm vụ là nhân viên.
+  const pg = forbidStaffPage(user, row.feature);
+  if (pg) return pg;
   if (user.role !== 'admin' && row.user_id !== user.id) {
     return err('Không có quyền xem nhiệm vụ này.', 403);
   }

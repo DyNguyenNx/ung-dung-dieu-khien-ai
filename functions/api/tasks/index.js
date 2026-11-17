@@ -5,7 +5,7 @@
 // Yêu cầu 33: refPhotos[] tối đa 4 ảnh mẫu gửi kèm Gemini): fields + ảnh
 // Yêu cầu 30: Chăm sóc web / Chăm sóc page cũng qua cầu nối Luna KHI VÀ CHỈ KHI
 // AI phụ trách là Thư Ký Mỹ Linh (payload.ai) — brief text gửi Telegram, không ảnh.
-import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras, isLunaAi } from '../../_lib/auth.js';
+import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras, isLunaAi, forbidStaffPage } from '../../_lib/auth.js';
 import { notifyBrief, MAX_CLIENT_PHOTOS, MAX_REF_PHOTOS, MAX_PHOTO_BYTES } from '../../_lib/telegram.js';
 import { runPollinationsImageTask, POLLINATIONS_KEY_MISSING_MSG } from '../../_lib/pollinations-image.js';
 
@@ -35,11 +35,18 @@ export async function onRequestGet(context) {
   const status = url.searchParams.get('status');
   const today = url.searchParams.get('today') === '1';
   const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10) || 100, 1), 500);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — nhân viên không xem được
+  // nhiệm vụ page, kể cả nhiệm vụ page cũ của chính mình.
+  if (feature) {
+    const pg = forbidStaffPage(user, feature);
+    if (pg) return pg;
+  }
   const where = [];
   const args = [];
   if (user.role !== 'admin') {
     where.push('t.user_id = ?');
     args.push(user.id);
+    where.push("t.feature != 'page'");
   }
   if (feature) {
     if (!FEATURE_KEYS.includes(feature)) return err('Tính năng không hợp lệ.', 400);
@@ -93,6 +100,10 @@ export async function onRequestPost(context) {
   const feature = String(body.feature || '');
   const title = String(body.title || '').trim();
   if (!FEATURE_KEYS.includes(feature)) return err('Tính năng không hợp lệ.', 400);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn ngay trước khi kiểm
+  // tra lượt dùng hay tạo nhiệm vụ.
+  const pg = forbidStaffPage(user, feature);
+  if (pg) return pg;
   if (!title) return err('Thiếu tiêu đề nhiệm vụ.', 400);
   if (body.payload !== undefined && (typeof body.payload !== 'object' || body.payload === null || Array.isArray(body.payload))) {
     return err('Payload phải là object JSON.', 400);

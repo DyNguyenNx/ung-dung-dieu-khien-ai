@@ -1,6 +1,6 @@
 // /api/tasks/:id — Xem / cập nhật / xóa một nhiệm vụ.
 // Mọi thao tác đều kiểm tra quyền sở hữu (trừ Admin).
-import { json, err, FEATURES, TASK_STATUSES, requireAuth, nowIso, taskExtras } from '../../_lib/auth.js';
+import { json, err, FEATURES, TASK_STATUSES, requireAuth, nowIso, taskExtras, forbidStaffPage } from '../../_lib/auth.js';
 
 function taskRow(t) {
   return {
@@ -33,6 +33,9 @@ export async function onRequestGet(context) {
   if (response) return response;
   const row = await loadTask(context.env, context.params.id);
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn cả chủ nhiệm vụ là nhân viên.
+  const pg = forbidStaffPage(user, row.feature);
+  if (pg) return pg;
   if (!canAccess(user, row)) return err('Không có quyền xem nhiệm vụ này.', 403);
   return json({ ok: true, task: taskRow(row) });
 }
@@ -42,6 +45,9 @@ export async function onRequestPatch(context) {
   if (response) return response;
   const row = await loadTask(context.env, context.params.id);
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn cả chủ nhiệm vụ là nhân viên.
+  const pg = forbidStaffPage(user, row.feature);
+  if (pg) return pg;
   if (!canAccess(user, row)) return err('Không có quyền sửa nhiệm vụ này.', 403);
   let body;
   try {
@@ -93,6 +99,9 @@ export async function onRequestDelete(context) {
   if (response) return response;
   const row = await loadTask(context.env, context.params.id);
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn cả chủ nhiệm vụ là nhân viên.
+  const pg = forbidStaffPage(user, row.feature);
+  if (pg) return pg;
   if (!canAccess(user, row)) return err('Không có quyền xóa nhiệm vụ này.', 403);
   await context.env.DB.prepare('DELETE FROM tasks WHERE id = ?').bind(context.params.id).run();
   return json({ ok: true });

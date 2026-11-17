@@ -4,7 +4,7 @@
 // về trạng thái 'luna' để Luna poll thấy và trả bản mới (v2, v3…).
 // Nhận yêu cầu chỉnh sửa cả khi nhiệm vụ đã 'completed' (sửa sau bàn giao)
 // lẫn khi đang 'review' (chưa duyệt mà đã thấy chỗ cần sửa).
-import { json, err, requireAuth, nowIso } from '../../../_lib/auth.js';
+import { json, err, requireAuth, nowIso, forbidStaffPage } from '../../../_lib/auth.js';
 import { notifyRevision } from '../../../_lib/telegram.js';
 
 export async function onRequestPost(context) {
@@ -17,6 +17,9 @@ export async function onRequestPost(context) {
   if (row.feature !== 'designweb' && row.feature !== 'web' && row.feature !== 'page') {
     return err('Nhiệm vụ này không qua cầu nối Thư Ký Mỹ Linh.', 400);
   }
+  // Yêu cầu 38 (bổ sung): Chăm sóc page CHỈ Admin — chặn cả chủ nhiệm vụ là nhân viên.
+  const pg = forbidStaffPage(user, row.feature);
+  if (pg) return pg;
   if (user.role !== 'admin' && row.user_id !== user.id) {
     return err('Không có quyền yêu cầu chỉnh sửa nhiệm vụ này.', 403);
   }
