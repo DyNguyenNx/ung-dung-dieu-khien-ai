@@ -6,7 +6,7 @@
 // lẫn khi đang 'review' (chưa duyệt mà đã thấy chỗ cần sửa).
 import { json, err, requireAuth, nowIso, forbidStaffPage } from '../../../_lib/auth.js';
 import { notifyRevision } from '../../../_lib/telegram.js';
-import { activeCount, QUEUE_MAX_ACTIVE } from '../../../_lib/queue.js';
+import { activeCount, gateKeyOf, QUEUE_MAX_ACTIVE } from '../../../_lib/queue.js';
 
 export async function onRequestPost(context) {
   const { user, response } = await requireAuth(context.env, context.request);
@@ -41,14 +41,15 @@ export async function onRequestPost(context) {
   luna.revisions = Array.isArray(luna.revisions) ? luna.revisions : [];
   luna.revisions.push({ note, by: user.name || '', at: nowIso() });
   payload.luna = luna;
-  // Yêu cầu 45: gửi sửa lại LẤY suất Đang tạo — suất trống thì về 'luna' như cũ,
-  // suất bận thì xếp hàng 'waiting' (đẩy lên khi tới lượt).
-  const revStatus = (await activeCount(context.env, row.feature)) >= QUEUE_MAX_ACTIVE ? 'waiting' : 'luna';
+  // Yêu cầu 45 (sửa luật 17/11/2026): gửi sửa lại LẤY suất Đang tạo của AI
+  // phụ trách — suất trống thì về 'luna' như cũ, suất bận thì xếp hàng
+  // 'waiting' (đẩy lên khi tới lượt).
+  const revStatus = (await activeCount(context.env, gateKeyOf(payload, row.feature))) >= QUEUE_MAX_ACTIVE ? 'waiting' : 'luna';
   await context.env.DB.prepare('UPDATE tasks SET status = ?, progress = 0, payload = ?, updated_at = ? WHERE id = ?')
     .bind(revStatus, JSON.stringify(payload), nowIso(), context.params.id).run();
   // Thông báo cho anh Dy (best-effort — Luna lấy ghi chú qua /api/luna/pending).
   await notifyRevision(context.env, { id: row.id, title: row.title, feature: row.feature }, note, user.name || '').catch(() => {});
   return json({ ok: true, task_id: row.id, status: revStatus, message: revStatus === 'waiting'
-    ? 'Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — tính năng đang bận nên việc xếp hàng chờ, Luna làm khi tới lượt.'
+    ? 'Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — AI đang bận nên việc xếp hàng chờ, Luna làm khi tới lượt.'
     : 'Đã gửi yêu cầu chỉnh sửa cho Thư Ký Mỹ Linh — chờ kết quả mới.' });
 }

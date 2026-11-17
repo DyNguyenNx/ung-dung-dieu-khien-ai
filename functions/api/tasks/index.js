@@ -154,12 +154,14 @@ export async function onRequestPost(context) {
   if (pollinationsMissingKey) {
     payloadObj.pollinations = { error: POLLINATIONS_KEY_MISSING_MSG, at: nowIso() };
   }
-  // Yêu cầu 45: xếp hàng chờ — suất Đang tạo của tính năng bận thì nhiệm vụ
-  // mới vào 'waiting' (Hàng chờ); 'anh' (Pollinations) và lỗi thiếu key
-  // không qua hàng chờ (giữ hành vi cũ).
+  // Yêu cầu 45 (sửa luật 17/11/2026): xếp hàng chờ theo AI phụ trách
+  // (payload.ai) — cùng AI thì tối đa 1 Đang tạo, khác AI chạy song song.
+  // Nhiệm vụ không có AI giữ cổng theo tính năng. 'anh' không còn được miễn:
+  // việc ảnh dùng AI khác với việc của Luna nên tự chạy song song; hai việc
+  // ảnh cùng AI thì xếp hàng như luật chung. Lỗi thiếu key không qua hàng chờ.
   let initialStatus = isLunaTask ? 'luna' : (pollinationsMissingKey ? 'error' : 'running');
   if (initialStatus === 'luna' || initialStatus === 'running') {
-    initialStatus = await gateInitialStatus(context.env, feature, initialStatus);
+    initialStatus = await gateInitialStatus(context.env, feature, initialStatus, payloadObj);
   }
   const id = uuid();
   const now = nowIso();

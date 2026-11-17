@@ -5492,6 +5492,13 @@
                không chỉ vẽ bảng. Ngoài Dashboard thì chỉ lấy nhiệm vụ,
                không lấy dashboard (đỡ 1 request/nhịp). */
             if (window.AppBackend.renderFeatureLists) window.AppBackend.renderFeatureLists();
+            /* Yêu cầu 45 (sửa luật 17/11/2026): nhiệm vụ vừa được đẩy từ Hàng
+               chờ lên Đang tạo thì chạy mô phỏng ngay trong phiên này — không
+               chờ tải lại trang. resumeTask đã bỏ qua nhiệm vụ đang chạy mô
+               phỏng (chống chạy trùng qua simStarted). */
+            (AppState.tasks || []).forEach(function (t) {
+              if (t.status === "running" && window.AppRuntime && window.AppRuntime.resumeTask) window.AppRuntime.resumeTask(t);
+            });
             if (currentScreen === "dashboard") return window.AppBackend.refreshDashboard();
           })
           .then(function () { sigTickBusy = false; }, function () { sigTickBusy = false; });
@@ -7101,7 +7108,10 @@
         }
 
         /* ---- Chay tien do mo phong (v1 chua goi AI that) ---- */
+        var simStarted = {}; /* id nhiệm vụ -> true khi mô phỏng đang chạy (chống chạy trùng). */
         function runSimulation(li, task, full, startProgress) {
+          if (simStarted[task.id]) return;
+          simStarted[task.id] = true;
           var pct = startProgress || 0;
           var iv = setInterval(function () {
             pct = Math.min(100, pct + 10 + Math.round(Math.random() * 14));
@@ -7117,6 +7127,7 @@
           }, 650);
         }
         function finishTask(li, task, full) {
+          delete simStarted[task.id];
           task.status = "completed";
           task.progress = 100;
           api("/api/tasks/" + task.id, { method: "PATCH", body: { status: "completed", progress: 100 } })
@@ -7654,6 +7665,10 @@
                 if (task.status === "running") {
                   startAnhPolling();
                   toast("Đã giao việc cho Pollinations: " + d.title + (qAnh ? " — " + feat.name + " còn " + qAnh.remaining + " lượt tuần này." : " — ảnh thật sẽ về khi Pollinations xong."));
+                } else if (task.status === "waiting") {
+                  /* Yêu cầu 45 (sửa luật 17/11/2026): việc ảnh vào Hàng chờ —
+                     job Pollinations ở server cũng chờ tới lượt mới tạo ảnh. */
+                  toast("Đã xếp hàng chờ — " + feat.name + " đang bận, việc sẽ tự chạy khi tới lượt.");
                 } else if (task.status === "error") {
                   var gErr = (task.payload && task.payload.pollinations && task.payload.pollinations.error) || (task.payload && task.payload.gemini && task.payload.gemini.error) || "Chưa tạo được ảnh — xem lý do trên thẻ nhiệm vụ.";
                   toast(gErr);
@@ -7661,6 +7676,15 @@
                 if (qAnh && quotaCache && quotaCache[key]) { quotaCache[key].used = qAnh.used; quotaCache[key].remaining = qAnh.remaining; }
                 if (form.reset) form.reset();
                 clearRefInputs(form);
+              } else if (task.status === "waiting") {
+                /* Yêu cầu 45 (sửa luật 17/11/2026): nhiệm vụ vào Hàng chờ thì
+                   KHÔNG chạy mô phỏng — mô phỏng chỉ chạy khi được đẩy lên
+                   Đang tạo (xem resume ở signalTick). Chạy ngay lúc này sẽ
+                   hoàn tất thẳng, phá luật xếp hàng. */
+                toast("Đã xếp hàng chờ — " + feat.name + " đang bận, việc sẽ tự chạy khi tới lượt.");
+                var qW = task.quota;
+                if (qW && quotaCache && quotaCache[key]) { quotaCache[key].used = qW.used; quotaCache[key].remaining = qW.remaining; }
+                if (form.reset) form.reset();
               } else {
                 runSimulation(li, task, task.payload || d, 0);
                 var q = task.quota;

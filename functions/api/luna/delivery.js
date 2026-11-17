@@ -55,7 +55,7 @@ export async function onRequestPost(context) {
       'UPDATE tasks SET status = ?, progress = 100, result_html = ?, result_versions = ?, updated_at = ? WHERE id = ?',
     ).bind('review', html, JSON.stringify(versions), now, taskId).run();
     // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
-    await promoteNext(context.env, row.feature).catch(() => {});
+    await promoteNext(context.env, row.feature, row.payload).catch(() => {});
     // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao file).
     await notifyDelivery(context.env, { id: taskId, title: row.title, feature: row.feature }, versionId).catch(() => {});
     return json({
@@ -89,7 +89,7 @@ export async function onRequestPost(context) {
     'UPDATE tasks SET status = ?, progress = 100, result_text = ?, result_versions = ?, updated_at = ? WHERE id = ?',
   ).bind('review', text, JSON.stringify(versions), now, taskId).run();
   // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
-  await promoteNext(context.env, row.feature).catch(() => {});
+  await promoteNext(context.env, row.feature, row.payload).catch(() => {});
   // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao kết quả).
   await notifyDelivery(context.env, { id: taskId, title: row.title, feature: row.feature }, versionId, kind).catch(() => {});
   const kindLabel = kind === 'posted' ? 'đã tự đăng' : 'nội dung để nhân viên tự đăng';

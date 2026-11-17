@@ -23,6 +23,7 @@
 // code). Host override bằng env.POLLINATIONS_API_BASE_URL (mặc định host
 // thật) để QA local trỏ sang mock — không dùng cho mục đích khác.
 import { buildImagePrompt } from './gemini-image-prompts.js';
+import { promoteNext } from './queue.js';
 import { nowIso } from './auth.js';
 
 export const POLLINATIONS_IMAGE_MODEL = 'black-forest-labs/flux.2-klein-4b';
@@ -192,6 +193,7 @@ export async function callPollinationsImage(env, { prompt, refs, w, h }) {
 // chữ <25 ký tự tối đa 2–3 cụm; giữ nguyên cho Pollinations).
 export async function runPollinationsImageTask(env, taskId, refFiles) {
   const db = env.DB;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const setProgress = (p) => db.prepare('UPDATE tasks SET progress = ?, updated_at = ? WHERE id = ?')
     .bind(p, nowIso(), taskId).run();
   const setError = async (message) => {
@@ -205,6 +207,10 @@ export async function runPollinationsImageTask(env, taskId, refFiles) {
     payload.pollinations = { error: String(message || 'Lỗi không rõ.').slice(0, 500), at: nowIso() };
     await db.prepare("UPDATE tasks SET status = 'error', progress = 0, payload = ?, updated_at = ? WHERE id = ?")
       .bind(JSON.stringify(payload), nowIso(), taskId).run();
+    // Yêu cầu 45 (sửa luật 17/11/2026): nhiệm vụ lỗi NHẢ suất Đang tạo — đẩy
+    // việc chờ cùng AI lên làm tiếp (job chạy nền nên PATCH/delivery không
+    // biết mà đẩy hộ).
+    await promoteNext(env, 'anh', payload).catch(() => {});
   };
   try {
     const row = await db.prepare('SELECT payload FROM tasks WHERE id = ?').bind(taskId).first();
@@ -214,6 +220,21 @@ export async function runPollinationsImageTask(env, taskId, refFiles) {
       payload = JSON.parse(row.payload || '{}');
     } catch {
       payload = {};
+    }
+    // Yêu cầu 45 (sửa luật 17/11/2026): nhiệm vụ 'anh' có thể vào Hàng chờ khi
+    // cùng AI đang bận — CHƯA tới lượt thì CHƯA gọi Pollinations (đỡ tốn Pollen,
+    // đúng luật xếp hàng). Chờ tối đa 10 phút (việc ảnh trước mặt thường xong
+    // trong 10–60 giây); quá hạn thì vẫn tạo để khỏi mất việc, ảnh lưu sẵn và
+    // promoteNext sẽ hoàn tất khi tới lượt.
+    let waitedMs = 0;
+    for (;;) {
+      const st = await db.prepare('SELECT status FROM tasks WHERE id = ?').bind(taskId).first();
+      if (!st) return; // nhiệm vụ đã bị xóa
+      if (st.status === 'running' || st.status === 'luna') break;
+      if (st.status !== 'waiting') return; // error/completed: không tạo nữa
+      if (waitedMs >= 10 * 60 * 1000) break;
+      await sleep(3000);
+      waitedMs += 3000;
     }
     const img = payload.img || {};
     const refs = [];
@@ -240,8 +261,30 @@ export async function runPollinationsImageTask(env, taskId, refFiles) {
       generated_at: nowIso(),
       ms: Date.now() - startedAt,
     });
-    await db.prepare("UPDATE tasks SET status = 'completed', progress = 100, result_image = ?, updated_at = ? WHERE id = ?")
+    // Yêu cầu 45 (sửa luật 17/11/2026): chỉ hoàn tất khi nhiệm vụ còn ở trạng
+    // thái Đang tạo — nhiệm vụ đã rời Đang tạo (vẫn đang chờ / đã xong tay)
+    // thì lưu ảnh + đánh dấu sẵn, GIỮ nguyên trạng thái; promoteNext sẽ hoàn
+    // tất khi đẩy lên Đang tạo.
+    const done = await db.prepare("UPDATE tasks SET status = 'completed', progress = 100, result_image = ?, updated_at = ? WHERE id = ? AND status IN ('running','luna')")
       .bind(stored, nowIso(), taskId).run();
+    if (!(done.meta && done.meta.changes)) {
+      const row2 = await db.prepare('SELECT payload FROM tasks WHERE id = ?').bind(taskId).first();
+      if (row2) {
+        let p2 = {};
+        try {
+          p2 = JSON.parse(row2.payload || '{}');
+        } catch {
+          p2 = {};
+        }
+        p2.pollinations = { ...(p2.pollinations || {}), ready: true, generated_at: nowIso() };
+        await db.prepare('UPDATE tasks SET progress = 100, result_image = ?, payload = ?, updated_at = ? WHERE id = ?')
+          .bind(stored, JSON.stringify(p2), nowIso(), taskId).run();
+      }
+    }
+    // Yêu cầu 45 (sửa luật 17/11/2026): nhiệm vụ xong NHẢ suất Đang tạo — đẩy
+    // việc chờ cùng AI lên làm tiếp (job chạy nền nên PATCH/delivery không
+    // biết mà đẩy hộ).
+    await promoteNext(env, 'anh', payload).catch(() => {});
   } catch (e) {
     // Yêu cầu 35 (phát hiện khi QA mock): ảnh quá lớn (base64 ~8 triệu ký tự
     // trở lên) làm D1 trả SQLITE_TOOBIG khi lưu result_image — dịch thành lý

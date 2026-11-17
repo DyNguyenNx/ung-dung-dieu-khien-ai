@@ -94,7 +94,7 @@ export async function onRequestPatch(context) {
   // Yêu cầu 45: nhiệm vụ vừa NHẢ suất Đang tạo (running/luna → trạng thái khác)
   // thì đẩy việc chờ lên làm tiếp (kể cả mô phỏng frontend finishTask).
   if (body.status !== undefined && isActiveStatus(row.status) && !isActiveStatus(body.status)) {
-    await promoteNext(context.env, row.feature).catch(() => {});
+    await promoteNext(context.env, row.feature, row.payload).catch(() => {});
   }
   const updated = await loadTask(context.env, context.params.id);
   return json({ ok: true, task: taskRow(updated) });
@@ -112,7 +112,7 @@ export async function onRequestDelete(context) {
   await context.env.DB.prepare('DELETE FROM tasks WHERE id = ?').bind(context.params.id).run();
   // Yêu cầu 45: xóa nhiệm vụ đang chiếm suất Đang tạo thì đẩy việc chờ lên.
   if (isActiveStatus(row.status)) {
-    await promoteNext(context.env, row.feature).catch(() => {});
+    await promoteNext(context.env, row.feature, row.payload).catch(() => {});
   }
   return json({ ok: true });
 }

@@ -94,9 +94,9 @@ async function handleStart(env, body) {
   const id = uuid();
   // Batch để task + muse_work đi cùng nhau (lỗi giữa chừng thì không để
   // lại task mồ côi mà start lại sẽ tạo trùng).
-  // Yêu cầu 45: xếp hàng chờ — suất Đang tạo của tính năng bận thì việc mới
-  // vào 'waiting' (Hàng chờ), lên Đang tạo khi tới lượt.
-  const startStatus = await gateInitialStatus(env, map.feature, 'luna');
+  // Yêu cầu 45 (sửa luật 17/11/2026): xếp hàng chờ theo AI phụ trách — suất
+  // Đang tạo của AI bận thì việc mới vào 'waiting' (Hàng chờ), lên Đang tạo khi tới lượt.
+  const startStatus = await gateInitialStatus(env, map.feature, 'luna', payload);
   await env.DB.batch([
     env.DB.prepare(
       'INSERT INTO tasks (id, user_id, feature, title, status, progress, payload, result_url, result_html, result_text, result_image, result_versions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL, NULL, NULL, NULL, NULL, ?, ?)',
@@ -214,7 +214,7 @@ async function handleFinish(env, body) {
   }
   await env.DB.batch(stmts);
   // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
-  await promoteNext(env, row.feature).catch(() => {});
+  await promoteNext(env, row.feature, row.payload).catch(() => {});
   // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao kết quả).
   await notifyDelivery(env, { id: mw.task_id, title: row.title, feature: row.feature }, versionId, resultKind).catch(() => {});
   return json({
