@@ -201,3 +201,30 @@ chờ reset không khắc phục được). Model chốt: `black-forest-labs/flu
   có gọi được API không (có nguồn nói Connect API cần gói Teams — docs
   chính thức không ghi giới hạn này cho các endpoint dùng ở đây, cần kiểm
   thật).
+
+## Yêu cầu 37 — Xem trước hình ảnh trên thẻ đã hoàn thành (anh chốt 07:18 17/11/2026)
+
+Thẻ nhiệm vụ Thiết kế hình ảnh ĐÃ HOÀN THÀNH nay hiện ảnh xem trước ngay
+trên hàng nút Tải (trước đây chỉ có nút "Tải hình ảnh" + "Chỉnh tiếp trên
+Canva", muốn xem ảnh phải tải file về).
+
+- Chỉ sửa `index.html`, không đổi backend; chỉ nhiệm vụ `anh` đã hoàn
+  thành mới có xem trước.
+- Ảnh tải LƯỜI bằng `IntersectionObserver` (`wireImagePreview` trong
+  `index.html`, dùng lại `fetchTaskImage` — GET `/api/tasks/:id/result`):
+  chỉ thẻ nào cuộn tới trong khung nhìn mới gọi API (danh sách tải
+  `/api/tasks?limit=500` nên không tải hết ảnh mọi thẻ cùng lúc);
+  trình duyệt không hỗ trợ IntersectionObserver thì tải ngay.
+- Trong lúc tải hiện "Đang tải xem trước…"; lỗi hiện "Không tải được ảnh
+  xem trước."; tải xong hiện `<img>` đúng tỉ lệ (tối đa 320px, bo góc
+  12px + viền mờ). Bấm vào ảnh mở ảnh gốc tab mới (link dùng blob URL
+  riêng tạo từ cùng blob — KHÔNG trỏ thẳng `/api/tasks/:id/result` vì
+  endpoint đó trả `Content-Disposition: attachment` nên trình duyệt sẽ
+  tải file về thay vì mở ảnh; blob URL của link không thu hồi khi ảnh
+  load xong, trình duyệt tự thu hồi khi đóng trang). Blob URL của `<img>` thu
+  hồi sau khi ảnh load xong.
+- QA: frontend Chromium thật 390/768/1440
+  (`~/workspace/qa-app2/qa37-image-preview/qa37-frontend.py`): thẻ ngoài
+  khung nhìn không gọi `/result`, cuộn tới thì tải đúng ảnh + hiện
+  `<img>`, bấm mở tab mới (blob URL) đúng ảnh, không lỗi console, không tràn
+  ngang 390px.

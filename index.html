@@ -599,8 +599,17 @@
       }
       .btn-canva:hover{ background:#0a616a; }
       .btn-canva:disabled{ background:var(--stage); color:var(--muted); border:1.5px solid var(--line); cursor:not-allowed; }
+      /* Yêu cầu 37: xem trước ảnh trên thẻ nhiệm vụ Thiết kế hình ảnh đã hoàn
+         thành — ảnh tải lười khi thẻ cuộn tới, bấm vào mở ảnh gốc tab mới.
+         Ảnh bo góc nhẹ + viền mờ như .ref-thumb, rộng tối đa 320px, không
+         tràn ngang ở mobile 390px. */
+      .img-preview{ margin-top:9px; }
+      .img-preview-loading, .img-preview-err{ font-size:12.5px; color:var(--muted); line-height:1.5; }
+      .img-preview-link{ display:block; max-width:320px; margin-left:auto; }
+      .img-preview-link img{ display:block; width:100%; height:auto; border-radius:12px; border:1.5px solid var(--line); cursor:zoom-in; }
       @media (max-width:720px){
         .dl-row{ justify-content:flex-start; }
+        .img-preview-link{ margin-left:0; }
         .sec-edit{ width:130px; }
       }
       /* Form truyện 2 nhánh */
@@ -6177,6 +6186,13 @@
           }
           return '<div class="dl-row"><button type="button" class="btn-dl" data-dl="text">Tải kết quả</button></div>';
         }
+        /* Yêu cầu 37: khung xem trước ảnh trên thẻ nhiệm vụ Thiết kế hình
+           ảnh đã hoàn thành — khung trống lúc đầu, ảnh chỉ tải khi thẻ cuộn
+           tới trong khung nhìn (wireImagePreview gắn IntersectionObserver
+           sau khi thẻ vào DOM). */
+        function imagePreviewHtml(task) {
+          return '<div class="img-preview" data-img-preview="' + esc(task.id) + '"></div>';
+        }
         function buildVersions(task, full) {
           var vers = [];
           if (full.versions && full.versions.length) {
@@ -6335,6 +6351,9 @@
             var gErr = (full.pollinations && full.pollinations.error) || (full.gemini && full.gemini.error);
             if (gErr) side += '<div class="t-note err">' + esc(gErr) + '</div>';
           } else if (task.status === "completed") {
+            /* Yêu cầu 37: xem trước ảnh — CHỈ nhiệm vụ Thiết kế hình ảnh,
+               đặt ngay trên hàng nút Tải. */
+            if (task.feature === "anh") side += imagePreviewHtml(task);
             side += downloadRowHtml(task, me);
             /* Yêu cầu 34: nút Xoá nhiệm vụ — CHỈ trên nhiệm vụ đã Hoàn thành
                (không thêm cho running/error/luna/review/waiting/scheduled). */
@@ -6362,6 +6381,7 @@
             '<div><div class="t-name">' + esc(task.title) + '</div><div class="t-meta">' + meta + '</div></div>' +
             '<div class="t-side">' + side + '</div>';
           if (task.status === "completed") wireDownloadButtons(li, task, full);
+          if (task.status === "completed" && task.feature === "anh") wireImagePreview(li, task);
           if (task.status === "completed") wireDeleteTaskButton(li, task);
           if (task.status === "review" && me && me.role === "admin") wireDownloadButtons(li, task, full);
           if (task.status === "luna" || task.status === "review") wireLunaButtons(li, task);
@@ -6468,6 +6488,66 @@
             var m = /filename="([^"]+)"/.exec(disp);
             return res.blob().then(function (blob) { return { blob: blob, mime: mime, filename: m ? m[1] : "" }; });
           });
+        }
+        /* Yêu cầu 37: tải lười ảnh xem trước trên thẻ nhiệm vụ Thiết kế hình
+           ảnh đã hoàn thành — chỉ gọi fetchTaskImage khi thẻ cuộn tới trong
+           khung nhìn (IntersectionObserver; trình duyệt không hỗ trợ thì tải
+           ngay). Trong lúc tải hiện "Đang tải xem trước…", lỗi thì hiện dòng
+           nhỏ; tải xong hiện <img> đúng tỉ lệ, bấm vào mở ảnh gốc tab mới.
+           Blob URL của <img> thu hồi sau khi ảnh load xong; link mở tab mới
+           dùng blob URL RIÊNG (không trỏ thẳng endpoint /api/tasks/:id/result
+           vì endpoint đó trả Content-Disposition: attachment nên trình duyệt
+           sẽ tải file về thay vì mở ảnh trong tab mới — blob URL này không
+           thu hồi khi ảnh load xong, trình duyệt tự thu hồi khi đóng trang). */
+        function wireImagePreview(li, task) {
+          var box = li.querySelector("[data-img-preview]");
+          if (!box) return;
+          var started = false;
+          function load() {
+            if (started) return;
+            started = true;
+            box.innerHTML = '<div class="img-preview-loading">Đang tải xem trước…</div>';
+            fetchTaskImage(task.id).then(function (res) {
+              var url = URL.createObjectURL(res.blob);
+              /* Link mở tab mới dùng blob URL RIÊNG (không trỏ thẳng
+                 /api/tasks/:id/result): endpoint đó trả Content-Disposition:
+                 attachment nên trình duyệt sẽ tải file về thay vì mở ảnh
+                 trong tab mới. Blob URL này KHÔNG thu hồi khi ảnh load xong
+                 (tab mới cần nó); trình duyệt tự thu hồi khi đóng trang app. */
+              var urlFull = URL.createObjectURL(res.blob);
+              var a = document.createElement("a");
+              a.className = "img-preview-link";
+              a.href = urlFull;
+              a.target = "_blank";
+              a.rel = "noopener";
+              a.title = "Bấm để mở ảnh gốc trong tab mới";
+              var img = document.createElement("img");
+              img.alt = task.title || "Hình ảnh đã tạo";
+              img.addEventListener("load", function () { URL.revokeObjectURL(url); });
+              img.addEventListener("error", function () {
+                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(urlFull);
+                box.innerHTML = '<div class="img-preview-err">Không tải được ảnh xem trước.</div>';
+              });
+              img.src = url;
+              a.appendChild(img);
+              box.innerHTML = "";
+              box.appendChild(a);
+            }).catch(function () {
+              box.innerHTML = '<div class="img-preview-err">Không tải được ảnh xem trước.</div>';
+            });
+          }
+          if ("IntersectionObserver" in window) {
+            var io = new IntersectionObserver(function (entries) {
+              entries.forEach(function (en) {
+                if (en.isIntersecting) { io.disconnect(); load(); }
+              });
+            });
+            io.observe(box);
+            li._previewObserver = io;
+          } else {
+            load();
+          }
         }
         function imageExt(mime) {
           if (mime === "image/jpeg") return ".jpg";
