@@ -103,6 +103,22 @@ CREATE TABLE IF NOT EXISTS project_stats (
 CREATE INDEX IF NOT EXISTS idx_project_stats_project ON project_stats(project);
 CREATE INDEX IF NOT EXISTS idx_project_stats_period ON project_stats(period);
 
+-- Yêu cầu 43: việc Luna đẩy từ Muse về app (bài viết / thiết kế) để bảng
+-- MCP luôn có luồng thật. Một dòng = 1 work_key (khóa chống trùng) ↔ 1
+-- nhiệm vụ trong bảng tasks. Xem migration 008.
+CREATE TABLE IF NOT EXISTS muse_work (
+  work_key TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL,
+  project TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('article', 'design', 'web')),
+  title TEXT NOT NULL,
+  link TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_muse_work_task_id ON muse_work(task_id);
+CREATE INDEX IF NOT EXISTS idx_muse_work_project ON muse_work(project);
+
 -- Yêu cầu 36: nút "Chỉnh tiếp trên Canva" — OAuth Canva (xem migration 005).
 -- canva_tokens: CHỈ 1 dòng (id='admin') — access + refresh token của Canva
 -- (tài khoản Canva của admin). Refresh token xoay 1 lần: lưu token mới ngay

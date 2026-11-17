@@ -95,5 +95,16 @@ export async function onRequestGet(context) {
     WHERE ${where} ORDER BY t.created_at ASC LIMIT ?`;
   args.push(limit);
   const { results } = await context.env.DB.prepare(sql).bind(...args).all();
-  return json({ ok: true, tasks: (results || []).map(pendingItem) });
+  // Yêu cầu 43: LOẠI TRỪ nhiệm vụ Luna tự đẩy từ Muse (payload.muse.source
+  // === 'muse') — pending là việc app giao cho Luna; việc Luna tự làm bên
+  // Muse không nằm trong hộp này, tránh Luna nhận trùng việc của chính mình.
+  const filtered = (results || []).filter((t) => {
+    try {
+      const p = t.payload ? JSON.parse(t.payload) : null;
+      return !(p && p.muse && p.muse.source === 'muse');
+    } catch {
+      return true;
+    }
+  });
+  return json({ ok: true, tasks: filtered.map(pendingItem) });
 }

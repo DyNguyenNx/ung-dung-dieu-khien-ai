@@ -3843,11 +3843,10 @@
         subEl.textContent = data.sub;
         dockStats.innerHTML = data.stats;
         dockDetail.innerHTML = data.detail;
-        /* Yêu cầu 32: chỉ polling bảng tín hiệu khi đang ở màn Dashboard.
-           window.AppState chưa có ở lần go() đầu (script block 1 chạy trước
-           block định nghĩa AppState) nên phải kiểm tra tồn tại. */
-        if (key === "dashboard" && window.AppState && window.AppState.me) startSignalPolling();
-        else stopSignalPolling();
+        /* Yêu cầu 43: poll nhiệm vụ chạy mọi màn (xem signalTick) nên go()
+           không bật/tắt poll nữa — chỉ vẽ lại danh sách màn tính năng đích
+           từ AppState.tasks mới nhất để % Luna đẩy về hiện ngay khi mở màn. */
+        if (window.AppBackend && window.AppBackend.renderFeatureLists) window.AppBackend.renderFeatureLists();
         contentEl.scrollTop = 0;
         var stageEl = document.querySelector(".stage");
         if (stageEl) stageEl.scrollTop = 0;
@@ -5552,11 +5551,25 @@
         if (live) { live.classList.add("stale"); live.classList.remove("paused"); }
         if (txt) txt.textContent = "Mất kết nối — sẽ thử lại";
       }
+      /* Yêu cầu 43: chống 2 nhịp poll chồng nhau — nhịp trước chưa xong thì
+         bỏ nhịp sau, tránh fetch chậm về sau ghi đè dữ liệu mới bằng dữ
+         liệu cũ (số bảng mới nhưng panel/danh sách cũ). */
+      var sigTickBusy = false;
       function signalTick() {
-        if (!AppState.me || document.hidden || currentScreen !== "dashboard" || !window.AppBackend) return;
+        if (!AppState.me || document.hidden || !window.AppBackend) return;
+        if (sigTickBusy) return;
+        sigTickBusy = true;
         window.AppBackend.api("/api/tasks?limit=500").then(function (res) { AppState.tasks = res.tasks || []; })
           .catch(function () { /* Giữ danh sách cũ, vẫn thử tải dashboard. */ })
-          .then(function () { return window.AppBackend.refreshDashboard(); });
+          .then(function () {
+            /* Yêu cầu 43: % Luna đẩy về phải hiện cả trên màn tính năng —
+               vẽ lại danh sách màn tính năng sau mỗi nhịp (chỉ màn đổi),
+               không chỉ vẽ bảng. Ngoài Dashboard thì chỉ lấy nhiệm vụ,
+               không lấy dashboard (đỡ 1 request/nhịp). */
+            if (window.AppBackend.renderFeatureLists) window.AppBackend.renderFeatureLists();
+            if (currentScreen === "dashboard") return window.AppBackend.refreshDashboard();
+          })
+          .then(function () { sigTickBusy = false; }, function () { sigTickBusy = false; });
       }
       function startSignalPolling() {
         if (sigTimer || !AppState.me) return;
@@ -5609,7 +5622,7 @@
         });
         document.addEventListener("visibilitychange", function () {
           if (document.hidden) { stopSignalPolling(); signalMarkPaused(); }
-          else if (AppState.me && currentScreen === "dashboard") { startSignalPolling(); }
+          else if (AppState.me) { startSignalPolling(); }
         });
       }
       wireSignalBoard();
@@ -6204,7 +6217,9 @@
             loadTasks();
           }
           refreshDashboard();
-          if (currentScreen === "dashboard") startSignalPolling();
+          /* Yêu cầu 43: poll nhiệm vụ chạy mọi màn (chỉ dừng khi tab ẩn) để
+             % Luna đẩy về hiện cả trên màn tính năng — không chỉ Dashboard. */
+          startSignalPolling();
           if (AppState.me && AppState.me.role === "admin") loadAdminUsers();
         }
         function refreshQuota() {
@@ -6261,22 +6276,35 @@
             /* Yêu cầu 32: nhiệm vụ vừa tải xong thì vẽ lại bảng tín hiệu
                (nếu dashboard đã có số liệu) — không đụng danh sách từng tính năng. */
             if (AppState.dashData) renderSignalBoard(AppState.dashData);
-            FEATURE_KEYS.forEach(function (key) {
-              var list = document.querySelector('[data-tasks="' + key + '"]');
-              if (!list) return;
-              list.innerHTML = "";
-              var items = AppState.tasks.filter(function (t) { return t.feature === key; });
-              if (!items.length) {
-                list.innerHTML = '<li class="plan-empty">Chưa có nhiệm vụ nào — giao việc đầu tiên ở form bên trên.</li>';
-                return;
-              }
-              items.forEach(function (t) { list.appendChild(window.AppRuntime.renderTaskItem(t)); });
-              items.filter(function (t) { return t.status === "running"; }).forEach(function (t) { window.AppRuntime.resumeTask(t); });
-            });
+            featListSig = {}; /* loadTasks luôn vẽ lại hết (vd nút Canva đổi theo trạng thái kết nối). */
+            renderFeatureLists();
+            AppState.tasks.filter(function (t) { return t.status === "running"; }).forEach(function (t) { window.AppRuntime.resumeTask(t); });
             rebuildStorySelect();
             applyFilter(searchInput.value);
             refreshNotifs();
           }).catch(function (e) { showToast("Không tải được nhiệm vụ: " + e.message); });
+        }
+        /* Yêu cầu 43: vẽ lại danh sách nhiệm vụ từng màn tính năng từ
+           AppState.tasks (không gọi API). Chỉ vẽ lại màn nào có thay đổi
+           (so chữ ký id/trạng thái/% của màn đó) để không làm mất nút đang
+           bấm và không reset hiệu ứng thanh tiến độ. Poll 15s + go() đều
+           dùng chung hàm này; loadTasks vẽ lại hết (xem trên). */
+        var featListSig = {};
+        function renderFeatureLists() {
+          FEATURE_KEYS.forEach(function (key) {
+            var list = document.querySelector('[data-tasks="' + key + '"]');
+            if (!list) return;
+            var items = AppState.tasks.filter(function (t) { return t.feature === key; });
+            var sig = items.map(function (t) { return t.id + ":" + t.status + ":" + (t.progress || 0); }).join("|");
+            if (featListSig[key] === sig) return;
+            featListSig[key] = sig;
+            list.innerHTML = "";
+            if (!items.length) {
+              list.innerHTML = '<li class="plan-empty">Chưa có nhiệm vụ nào — giao việc đầu tiên ở form bên trên.</li>';
+              return;
+            }
+            items.forEach(function (t) { list.appendChild(window.AppRuntime.renderTaskItem(t)); });
+          });
         }
         function rebuildStorySelect() {
           var sel = document.getElementById("truyen-chon");
@@ -6629,7 +6657,7 @@
 
         return {
           api: api, boot: boot, enterApp: enterApp, loadAll: loadAll,
-          refreshQuota: refreshQuota, loadTasks: loadTasks, refreshDashboard: refreshDashboard,
+          refreshQuota: refreshQuota, loadTasks: loadTasks, renderFeatureLists: renderFeatureLists, refreshDashboard: refreshDashboard,
           loadAdminUsers: loadAdminUsers, approveUser: approveUser, rejectUser: rejectUser,
           lockUser: lockUser, unlockUser: unlockUser, deleteUser: deleteUser,
           refreshNotifs: refreshNotifs,
@@ -6723,6 +6751,12 @@
         function downloadRowHtml(task, me) {
           if (task.feature === "designweb") {
             return '<div class="dl-row"><button type="button" class="btn-ghost btn-sm" data-dl="demo">Xem demo</button><button type="button" class="btn-dl" data-dl="html">Tải HTML</button></div>';
+          }
+          /* Yêu cầu 43: nhiệm vụ 'anh' do Luna đẩy từ Muse có kết quả text
+             (báo cáo + link) — hiện nút Xem/Tải kết quả như web/page thay vì
+             nút Tải hình ảnh (sẽ 404 vì không có ảnh). */
+          if (task.feature === "anh" && task.payload && task.payload.muse && task.payload.muse.source === "muse" && task.has_result_text) {
+            return '<div class="dl-row"><button type="button" class="btn-ghost btn-sm" data-dl="view-result">Xem kết quả</button><button type="button" class="btn-dl" data-dl="text">Tải kết quả</button></div>';
           }
           if (task.feature === "anh") {
             /* Yêu cầu 36: nút "Chỉnh tiếp trên Canva" trên thẻ ảnh đã hoàn
@@ -6942,6 +6976,14 @@
             /* Yêu cầu 28 + 30: đã gửi brief, đang chờ Luna làm — không thanh tiến độ
                giả, không nút tải. Gửi lỗi thì hiện nút gửi lại brief. */
             side += '<div class="t-note">Đã gửi brief — Thư Ký Mỹ Linh ' + (task.feature === "designweb" ? "đang vẽ…" : "đang làm…") + '</div>';
+            /* Yêu cầu 43: tiến độ thật Luna đẩy về (POST /api/luna/progress) —
+               hiện thanh + % khi > 0; 0% thì giữ như cũ (chưa có số liệu thật). */
+            var lunaPct = Math.max(0, Math.min(99, task.progress || 0));
+            if (lunaPct > 0) {
+              side += '<div class="bar"><i style="width:' + lunaPct + '%"></i></div>';
+              var lunaProgNote = (full.luna && full.luna.progress && full.luna.progress.note) || "";
+              side += '<div class="t-note">Tiến độ ' + lunaPct + '%' + (lunaProgNote ? ' — ' + esc(lunaProgNote) : '') + '</div>';
+            }
             var sendErr = full.luna && full.luna.sendError;
             if (sendErr) {
               side += '<div class="t-note err">Chưa gửi được brief sang Telegram: ' + esc(sendErr) + '</div>';

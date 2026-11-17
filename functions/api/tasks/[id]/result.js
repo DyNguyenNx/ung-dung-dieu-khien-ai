@@ -30,7 +30,17 @@ export async function onRequestGet(context) {
   // ---------- Thiết kế hình ảnh: ảnh thật Pollinations đã tạo (Yêu cầu 35) ----------
   // result_image = JSON {mime, data (base64), bytes, w, h, aspect, generated_at}.
   // Chỉ lưu 1 ảnh / nhiệm vụ (bản mới nhất) nên không có ?version.
-  if (row.feature === 'anh') {
+  // Yêu cầu 43: nhiệm vụ 'anh' nguồn Muse có kết quả TEXT mà KHÔNG có ảnh
+  // thì bỏ qua nhánh ảnh, đi tiếp xuống nhánh JSON bên dưới (như web/page).
+  // Nhiệm vụ 'anh' thường (Pollinations) vẫn đi nhánh ảnh như cũ.
+  let museAnhText = false;
+  try {
+    const p0 = row.payload ? JSON.parse(row.payload) : null;
+    museAnhText = !!(p0 && p0.muse && p0.muse.source === 'muse') && !!row.result_text && !row.result_image;
+  } catch {
+    museAnhText = false;
+  }
+  if (row.feature === 'anh' && !museAnhText) {
     if (!row.result_image) {
       return err('Nhiệm vụ này chưa có ảnh — Pollinations chưa trả ảnh.', 404);
     }

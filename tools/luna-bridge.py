@@ -12,6 +12,10 @@ roi tra file HTML (Design Web) hoac ket qua text (web/page) ve app.
     python3 luna-bridge.py deliver <task-id> --kind posted|content --text-file <file.txt> [--link <url>] [--note "..."]
     python3 luna-bridge.py stats push --project <slug> --kind article|page|web --period 2026-W47 --file stats.json
         (alias cua tools/luna-stats.py push — day so lieu thong ke theo du an, Yeu cau 31)
+    python3 luna-bridge.py push-result start --project <slug> --kind article|design|web --work-key <key> --title "..." [--words N]
+    python3 luna-bridge.py push-result finish --work-key <key> --result-kind posted|content --text-file <file> [--link <url>] [--seo N]
+    python3 luna-bridge.py progress <task-id> <0-99> [--note "..."]
+        (Yeu cau 43 — day viec tu Muse vao app de bang MCP co luong that + dong bo % tien do)
 
 Ket qua text (Yeu cau 30):
     --kind posted  = Luna da TU DANG len web/page that (du an cua anh Dy):
@@ -42,6 +46,7 @@ KHONG in secret/token ra log hay output duoi bat ky hinh thuc nao.
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -332,6 +337,138 @@ def cmd_stats_push(args):
     mod.cmd_push(args)
 
 
+# ---------- Yeu cau 43: day viec tu Muse vao app + dong bo % tien do ----------
+WORK_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9-]{2,120}$")
+MUSE_KINDS = ("article", "design", "web")
+PROJECT_SLUGS_43 = ("bluemax", "binhminh", "khanhnghi", "inox", "tranvu", "nhatlinh")
+
+
+def check_work_key(key):
+    if not key or not WORK_KEY_RE.match(key):
+        return "work_key chi gom chu thuong, so va dau gach ngang (3-121 ky tu, bat dau bang chu/so)."
+    return ""
+
+
+def verify_live_link(url):
+    """Kiem chung link live TRUOC khi day ket qua posted: GET theo redirect,
+    yeu cau HTTP 200. Tra (True, '') hoac (False, ly_do). Chi dung cho link
+    bai da dang cong khai; link demo/artifact (kind content) khong kiem."""
+    req = urllib.request.Request(url, method="GET")
+    req.add_header("User-Agent", USER_AGENT)
+    try:
+        with urllib.request.urlopen(req, timeout=20) as res:
+            if res.status == 200:
+                return True, ""
+            return False, f"HTTP {res.status}"
+    except urllib.error.HTTPError as e:
+        return False, f"HTTP {e.code}"
+    except Exception as e:
+        return False, str(e)
+
+
+def cmd_push_result(args):
+    if args.push_cmd == "start":
+        bad = check_work_key(args.work_key)
+        if bad:
+            print(bad, file=sys.stderr)
+            sys.exit(2)
+        if args.project not in PROJECT_SLUGS_43:
+            print("project phai la 1 trong: " + ", ".join(PROJECT_SLUGS_43), file=sys.stderr)
+            sys.exit(2)
+        if args.kind not in MUSE_KINDS:
+            print("kind phai la 1 trong: " + ", ".join(MUSE_KINDS), file=sys.stderr)
+            sys.exit(2)
+        if not args.title.strip() or len(args.title) > 300:
+            print("title bat buoc, toi da 300 ky tu.", file=sys.stderr)
+            sys.exit(2)
+        body = {"action": "start", "project": args.project, "kind": args.kind,
+                "work_key": args.work_key, "title": args.title.strip()}
+        if args.words:
+            body["words"] = args.words
+        if args.keyword:
+            body["keyword"] = args.keyword
+        if args.note:
+            body["note"] = args.note
+        status, data = http_json(
+            "POST", api_base() + "/api/luna/muse-work",
+            headers={"X-Luna-Secret": api_secret()}, body=body,
+        )
+        if status not in (200, 201) or not data.get("ok"):
+            print(f"Day viec loi: {data.get('error', 'HTTP ' + str(status))}", file=sys.stderr)
+            sys.exit(1)
+        verb = "Da day viec moi vao app" if data.get("created") else "Viec nay da co trong app (khong tao them)"
+        print(f"{verb}: task {data.get('task_id')} — trang thai: {data.get('status')} (bang MCP dang thay luong).")
+        return
+    # finish
+    bad = check_work_key(args.work_key)
+    if bad:
+        print(bad, file=sys.stderr)
+        sys.exit(2)
+    if args.result_kind not in ("posted", "content"):
+        print("result_kind phai la 'posted' hoac 'content'.", file=sys.stderr)
+        sys.exit(2)
+    if not args.text_file:
+        print("Giao ket qua can --text-file <file>.", file=sys.stderr)
+        sys.exit(2)
+    text_path = Path(args.text_file)
+    if not text_path.is_file():
+        print(f"Khong tim thay file: {text_path}", file=sys.stderr)
+        sys.exit(2)
+    text = text_path.read_text(encoding="utf-8")
+    if len(text.encode("utf-8")) > 1024 * 1024:
+        print("Noi dung ket qua nang hon 1MB — hay gui noi dung gon hon.", file=sys.stderr)
+        sys.exit(2)
+    link = (args.link or "").strip()
+    if args.result_kind == "posted":
+        if not link:
+            print("kind 'posted' bat buoc co --link (URL bai da dang).", file=sys.stderr)
+            sys.exit(2)
+        ok, why = verify_live_link(link)
+        if not ok:
+            print(f"Link chua kiem chung live duoc ({why}) — KHONG day ket qua. "
+                  f"Kiem tra lai link roi day lai.", file=sys.stderr)
+            sys.exit(1)
+        print(f"Link da kiem chung live (HTTP 200): {link}")
+    body = {"action": "finish", "work_key": args.work_key,
+            "result_kind": args.result_kind, "text": text}
+    if link:
+        body["link"] = link
+    if args.seo is not None:
+        body["seo"] = args.seo
+    if args.words_done:
+        body["words_done"] = args.words_done
+    if args.note:
+        body["note"] = args.note
+    status, data = http_json(
+        "POST", api_base() + "/api/luna/muse-work",
+        headers={"X-Luna-Secret": api_secret()}, body=body,
+    )
+    if status != 200 or not data.get("ok"):
+        print(f"Giao ket qua loi: {data.get('error', 'HTTP ' + str(status))}", file=sys.stderr)
+        sys.exit(1)
+    kind_label = "da dang live" if args.result_kind == "posted" else "tra noi dung/thiet ke"
+    print(f"Da giao ban {data.get('version')} ({kind_label}) — trang thai: {data.get('status')} (cho anh duyet).")
+    if data.get("link"):
+        print(f"Link: {data.get('link')}")
+
+
+def cmd_progress(args):
+    if not 0 <= args.percent <= 99:
+        print("percent phai la so nguyen 0-99 (100% chi dat khi giao ket qua).", file=sys.stderr)
+        sys.exit(2)
+    body = {"task_id": args.task_id, "progress": args.percent}
+    if args.note:
+        body["note"] = args.note
+    status, data = http_json(
+        "POST", api_base() + "/api/luna/progress",
+        headers={"X-Luna-Secret": api_secret()}, body=body,
+    )
+    if status != 200 or not data.get("ok"):
+        print(f"Day tien do loi: {data.get('error', 'HTTP ' + str(status))}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Da cap nhat tien do {data.get('progress')}% cho nhiem vu {data.get('task_id')} (trang thai: {data.get('status')}).")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cau noi Luna <-> App Dieu Khien AI (Yeu cau 28)")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -362,6 +499,31 @@ def main():
     sp.add_argument("--period", required=True, help="Tuan ISO, vd 2026-W47")
     sp.add_argument("--file", required=True, help="File stats.json (scheduled, posted, links?, details?)")
     sp.set_defaults(fn=cmd_stats_push)
+    pr = sub.add_parser("push-result", help="Day viec tu Muse vao app (Yeu cau 43): start khi bat dau lam, finish khi xong")
+    prs = pr.add_subparsers(dest="push_cmd", required=True)
+    prs_st = prs.add_parser("start", help="Bat dau lam viec ben Muse -> nhiem vu 'luna' tren app (bang MCP thay luong)")
+    prs_st.add_argument("--project", required=True, help="bluemax | binhminh | khanhnghi | inox | tranvu | nhatlinh")
+    prs_st.add_argument("--kind", required=True, choices=["article", "design", "web"], help="article = bai viet | design = thiet ke hinh anh | web = Design Web")
+    prs_st.add_argument("--work-key", required=True, help="Khoa chong trung, vd bluemax-2026-11-18-dap-ga-xe-i")
+    prs_st.add_argument("--title", required=True, help="Tieu de bai / thiet ke (khong gom tien to 'Viet bai SEO')")
+    prs_st.add_argument("--words", type=int, default=None, help="So tu mong muon (bai viet)")
+    prs_st.add_argument("--keyword", default="", help="Tu khoa chinh (bai viet, tuy chon)")
+    prs_st.add_argument("--note", default="")
+    prs_st.set_defaults(fn=cmd_push_result)
+    prs_fi = prs.add_parser("finish", help="Xong viec -> ket qua ve app (trang thai review, cho anh duyet)")
+    prs_fi.add_argument("--work-key", required=True)
+    prs_fi.add_argument("--result-kind", required=True, choices=["posted", "content"], help="posted (da dang live, bat buoc --link + kiem live) | content (tra noi dung/thiet ke)")
+    prs_fi.add_argument("--text-file", required=True, help="File text chua bao cao ket qua")
+    prs_fi.add_argument("--link", default="", help="URL bai da dang (posted) hoac link demo/thiet ke (content)")
+    prs_fi.add_argument("--seo", type=int, default=None, help="Diem SEO dat duoc (0-100)")
+    prs_fi.add_argument("--words-done", type=int, default=None, help="So tu thuc te da viet")
+    prs_fi.add_argument("--note", default="")
+    prs_fi.set_defaults(fn=cmd_push_result)
+    pg = sub.add_parser("progress", help="Day phan tram tien do that cua nhiem vu dang lam (Yeu cau 43)")
+    pg.add_argument("task_id")
+    pg.add_argument("percent", type=int, help="So nguyen 0-99 (100 chi dat khi giao ket qua)")
+    pg.add_argument("--note", default="", help="Ghi chu ngan ve tien do (vd 'da viet xong 1.549 tu, cho credential de dang')")
+    pg.set_defaults(fn=cmd_progress)
     args = ap.parse_args()
     args.fn(args)
 

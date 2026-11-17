@@ -11,7 +11,19 @@ export async function onRequestPost(context) {
     .bind(context.params.id).first();
   if (!row) return err('Không tìm thấy nhiệm vụ.', 404);
   if (row.feature !== 'designweb' && row.feature !== 'web' && row.feature !== 'page') {
-    return err('Nhiệm vụ này không qua cầu nối Thư Ký Mỹ Linh.', 400);
+    // Yêu cầu 43: nhiệm vụ 'anh' do Luna đẩy từ Muse (payload.muse) cũng
+    // duyệt được ở đây — UI đã có nút Duyệt cho mọi task review, chỉ server
+    // chặn. Nhiệm vụ 'anh' thường (Pollinations) vẫn giữ luật cũ.
+    let isMuseAnh = false;
+    if (row.feature === 'anh') {
+      try {
+        const p = row.payload ? JSON.parse(row.payload) : null;
+        isMuseAnh = !!(p && p.muse && p.muse.source === 'muse');
+      } catch {
+        isMuseAnh = false;
+      }
+    }
+    if (!isMuseAnh) return err('Nhiệm vụ này không qua cầu nối Thư Ký Mỹ Linh.', 400);
   }
   if (row.status !== 'review') {
     return err(`Nhiệm vụ đang ở trạng thái “${row.status}” — chỉ duyệt được khi đang chờ anh duyệt.`, 409);

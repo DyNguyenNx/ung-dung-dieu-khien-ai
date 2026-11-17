@@ -213,7 +213,8 @@ export async function notifyDelivery(env, task, version, kind) {
     return sendTelegramMessage(env, text);
   }
   // Yêu cầu 30: web/page — kind 'posted' (đã tự đăng) hoặc 'content' (trả nội dung).
-  const featureName = feature === 'web' ? 'Chăm sóc web' : feature === 'page' ? 'Chăm sóc page' : feature;
+  // Yêu cầu 43: nhiệm vụ 'anh' nguồn Muse cũng vào nhánh JSON này.
+  const featureName = feature === 'web' ? 'Chăm sóc web' : feature === 'page' ? 'Chăm sóc page' : feature === 'anh' ? 'Thiết kế hình ảnh' : feature;
   const kindText = kind === 'posted'
     ? 'đã đăng lên web/page thật'
     : kind === 'content'
