@@ -17,6 +17,7 @@
 import { json, err, lunaSecretOk, parseVersionsFull, nowIso, uuid } from '../../_lib/auth.js';
 import { isValidProjectSlug, projectBySlug, currentWeekKey } from '../../_lib/projects.js';
 import { notifyDelivery, MAX_DELIVERY_BYTES } from '../../_lib/telegram.js';
+import { gateInitialStatus, promoteNext } from '../../_lib/queue.js';
 
 const WORK_KEY_RE = /^[a-z0-9][a-z0-9-]{2,120}$/;
 const MUSE_KINDS = {
@@ -93,17 +94,22 @@ async function handleStart(env, body) {
   const id = uuid();
   // Batch để task + muse_work đi cùng nhau (lỗi giữa chừng thì không để
   // lại task mồ côi mà start lại sẽ tạo trùng).
+  // Yêu cầu 45: xếp hàng chờ — suất Đang tạo của tính năng bận thì việc mới
+  // vào 'waiting' (Hàng chờ), lên Đang tạo khi tới lượt.
+  const startStatus = await gateInitialStatus(env, map.feature, 'luna');
   await env.DB.batch([
     env.DB.prepare(
       'INSERT INTO tasks (id, user_id, feature, title, status, progress, payload, result_url, result_html, result_text, result_image, result_versions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, NULL, NULL, NULL, NULL, NULL, ?, ?)',
-    ).bind(id, admin.id, map.feature, map.titlePrefix + '"' + title + '"', 'luna', JSON.stringify(payload), now, now),
+    ).bind(id, admin.id, map.feature, map.titlePrefix + '"' + title + '"', startStatus, JSON.stringify(payload), now, now),
     env.DB.prepare(
       'INSERT INTO muse_work (work_key, task_id, project, kind, title, link, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NULL, ?, ?)',
     ).bind(workKey, id, project, kind, title, now, now),
   ]);
   return json({
-    ok: true, created: true, task_id: id, status: 'luna', work_key: workKey,
-    message: 'Đã đẩy việc vào app — bảng MCP đang thấy luồng.',
+    ok: true, created: true, task_id: id, status: startStatus, work_key: workKey,
+    message: startStatus === 'waiting'
+      ? 'Đã đẩy việc vào app — tính năng đang bận nên việc xếp hàng chờ, lên Đang tạo khi tới lượt.'
+      : 'Đã đẩy việc vào app — bảng MCP đang thấy luồng.',
   }, 201);
 }
 
@@ -207,6 +213,8 @@ async function handleFinish(env, body) {
     statsMsg = ' Thống kê ' + mw.project + '/' + statKind + '/' + period + ': đã đăng ' + posted + '.';
   }
   await env.DB.batch(stmts);
+  // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
+  await promoteNext(env, row.feature).catch(() => {});
   // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao kết quả).
   await notifyDelivery(env, { id: mw.task_id, title: row.title, feature: row.feature }, versionId, resultKind).catch(() => {});
   return json({

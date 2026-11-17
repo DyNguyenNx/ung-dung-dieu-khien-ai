@@ -8,6 +8,7 @@
 import { json, err, FEATURES, FEATURE_KEYS, TASK_STATUSES, requireAuth, getLimit, getUsedThisWeek, nowIso, uuid, taskExtras, isLunaAi, forbidStaffPage } from '../../_lib/auth.js';
 import { notifyBrief, MAX_CLIENT_PHOTOS, MAX_REF_PHOTOS, MAX_PHOTO_BYTES } from '../../_lib/telegram.js';
 import { runPollinationsImageTask, POLLINATIONS_KEY_MISSING_MSG } from '../../_lib/pollinations-image.js';
+import { gateInitialStatus } from '../../_lib/queue.js';
 
 function taskRow(t) {
   return {
@@ -153,7 +154,13 @@ export async function onRequestPost(context) {
   if (pollinationsMissingKey) {
     payloadObj.pollinations = { error: POLLINATIONS_KEY_MISSING_MSG, at: nowIso() };
   }
-  const initialStatus = isLunaTask ? 'luna' : (pollinationsMissingKey ? 'error' : 'running');
+  // Yêu cầu 45: xếp hàng chờ — suất Đang tạo của tính năng bận thì nhiệm vụ
+  // mới vào 'waiting' (Hàng chờ); 'anh' (Pollinations) và lỗi thiếu key
+  // không qua hàng chờ (giữ hành vi cũ).
+  let initialStatus = isLunaTask ? 'luna' : (pollinationsMissingKey ? 'error' : 'running');
+  if (initialStatus === 'luna' || initialStatus === 'running') {
+    initialStatus = await gateInitialStatus(context.env, feature, initialStatus);
+  }
   const id = uuid();
   const now = nowIso();
   if (isLunaTask) {

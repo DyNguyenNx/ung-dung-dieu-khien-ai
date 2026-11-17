@@ -1934,9 +1934,9 @@
           <!-- Banner giải thích quy tắc phân quyền theo chế độ xem -->
           <div class="view-banner" id="viewBanner">
             <span class="vb-ic"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <div class="vb-short" id="viewBannerShort"><span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình</div>
+            <div class="vb-short" id="viewBannerShort"><span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình · Bảng tín hiệu chung cho cả đội</div>
             <button class="vb-help" type="button" id="viewBannerHelp" aria-label="Giải thích quy tắc phân quyền" aria-expanded="false">?</button>
-            <div class="vb-full" id="viewBannerText" hidden><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b></div>
+            <div class="vb-full" id="viewBannerText" hidden><span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” và số liệu toàn app. Bảng tín hiệu là chung cho cả đội. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b></div>
           </div>
 
           <!-- ======== MÀN HÌNH: DASHBOARD ======== -->
@@ -2090,7 +2090,7 @@
                         <!-- ======== Yêu cầu 42: Bảng tín hiệu MCP (thay YC32 v2) ======== -->
             <div class="card" id="signalBoard" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Bảng tín hiệu</h2>
-              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 15 giây. Chấm sáng chạy dọc các luồng khi có việc thật; bấm vòng tính năng để mở màn hình tính năng đó; bấm vòng trạng thái để xem các nhiệm vụ ở trạng thái đó trong cột AI tạo; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
+              <p class="hint">Bảng tín hiệu chung cho cả đội — mọi người đều thấy. Nhiệm vụ thật trong app, cập nhật mỗi 15 giây. Chấm sáng chạy dọc các luồng khi có việc thật; bấm vòng tính năng để mở màn hình tính năng đó; bấm vòng trạng thái để xem các nhiệm vụ ở trạng thái đó trong cột AI tạo; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
               <div class="sig-live" id="sigLive">
                 <span class="live-dot"></span><span id="sigLiveText">Đang live</span>
                 <span class="sig-updated" id="sigUpdated">Cập nhật lần cuối —</span>
@@ -5106,16 +5106,23 @@
         }
         requestAnimationFrame(step);
       }
+      /* YC45: bảng chung — khi đã có dữ liệu /api/board thì dùng danh sách
+         toàn app (boardTasks); chưa có thì dùng danh sách đã tải (phạm vi
+         người xem) như trước. YC35 QA frontend (16/11): document.fonts.ready
+         / resize co the goi ham ve bang truoc khi block script sau dinh
+         nghia window.AppState (microtask chen giua 2 block) -> dung
+         window.AppState co kiem tra ton tai nhu cac cho khac trong file,
+         thay vi AppState tran. */
+      function sigBoardTasks() {
+        if (window.AppState && window.AppState.boardData) return window.AppState.boardTasks || [];
+        return (window.AppState && window.AppState.tasks) || [];
+      }
       /* Số nhiệm vụ đang chạy (running + luna) theo từng tính năng — dữ liệu
          thật từ danh sách đã tải; chấm sáng chỉ chạy khi số này > 0. */
       function sigFeatCounts() {
         var c = {};
         SIG_FEATURE_KEYS.forEach(function (k) { c[k] = 0; });
-        /* YC35 QA frontend (16/11): document.fonts.ready / resize co the goi
-           ham ve bang truoc khi block script sau dinh nghia window.AppState
-           (microtask chen giua 2 block) -> dung window.AppState co kiem tra
-           ton tai nhu cac cho khac trong file, thay vi AppState tran. */
-        ((window.AppState && window.AppState.tasks) || []).forEach(function (t) {
+        sigBoardTasks().forEach(function (t) {
           if ((t.status === "running" || t.status === "luna") && c[t.feature] !== undefined) c[t.feature]++;
         });
         return c;
@@ -5128,7 +5135,8 @@
       function mcpIsArticle(t) {
         if (t.feature === "truyen") return true;
         if ((t.title || "").indexOf("Viết bài SEO") === 0) return true;
-        var lines = (t.payload && t.payload.lines) || [];
+        /* YC45: nhiệm vụ từ /api/board có sẵn mảng lines (không có payload). */
+        var lines = t.lines || (t.payload && t.payload.lines) || [];
         for (var i = 0; i < lines.length; i++) {
           if ((lines[i] || "").indexOf("Chủ đề:") === 0) return true;
         }
@@ -5136,7 +5144,7 @@
       }
       function mcpSubCounts() {
         var sub = { content: 0, image: 0 };
-        ((window.AppState && window.AppState.tasks) || []).forEach(function (t) {
+        sigBoardTasks().forEach(function (t) {
           if (t.status !== "running" && t.status !== "luna") return;
           if (mcpIsArticle(t)) sub.content++;
           else sub.image++;
@@ -5144,9 +5152,10 @@
         return sub;
       }
       /* Dự án + số từ của nhiệm vụ, đọc từ payload.lines (dạng
-         "Website: BlueMax — bluemax.vn", "Số từ mong muốn: 1500"). */
+         "Website: BlueMax — bluemax.vn", "Số từ mong muốn: 1500").
+         YC45: nhiệm vụ từ /api/board có sẵn mảng lines (không có payload). */
       function mcpTaskMeta(t) {
-        var lines = (t.payload && t.payload.lines) || [];
+        var lines = t.lines || (t.payload && t.payload.lines) || [];
         var project = "", words = "";
         for (var i = 0; i < lines.length; i++) {
           var L = lines[i] || "";
@@ -5378,16 +5387,27 @@
          panel, nên hàm này giữ lại (bỏ nhánh lọc theo tính năng). */
       function sigFilteredTasks() {
         var want = SIG_FILTERS[SIG_FILTER] || SIG_FILTERS.running;
-        return (AppState.tasks || []).filter(function (t) {
+        var out = sigBoardTasks().filter(function (t) {
           if (want.indexOf(t.status) === -1) return false;
           return true;
         });
+        /* YC45: Hàng chờ hiển thị theo thứ tự tới trước làm trước (FIFO —
+           cũ nhất trước); các trạng thái khác giữ mới nhất trước như API trả. */
+        if (SIG_FILTER === "waiting") {
+          out.sort(function (a, b) {
+            var d = new Date(a.created_at) - new Date(b.created_at);
+            return d || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+          });
+        }
+        return out;
       }
       function renderSignalBoard(d) {
         var board = document.getElementById("signalBoard");
         if (!board) return;
         if (d) AppState.dashData = d;
-        var c = sigCounts(AppState.dashData);
+        /* YC45: bảng chung — số liệu lấy từ /api/board (toàn app) khi đã có;
+           chưa có thì dùng số liệu dashboard (phạm vi người xem) như trước. */
+        var c = sigCounts(AppState.boardData || AppState.dashData);
         var fc = sigFeatCounts();
         var sub = mcpSubCounts();
         mcpUpdateCounts(c, fc, sub);
@@ -5427,7 +5447,19 @@
         if (!AppState.me || document.hidden || !window.AppBackend) return;
         if (sigTickBusy) return;
         sigTickBusy = true;
-        window.AppBackend.api("/api/tasks?limit=500").then(function (res) { AppState.tasks = res.tasks || []; })
+        /* YC45: bảng chung — lấy dữ liệu bảng toàn app (/api/board) trước,
+           rồi mới lấy danh sách nhiệm vụ (phạm vi người xem) cho màn tính
+           năng. Lỗi board thì giữ dữ liệu bảng cũ. */
+        window.AppBackend.api("/api/board").then(function (res) {
+          if (res && res.ok) {
+            AppState.boardData = res;
+            AppState.boardTasks = res.tasks || [];
+            renderSignalBoard();
+          }
+        })
+          .catch(function () { /* Giữ dữ liệu bảng cũ. */ })
+          .then(function () { return window.AppBackend.api("/api/tasks?limit=500"); })
+          .then(function (res) { AppState.tasks = res.tasks || []; })
           .catch(function () { /* Giữ danh sách cũ, vẫn thử tải dashboard. */ })
           .then(function () {
             /* Yêu cầu 43: % Luna đẩy về phải hiện cả trên màn tính năng —
@@ -5512,13 +5544,13 @@
         var bannerShort = document.getElementById("viewBannerShort");
         if (bannerShort) {
           bannerShort.innerHTML = staff
-            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — chỉ thấy việc của mình'
-            : '<span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình';
+            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — chỉ thấy việc của mình (trừ Bảng tín hiệu chung)'
+            : '<span class="vb-mode">Đang xem: Admin</span> — xem tất cả · Nhân viên chỉ thấy việc của mình · Bảng tín hiệu chung cho cả đội';
         }
         if (banner) {
           banner.innerHTML = staff
-            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — Giao diện này <b>chỉ hiện nhiệm vụ của chính bạn</b>; nhiệm vụ của nhân viên khác đã ẩn, mục <b>Quản lý tài khoản bị ẩn hẳn</b> và số liệu Dashboard chỉ tính phần việc của bạn. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>'
-            : '<span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” (duyệt tài khoản, giới hạn lượt dùng, danh sách thành viên) và số liệu toàn app. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>';
+            ? '<span class="vb-mode">Đang xem: Nhân viên — ' + escHtml(displayName) + '</span> — Giao diện này <b>chỉ hiện nhiệm vụ của chính bạn</b>; nhiệm vụ của nhân viên khác đã ẩn, mục <b>Quản lý tài khoản bị ẩn hẳn</b> và số liệu Dashboard chỉ tính phần việc của bạn (trừ Bảng tín hiệu chung — cả đội đều thấy). Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>'
+            : '<span class="vb-mode">Đang xem: Admin</span> — Admin thấy <b>tất cả nhiệm vụ của mọi nhân viên</b>, mục “Quản lý tài khoản” (duyệt tài khoản, giới hạn lượt dùng, danh sách thành viên) và số liệu toàn app. Bảng tín hiệu là chung cho cả đội. Quy tắc của app: <b>mỗi nhân viên đăng nhập chỉ thấy việc của mình, không thấy việc của người khác — chỉ admin mới thấy tất cả.</b>';
         }
         updateDashStats();
         if (typeof closeDash === "function") closeDash();

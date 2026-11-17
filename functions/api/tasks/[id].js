@@ -1,6 +1,7 @@
 // /api/tasks/:id — Xem / cập nhật / xóa một nhiệm vụ.
 // Mọi thao tác đều kiểm tra quyền sở hữu (trừ Admin).
 import { json, err, FEATURES, TASK_STATUSES, requireAuth, nowIso, taskExtras, forbidStaffPage } from '../../_lib/auth.js';
+import { promoteNext, isActiveStatus } from '../../_lib/queue.js';
 
 function taskRow(t) {
   return {
@@ -90,6 +91,11 @@ export async function onRequestPatch(context) {
   sets.push('updated_at = ?');
   args.push(nowIso(), context.params.id);
   await context.env.DB.prepare(`UPDATE tasks SET ${sets.join(', ')} WHERE id = ?`).bind(...args).run();
+  // Yêu cầu 45: nhiệm vụ vừa NHẢ suất Đang tạo (running/luna → trạng thái khác)
+  // thì đẩy việc chờ lên làm tiếp (kể cả mô phỏng frontend finishTask).
+  if (body.status !== undefined && isActiveStatus(row.status) && !isActiveStatus(body.status)) {
+    await promoteNext(context.env, row.feature).catch(() => {});
+  }
   const updated = await loadTask(context.env, context.params.id);
   return json({ ok: true, task: taskRow(updated) });
 }
@@ -104,5 +110,9 @@ export async function onRequestDelete(context) {
   if (pg) return pg;
   if (!canAccess(user, row)) return err('Không có quyền xóa nhiệm vụ này.', 403);
   await context.env.DB.prepare('DELETE FROM tasks WHERE id = ?').bind(context.params.id).run();
+  // Yêu cầu 45: xóa nhiệm vụ đang chiếm suất Đang tạo thì đẩy việc chờ lên.
+  if (isActiveStatus(row.status)) {
+    await promoteNext(context.env, row.feature).catch(() => {});
+  }
   return json({ ok: true });
 }

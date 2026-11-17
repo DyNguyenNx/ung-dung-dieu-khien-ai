@@ -11,6 +11,7 @@
 // Sau khi giao: gửi thông báo Telegram cho anh Dy.
 import { json, err, lunaSecretOk, parseVersionsFull, nowIso, uuid } from '../../_lib/auth.js';
 import { notifyDelivery, MAX_DELIVERY_BYTES } from '../../_lib/telegram.js';
+import { promoteNext } from '../../_lib/queue.js';
 
 export async function onRequestPost(context) {
   if (!(await lunaSecretOk(context.env, context.request))) {
@@ -53,6 +54,8 @@ export async function onRequestPost(context) {
     await context.env.DB.prepare(
       'UPDATE tasks SET status = ?, progress = 100, result_html = ?, result_versions = ?, updated_at = ? WHERE id = ?',
     ).bind('review', html, JSON.stringify(versions), now, taskId).run();
+    // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
+    await promoteNext(context.env, row.feature).catch(() => {});
     // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao file).
     await notifyDelivery(context.env, { id: taskId, title: row.title, feature: row.feature }, versionId).catch(() => {});
     return json({
@@ -85,6 +88,8 @@ export async function onRequestPost(context) {
   await context.env.DB.prepare(
     'UPDATE tasks SET status = ?, progress = 100, result_text = ?, result_versions = ?, updated_at = ? WHERE id = ?',
   ).bind('review', text, JSON.stringify(versions), now, taskId).run();
+  // Yêu cầu 45: giao xong NHẢ suất Đang tạo — đẩy việc chờ lên làm tiếp.
+  await promoteNext(context.env, row.feature).catch(() => {});
   // Thông báo cho anh Dy (best-effort — lỗi Telegram không làm hỏng việc giao kết quả).
   await notifyDelivery(context.env, { id: taskId, title: row.title, feature: row.feature }, versionId, kind).catch(() => {});
   const kindLabel = kind === 'posted' ? 'đã tự đăng' : 'nội dung để nhân viên tự đăng';
