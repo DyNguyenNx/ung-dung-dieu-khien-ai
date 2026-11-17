@@ -4,13 +4,19 @@
 // {configured} (đã có CANVA_CLIENT_ID/SECRET trên Cloudflare chưa) +
 // scope / expires_at / connected_by. KHÔNG BAO GIỜ trả token ra client.
 import { json, requireAuth } from '../../_lib/auth.js';
-import { getCanvaTokenRow } from '../../_lib/canva.js';
+import { getCanvaTokenRow, hasRequiredScopes } from '../../_lib/canva.js';
 
 export async function onRequestGet(context) {
   const { user, response } = await requireAuth(context.env, context.request);
   if (response) return response;
   const row = await getCanvaTokenRow(context.env);
-  const out = { ok: true, connected: !!row };
+  // connected = có token ĐÃ ĐỦ scope yêu cầu. Token cũ thiếu scope (vd
+  // cấp trước khi thêm asset:read, 17/11/2026) thì báo chưa kết nối để app
+  // hiện lại nút "Kết nối Canva" cho admin cấp lại quyền, thay vì kẹt ở
+  // nút "Chỉnh tiếp" rồi lỗi mãi. KHÔNG kiểm tra hết hạn ở đây: token hết
+  // hạn vẫn tự refresh được ở getValidAccessToken, chỉ khi refresh thất bại
+  // invalid_grant mới xoá dòng token (lúc đó connected tự thành false).
+  const out = { ok: true, connected: !!row && hasRequiredScopes(row.scope || '') };
   if (user.role === 'admin') {
     out.configured = !!(context.env.CANVA_CLIENT_ID && context.env.CANVA_CLIENT_SECRET);
     if (row) {

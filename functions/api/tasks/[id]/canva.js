@@ -8,7 +8,7 @@
 // qua GET /designs/:id, vì link cũ hết hạn sau 30 ngày) thay vì tải trùng
 // asset; design cũ đã mất (tự xoá sau 7 ngày không sửa) thì tạo mới.
 import { json, err, requireAuth, nowIso } from '../../../_lib/auth.js';
-import { openTaskInCanva, CanvaError } from '../../../_lib/canva.js';
+import { openTaskInCanva, CanvaError, isMissingScopesMessage } from '../../../_lib/canva.js';
 
 const CANVA_HTTP_STATUS = {
   NOT_CONFIGURED: 500,
@@ -71,7 +71,15 @@ export async function onRequestPost(context) {
     });
   } catch (e) {
     if (e instanceof CanvaError) {
+      // Canva báo thiếu scope giữa luồng (vd Canva đổi yêu cầu scope) —
+      // bắt admin kết nối lại thay vì báo lỗi API chung chung.
+      if (isMissingScopesMessage(e.message)) {
+        return err('Token Canva thiếu quyền cho tính năng này — admin bấm “Kết nối Canva” để cấp lại quyền.', 409, { code: 'NEED_RECONNECT' });
+      }
       return err(e.message, CANVA_HTTP_STATUS[e.code] || 502, { code: e.code });
+    }
+    if (isMissingScopesMessage(e && e.message)) {
+      return err('Token Canva thiếu quyền cho tính năng này — admin bấm “Kết nối Canva” để cấp lại quyền.', 409, { code: 'NEED_RECONNECT' });
     }
     return err('Không mở được Canva: ' + (e && e.message ? String(e.message).slice(0, 200) : 'lỗi không rõ.'), 502);
   }

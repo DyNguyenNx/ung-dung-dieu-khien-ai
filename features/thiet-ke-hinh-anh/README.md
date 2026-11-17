@@ -156,7 +156,16 @@ chờ reset không khắc phục được). Model chốt: `black-forest-labs/flu
   `CANVA_CLIENT_ID` / `CANVA_CLIENT_SECRET` (Cloudflare secret).
   Redirect URI đăng ký trên canva.dev:
   `https://ung-dung-dieu-khien-ai.pages.dev/api/canva/callback`.
-  Scopes: `asset:write design:content:write design:meta:read`.
+  Scopes: `asset:read asset:write design:content:write design:meta:read`.
+  BÀI HỌC LIVE 17/11/2026: `asset:read` là bắt buộc vì poll
+  `GET /v1/asset-uploads/{jobId}` cần nó — token cấp trước khi thêm scope
+  này chỉ mang 3 scope cũ nên Canva trả "Missing scopes: [asset:read]" khi
+  bấm "Chỉnh tiếp". Trang đăng ký app trên canva.dev tự tích sẵn
+  `asset:read` (không tắt được) nên app được phép xin scope này; chỉ là URL
+  OAuth phải xin đủ 4 scope thì token mới mang đủ. `GET /api/canva/status`
+  báo `connected=false` khi scope đã lưu thiếu scope yêu cầu, và endpoint
+  mở Canva trả `NEED_RECONNECT` (409) để app hiện lại nút "Kết nối Canva"
+  cho admin cấp lại quyền thay vì kẹt ở nút "Chỉnh tiếp" lỗi mãi.
 - Backend: lib `functions/_lib/canva.js` (PKCE, đổi/refresh token, upload
   asset + poll job, tạo design, lấy lại design); endpoints
   `GET /api/canva/auth` (chỉ admin, sinh state + verifier, lưu D1 10 phút),
@@ -188,7 +197,7 @@ chờ reset không khắc phục được). Model chốt: `black-forest-labs/flu
   (cần kết nối lại), upload lỗi (file quá lớn / import thất bại), Canva
   quá tải (429), design đã mất.
 - PHẦN ANH PHẢI LÀM (builder không tự đăng ký app hay tạo secret thay anh):
-  (1) đăng ký app tại canva.dev (tích đủ 3 scope trên, redirect URI đúng
+  (1) đăng ký app tại canva.dev (tích đủ 4 scope trên, redirect URI đúng
   y hệt trên); (2) dán `CANVA_CLIENT_ID` / `CANVA_CLIENT_SECRET` vào
   Cloudflare (Pages → Settings → Variables, dạng Secret) + redeploy;
   (3) bấm "Kết nối Canva" trên thẻ nhiệm vụ và cấp quyền một lần.

@@ -6282,7 +6282,15 @@
                   } else {
                     toast("Canva không trả link chỉnh sửa — thử bấm lại.");
                   }
-                }).catch(function (e) { toast(e.message || "Không mở được Canva."); })
+                }).catch(function (e) {
+                  /* Sửa YC36 (17/11/2026): server trả NEED_RECONNECT khi
+                     token thiếu scope (vd thiếu asset:read) — tải lại trạng
+                     thái Canva để nút chuyển về "Kết nối Canva" cho admin
+                     cấp lại quyền, thay vì kẹt ở nút "Chỉnh tiếp" lỗi mãi.
+                     e.data.code có sẵn vì helper api() gắn data vào lỗi. */
+                  if (e && e.data && e.data.code === "NEED_RECONNECT") refreshCanvaStatus();
+                  toast(e.message || "Không mở được Canva.");
+                })
                   .then(function () { btn.disabled = false; btn.textContent = oldLabel; });
               } else if (kind === "canva-connect") {
                 /* Yêu cầu 36: admin chưa kết nối Canva — sang luồng OAuth

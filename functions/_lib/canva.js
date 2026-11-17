@@ -33,7 +33,21 @@
 // ra client bao giờ (endpoint /api/canva/status chỉ trả connected/configured).
 import { nowIso } from './auth.js';
 
-export const CANVA_SCOPES = 'asset:write design:content:write design:meta:read';
+export const CANVA_SCOPES = 'asset:read asset:write design:content:write design:meta:read';
+// BÀI HỌC LIVE 17/11/2026: poll GET /v1/asset-uploads/{jobId} cần scope
+// asset:read — token cấp trước khi thêm scope này chỉ mang 3 scope cũ nên
+// Canva trả "Missing scopes: [asset:read]" khi bấm "Chỉnh tiếp trên Canva".
+// Trang đăng ký app trên canva.dev tự tích sẵn asset:read (không tắt được)
+// nên app được phép xin scope này — chỉ là URL OAuth phải xin đủ 4 scope
+// thì token mới mang đủ. Token lưu scope đã cấp ở cột scope (canva_tokens)
+// nên status + getValidAccessToken kiểm tra được trước khi gọi API.
+export function missingScopes(scopeString) {
+  const have = new Set(String(scopeString || '').split(/\s+/).filter(Boolean));
+  return CANVA_SCOPES.split(' ').filter((s) => !have.has(s));
+}
+export function hasRequiredScopes(scopeString) {
+  return missingScopes(scopeString).length === 0;
+}
 export const CANVA_TOKEN_ROW_ID = 'admin'; // 1 dòng duy nhất: Canva của admin.
 export const CANVA_ACCESS_TOKEN_TTL_MS = 4 * 60 * 60 * 1000; // Canva: ~4 giờ.
 export const CANVA_UPLOAD_POLL_MS = 45000; // Chờ Canva xử lý ảnh tối đa 45s.
@@ -116,6 +130,14 @@ export async function deleteCanvaTokens(env) {
   await env.DB.prepare('DELETE FROM canva_tokens WHERE id = ?').bind(CANVA_TOKEN_ROW_ID).run();
 }
 
+// Canva trả "Missing scopes: [...]" khi token thiếu scope cho endpoint
+// đang gọi (vd poll asset-uploads cần asset:read) — dù đã kiểm tra scope
+// ở getValidAccessToken, vẫn có thể lệch (Canva đổi yêu cầu scope) nên
+// endpoint map lỗi này sang NEED_RECONNECT để frontend hiện lại nút kết nối.
+export function isMissingScopesMessage(msg) {
+  return /missing scopes/i.test(String(msg || ''));
+}
+
 // ---------- Dịch lỗi Canva thành tiếng Việt ----------
 export function canvaErrorMessage(res, data) {
   const raw = (data && data.error && data.error.message)
@@ -183,6 +205,13 @@ export async function exchangeCode(env, { code, verifier }) {
 export async function getValidAccessToken(env) {
   const row = await getCanvaTokenRow(env);
   if (!row) throw new CanvaError('NOT_CONNECTED', CANVA_NOT_CONNECTED_MSG);
+  // Token cũ cấp trước khi thêm scope mới (vd thiếu asset:read) thì bắt
+  // admin kết nối lại ngay, khỏi gọi API Canva rồi mới nhận "Missing scopes".
+  const missing = missingScopes(row.scope || '');
+  if (missing.length) {
+    throw new CanvaError('NEED_RECONNECT',
+      'Token Canva thiếu quyền ' + missing.join(', ') + ' — admin bấm “Kết nối Canva” để cấp lại quyền.');
+  }
   const exp = Date.parse(row.expires_at || '');
   if (Number.isFinite(exp) && exp - Date.now() > 60000) return row.access_token;
   try {
