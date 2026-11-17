@@ -724,9 +724,12 @@
             /* ---------- Bảng tín hiệu MCP (Yêu cầu 42) ----------
          Thay bảng YC32 v2 bằng đồ thị MCP của demo (bố cục Figma
          "so-do-bo-cuc-mcp 1": khung 1600x940, 18 dây luồng, 5 thẻ số,
-         cột AI tạo + danh sách nhiệm vụ bên trái, bấm vòng để lọc).
-         Giữ hàng live + danh sách nhiệm vụ HTML bên dưới (nhóm theo
-         tính năng, tối đa 50 nhiệm vụ) như trước. */
+         cột AI tạo trong đồ thị, bấm vòng tính năng để mở màn hình,
+         bấm vòng trạng thái để lọc cột AI tạo).
+         Yêu cầu 44 (17/11): ĐÃ BỎ danh sách nhiệm vụ HTML bên dưới đồ
+         thị (#sigList + renderSigList) — cột AI tạo trong đồ thị là
+         nơi duy nhất liệt kê nhiệm vụ trên bảng; bấm vòng tính năng
+         mở thẳng màn hình tính năng đó, không lọc nữa. */
       .sig-live{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--green); margin:10px 0 2px; flex-wrap:wrap; }
       .sig-live .live-dot{ flex:none; }
       .sig-live.paused{ color:var(--muted); }
@@ -746,26 +749,6 @@
       #signalBoard .mcp-node:hover .mcp-glowc{ opacity:.3; }
       #signalBoard .mcp-lbl{ paint-order:stroke; stroke:#0b0b22; stroke-width:5px; stroke-linejoin:round; }
       #signalBoard .mcp-task{ cursor:pointer; }
-      /* Danh sách nhiệm vụ HTML bên dưới đồ thị (giữ như YC32). */
-      .sig-group{ display:flex; align-items:baseline; gap:8px; margin:14px 0 2px; }
-      .sig-group b{ font-size:14.5px; color:var(--ink); }
-      .sig-group span{ font-size:12.5px; color:var(--muted); font-weight:700; }
-      .sig-row{ display:flex; align-items:center; gap:12px; width:100%; padding:11px 10px; border:0; border-bottom:1px dashed var(--line); background:transparent; font-family:inherit; text-align:left; cursor:pointer; }
-      .sig-row:last-child{ border-bottom:0; }
-      .sig-row:hover .sig-row-title{ color:var(--accent); }
-      .sig-row-main{ flex:1 1 auto; min-width:0; }
-      .sig-row-title{ display:block; font-size:14px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .sig-row-meta{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
-      .sig-row .bar{ flex:0 0 120px; }
-      .sig-row .bar > i{ transition:width .6s ease; }
-      .sig-row .tag{ flex:none; }
-      .sig-row .bar.indet > i{ width:30% !important; background:var(--blue); animation:sigslide 1.4s ease-in-out infinite alternate; }
-      @keyframes sigslide{ from{ margin-left:0; } to{ margin-left:70%; } }
-      @media (prefers-reduced-motion: reduce){ .sig-row .bar.indet > i{ animation:none; } }
-      @media (max-width:720px){
-        .sig-row{ flex-wrap:wrap; gap:8px; }
-        .sig-row .bar{ flex:1 1 100%; order:3; }
-      }
 
       .btn-sm{ height:44px; padding:0 14px; font-size:12.5px; }
 
@@ -2107,7 +2090,7 @@
                         <!-- ======== Yêu cầu 42: Bảng tín hiệu MCP (thay YC32 v2) ======== -->
             <div class="card" id="signalBoard" style="margin-top:16px;">
               <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Bảng tín hiệu</h2>
-              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 15 giây. Chấm sáng chạy dọc các luồng khi có việc thật; bấm một vòng trong sơ đồ để lọc danh sách; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
+              <p class="hint">Nhiệm vụ thật trong app, cập nhật mỗi 15 giây. Chấm sáng chạy dọc các luồng khi có việc thật; bấm vòng tính năng để mở màn hình tính năng đó; bấm vòng trạng thái để xem các nhiệm vụ ở trạng thái đó trong cột AI tạo; bấm một nhiệm vụ để mở đúng màn hình tính năng đó.</p>
               <div class="sig-live" id="sigLive">
                 <span class="live-dot"></span><span id="sigLiveText">Đang live</span>
                 <span class="sig-updated" id="sigUpdated">Cập nhật lần cuối —</span>
@@ -2163,7 +2146,7 @@
           <path d="M44 204H306" stroke="#2B2B5E" stroke-width="1.1" />
 
           <!-- Pill báo đang lọc (bấm để bỏ lọc) -->
-          <g id="mcpFilterPill" class="mcp-node" style="display:none" role="button" tabindex="0" aria-label="Bỏ lọc danh sách nhiệm vụ">
+          <g id="mcpFilterPill" class="mcp-node" style="display:none" role="button" tabindex="0" aria-label="Bỏ lọc cột AI tạo">
             <rect id="mcpPillRect" x="164" y="146" width="144" height="30" rx="15" fill="rgba(139,124,246,.16)" stroke="#8B7CF6" stroke-width="1" />
             <text id="mcpFilterPillText" x="180" y="166" font-size="11.5" font-weight="700" fill="#D9D4FF">Đang lọc</text>
             <text id="mcpPillX" x="294" y="166" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">✕</text>
@@ -2220,7 +2203,7 @@
           </g>
 
           <!-- ===== 6 vòng agent: tâm x 408, y 190/302/414/526/638/750, r 30 ===== -->
-          <g class="mcp-node mcp-agent" data-feature="web" role="button" tabindex="0" aria-label="Chăm sóc web — 4 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="web" role="button" tabindex="0" aria-label="Chăm sóc web — 4 đang chạy. Bấm để mở màn hình">
             <circle cx="408" cy="190" r="37" fill="#FB923C" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="190" r="41" fill="none" stroke="#FB923C" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="190" r="30" fill="#141432" stroke="#FB923C" stroke-width="2.4" />
@@ -2228,7 +2211,7 @@
             <text class="mcp-lbl" x="408" y="244" text-anchor="middle" font-size="15" font-weight="700" fill="#E6E6F5">Chăm sóc web</text>
             <text class="mcp-lbl" x="408" y="264" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpAgentSub-web">—</tspan> đang chạy</text>
           </g>
-          <g class="mcp-node mcp-agent" data-feature="page" role="button" tabindex="0" aria-label="Chăm sóc page — 0 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="page" role="button" tabindex="0" aria-label="Chăm sóc page — 0 đang chạy. Bấm để mở màn hình">
             <circle class="mcp-glowc" cx="408" cy="302" r="37" fill="#60A5FA" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="302" r="41" fill="none" stroke="#60A5FA" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="302" r="30" fill="#141432" stroke="#60A5FA" stroke-width="2.4" />
@@ -2236,7 +2219,7 @@
             <text class="mcp-lbl" x="408" y="356" text-anchor="middle" font-size="15" font-weight="700" fill="#E6E6F5">Chăm sóc page</text>
             <text class="mcp-lbl" x="408" y="376" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpAgentSub-page">—</tspan> đang chạy</text>
           </g>
-          <g class="mcp-node mcp-agent" data-feature="kenh" role="button" tabindex="0" aria-label="Xây dựng kênh — 0 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="kenh" role="button" tabindex="0" aria-label="Xây dựng kênh — 0 đang chạy. Bấm để mở màn hình">
             <circle class="mcp-glowc" cx="408" cy="414" r="37" fill="#2DD4BF" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="414" r="41" fill="none" stroke="#2DD4BF" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="414" r="30" fill="#141432" stroke="#2DD4BF" stroke-width="2.4" />
@@ -2244,7 +2227,7 @@
             <text class="mcp-lbl" x="408" y="468" text-anchor="middle" font-size="15" font-weight="700" fill="#E6E6F5">Xây dựng kênh</text>
             <text class="mcp-lbl" x="408" y="488" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpAgentSub-kenh">—</tspan> đang chạy</text>
           </g>
-          <g class="mcp-node mcp-agent" data-feature="truyen" role="button" tabindex="0" aria-label="Viết truyện — 0 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="truyen" role="button" tabindex="0" aria-label="Viết truyện — 0 đang chạy. Bấm để mở màn hình">
             <circle class="mcp-glowc" cx="408" cy="526" r="37" fill="#A78BFA" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="526" r="41" fill="none" stroke="#A78BFA" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="526" r="30" fill="#141432" stroke="#A78BFA" stroke-width="2.4" />
@@ -2252,7 +2235,7 @@
             <text class="mcp-lbl" x="408" y="580" text-anchor="middle" font-size="15" font-weight="700" fill="#E6E6F5">Viết truyện</text>
             <text class="mcp-lbl" x="408" y="600" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpAgentSub-truyen">—</tspan> đang chạy</text>
           </g>
-          <g class="mcp-node mcp-agent" data-feature="anh" role="button" tabindex="0" aria-label="Thiết kế hình ảnh — 0 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="anh" role="button" tabindex="0" aria-label="Thiết kế hình ảnh — 0 đang chạy. Bấm để mở màn hình">
             <circle class="mcp-glowc" cx="408" cy="638" r="37" fill="#FBBF24" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="638" r="41" fill="none" stroke="#FBBF24" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="638" r="30" fill="#141432" stroke="#FBBF24" stroke-width="2.4" />
@@ -2260,7 +2243,7 @@
             <text class="mcp-lbl" x="408" y="692" text-anchor="middle" font-size="15" font-weight="700" fill="#E6E6F5">Thiết kế hình ảnh</text>
             <text class="mcp-lbl" x="408" y="712" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpAgentSub-anh">—</tspan> đang chạy</text>
           </g>
-          <g class="mcp-node mcp-agent" data-feature="designweb" role="button" tabindex="0" aria-label="Design Web — 0 đang chạy. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-agent" data-feature="designweb" role="button" tabindex="0" aria-label="Design Web — 0 đang chạy. Bấm để mở màn hình">
             <circle class="mcp-glowc" cx="408" cy="750" r="37" fill="#F472B6" opacity="0.16" />
             <circle class="mcp-selring" cx="408" cy="750" r="41" fill="none" stroke="#F472B6" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="408" cy="750" r="30" fill="#141432" stroke="#F472B6" stroke-width="2.4" />
@@ -2279,7 +2262,7 @@
           </g>
 
           <!-- ===== Vành trạng thái quanh ĐANG TẠO ===== -->
-          <g class="mcp-node mcp-status" data-status="queue" role="button" tabindex="0" aria-label="Hàng chờ — 0 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="queue" role="button" tabindex="0" aria-label="Hàng chờ — 0 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="862" cy="191" r="50" fill="#A78BFA" opacity="0.15" />
             <circle class="mcp-selring" cx="862" cy="191" r="51" fill="none" stroke="#A78BFA" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="862" cy="191" r="42" fill="#141432" stroke="#A78BFA" stroke-width="2.4" />
@@ -2287,7 +2270,7 @@
             <text class="mcp-lbl" x="862" y="259" text-anchor="middle" font-size="15" font-weight="800" letter-spacing="1" fill="#A78BFA">HÀNG CHỜ</text>
             <text class="mcp-lbl" x="862" y="279" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpStatusSub-queue">—</tspan> tác vụ</text>
           </g>
-          <g class="mcp-node mcp-status" data-status="sent" role="button" tabindex="0" aria-label="Gửi Muse — 4 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="sent" role="button" tabindex="0" aria-label="Gửi Muse — 4 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="1151" cy="191" r="46" fill="#22D3EE" opacity="0.15" />
             <circle class="mcp-selring" cx="1151" cy="191" r="48" fill="none" stroke="#22D3EE" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="1151" cy="191" r="37" fill="#141432" stroke="#22D3EE" stroke-width="2.4" />
@@ -2295,7 +2278,7 @@
             <text class="mcp-lbl" x="1151" y="254" text-anchor="middle" font-size="15" font-weight="800" letter-spacing="1" fill="#22D3EE">GỬI MUSE</text>
             <text class="mcp-lbl" x="1151" y="274" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpStatusSub-sent">—</tspan> tác vụ</text>
           </g>
-          <g class="mcp-node mcp-status" data-status="error" role="button" tabindex="0" aria-label="Lỗi, dừng — 1 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="error" role="button" tabindex="0" aria-label="Lỗi, dừng — 1 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="795" cy="470" r="46" fill="#F87171" opacity="0.15" />
             <circle class="mcp-selring" cx="795" cy="470" r="48" fill="none" stroke="#F87171" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="795" cy="470" r="37" fill="#141432" stroke="#F87171" stroke-width="2.4" />
@@ -2303,7 +2286,7 @@
             <text class="mcp-lbl" x="795" y="533" text-anchor="middle" font-size="15" font-weight="800" letter-spacing="1" fill="#F87171">LỖI · DỪNG</text>
             <text class="mcp-lbl" x="795" y="553" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpStatusSub-error">—</tspan> tác vụ</text>
           </g>
-          <g class="mcp-node mcp-status" data-status="creating" role="button" tabindex="0" aria-label="Đang tạo — 4 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="creating" role="button" tabindex="0" aria-label="Đang tạo — 4 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="1010" cy="470" r="65" fill="#C084FC" opacity="0.15" />
             <circle class="mcp-selring" cx="1010" cy="470" r="67" fill="none" stroke="#C084FC" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="1010" cy="470" r="56" fill="#141432" stroke="#C084FC" stroke-width="2.4" />
@@ -2311,7 +2294,7 @@
             <text class="mcp-lbl" x="1010" y="552" text-anchor="middle" font-size="15" font-weight="800" letter-spacing="1" fill="#C084FC">ĐANG TẠO</text>
             <text class="mcp-lbl" x="1010" y="572" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpStatusSub-creating">—</tspan> tác vụ</text>
           </g>
-          <g class="mcp-node mcp-status" data-status="done" role="button" tabindex="0" aria-label="Hoàn tất — 4 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="done" role="button" tabindex="0" aria-label="Hoàn tất — 4 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="861" cy="729" r="50" fill="#4ADE80" opacity="0.15" />
             <circle class="mcp-selring" cx="861" cy="729" r="53" fill="none" stroke="#4ADE80" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="861" cy="729" r="42" fill="#141432" stroke="#4ADE80" stroke-width="2.4" />
@@ -2319,7 +2302,7 @@
             <text class="mcp-lbl" x="861" y="797" text-anchor="middle" font-size="15" font-weight="800" letter-spacing="1" fill="#4ADE80">HOÀN TẤT</text>
             <text class="mcp-lbl" x="861" y="817" text-anchor="middle" font-size="12.5" fill="#9A9AC8"><tspan id="mcpStatusSub-done">—</tspan> tác vụ</text>
           </g>
-          <g class="mcp-node mcp-status" data-status="returned" role="button" tabindex="0" aria-label="Tái về — 0 tác vụ. Bấm để lọc danh sách">
+          <g class="mcp-node mcp-status" data-status="returned" role="button" tabindex="0" aria-label="Tái về — 0 tác vụ. Bấm để xem trong cột AI tạo">
             <circle class="mcp-glowc" cx="1160" cy="731" r="50" fill="#F59E0B" opacity="0.15" />
             <circle class="mcp-selring" cx="1160" cy="731" r="53" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-dasharray="4 5" />
             <circle cx="1160" cy="731" r="42" fill="#141432" stroke="#F59E0B" stroke-width="2.4" />
@@ -2353,7 +2336,6 @@
           <g id="mcpLedLayer"></g>
         </svg>
               </div>
-              <div id="sigList"></div>
             </div>
 
           </section>
@@ -5033,7 +5015,12 @@
       /* ---------- Bảng tín hiệu MCP (Yêu cầu 42) ----------
          Thay bảng YC32 v2 bằng đồ thị MCP của demo (bố cục Figma
          "so-do-bo-cuc-mcp 1": khung 1600x940, 18 dây luồng, 5 thẻ số,
-         cột AI tạo + danh sách nhiệm vụ bên trái, bấm vòng để lọc).
+         cột AI tạo trong đồ thị, bấm vòng tính năng để mở màn hình,
+         bấm vòng trạng thái để lọc cột AI tạo).
+         Yêu cầu 44 (17/11): ĐÃ BỎ danh sách nhiệm vụ HTML bên dưới đồ
+         thị (#sigList + renderSigList) — cột AI tạo trong đồ thị là
+         nơi duy nhất liệt kê nhiệm vụ trên bảng; bấm vòng tính năng
+         mở thẳng màn hình tính năng đó, không lọc nữa.
          DỮ LIỆU VẪN THẬT từ API như trước (byStatus + /api/tasks),
          không bịa số; số cứng của demo đã bỏ hết, JS điền live.
          Ánh xạ số liệu (xem spec Yêu cầu 42):
@@ -5056,17 +5043,12 @@
       var SIG_FILTERS = { waiting: ["waiting", "scheduled"], running: ["running", "luna"], luna: ["luna"], review: ["review"], completed: ["completed"], error: ["error"] };
       var SIG_FILTER_NAMES = { waiting: "Hàng chờ", running: "Đang chạy", luna: "Gửi Muse", review: "Chờ duyệt", completed: "Hoàn thành", error: "Lỗi" };
       var SIG_FILTER = "running";
-      var SIG_FEAT_FILTER = null; // null = mọi tính năng; bấm vòng tính năng để lọc thêm
       var SIG_POLL_MS = 15000; // Yêu cầu 41: 15 giây/nhịp — giảm lag do gọi dữ liệu.
-      var SIG_LIST_MAX = 50;
       var sigTimer = null;
       var sigWired = false;
       var sigReducedMotion = (typeof window.matchMedia === "function") && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var sigShown = {};      // id phần tử -> số đang hiển thị (cho hiệu ứng đếm lên)
       var sigTweenToken = {}; // chống 2 lần đếm chồng nhau trên cùng 1 phần tử
-      var sigRowMap = {};     // id nhiệm vụ -> {row, bar, barI, titleEl, metaEl, tagEl}
-      var sigGroupMap = {};   // tính năng -> {wrap, countEl, rowsEl}
-      var sigEmptyEl = null;
       var mcpLedSig = "";     // chữ ký số lượng ảnh hưởng LED (đổi mới vẽ lại chấm LED)
       /* Khối này nằm ở script block 1 (top-level) nên KHÔNG thấy các biến trong
          IIFE AppBackend (FEATURE_KEYS / FEATURE_NAMES / fmtTime) — dùng bản sao
@@ -5078,11 +5060,6 @@
       var MCP_STATUS_FILTER = { queue: "waiting", sent: "luna", error: "error", creating: "running", done: "completed", returned: "review" };
       var MCP_STATUS_NAMES = { queue: "Hàng chờ", sent: "Gửi Muse", error: "Lỗi, dừng", creating: "Đang tạo", done: "Hoàn tất", returned: "Tái về" };
       var MCP_PANEL_LABELS = { running: "đang chạy", luna: "đang gửi Muse", waiting: "hàng chờ", review: "chờ duyệt", completed: "đã xong", error: "lỗi" };
-      function sigFmtTime(iso) {
-        var d = new Date(iso);
-        if (isNaN(d.getTime())) return "";
-        return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
-      }
       function sigCounts(d) {
         var bs = (d && d.byStatus) || null;
         if (bs) {
@@ -5217,8 +5194,7 @@
           var node = document.querySelector('.mcp-agent[data-feature="' + key + '"]');
           if (node) {
             if (n > 0) node.removeAttribute("opacity"); else node.setAttribute("opacity", "0.5");
-            node.classList.toggle("selected", SIG_FEAT_FILTER === key);
-            node.setAttribute("aria-label", (SIG_FEATURE_NAMES[key] || key) + " — " + n + " đang chạy. Bấm để lọc danh sách");
+            node.setAttribute("aria-label", (SIG_FEATURE_NAMES[key] || key) + " — " + n + " đang chạy. Bấm để mở màn hình " + (SIG_FEATURE_NAMES[key] || key));
             var glow = node.querySelector(".mcp-glowc");
             if (glow) glow.style.display = n > 0 ? "" : "none";
           }
@@ -5238,7 +5214,7 @@
           if (node) {
             if (n > 0) node.removeAttribute("opacity"); else node.setAttribute("opacity", "0.55");
             node.classList.toggle("selected", MCP_STATUS_FILTER[key] === SIG_FILTER);
-            node.setAttribute("aria-label", (MCP_STATUS_NAMES[key] || key) + " — " + n + " tác vụ. Bấm để lọc danh sách");
+            node.setAttribute("aria-label", (MCP_STATUS_NAMES[key] || key) + " — " + n + " tác vụ. Bấm để xem trong cột AI tạo");
             var glow = node.querySelector(".mcp-glowc");
             if (glow) glow.style.display = n > 0 ? "" : "none";
           }
@@ -5369,7 +5345,7 @@
           if (total > 4) {
             more.style.display = "";
             var mt = document.getElementById("mcpPanelMoreText");
-            if (mt) mt.textContent = "…và " + (total - 4) + " nhiệm vụ nữa — xem danh sách bên dưới";
+            if (mt) mt.textContent = "…và " + (total - 4) + " nhiệm vụ nữa — mở màn hình tính năng để xem hết";
           } else more.style.display = "none";
         }
         if (!layer) return;
@@ -5382,9 +5358,8 @@
       function mcpUpdatePill() {
         var pill = document.getElementById("mcpFilterPill");
         if (!pill) return;
-        if (SIG_FILTER === "running" && !SIG_FEAT_FILTER) { pill.style.display = "none"; return; }
+        if (SIG_FILTER === "running") { pill.style.display = "none"; return; }
         var label = SIG_FILTER_NAMES[SIG_FILTER] || "";
-        if (SIG_FEAT_FILTER) label += " · " + (SIG_FEATURE_NAMES[SIG_FEAT_FILTER] || "");
         var txt = document.getElementById("mcpFilterPillText");
         if (txt) txt.textContent = "Lọc: " + label;
         pill.style.display = "";
@@ -5398,121 +5373,15 @@
           }
         } catch (e) { /* Đo chữ lỗi thì giữ kích thước mặc định. */ }
       }
-      function sigStatusLabel(t) {
-        if (t.status === "luna") return { cls: "luna", text: "Thư Ký Mỹ Linh đang làm" };
-        if (t.status === "running") return { cls: "run", text: "Đang chạy · " + (t.progress || 0) + "%" };
-        if (t.status === "waiting") return { cls: "wait", text: "Hàng chờ" };
-        if (t.status === "scheduled") return { cls: "sched", text: "Đã lên lịch" };
-        if (t.status === "review") return { cls: "wait", text: "Chờ duyệt" };
-        if (t.status === "completed") return { cls: "done", text: "Hoàn thành" };
-        if (t.status === "error") return { cls: "err", text: "Lỗi" };
-        return { cls: "", text: t.status || "" };
-      }
+      /* Yêu cầu 44: lọc CHỈ cho cột "AI tạo" trong đồ thị (tối đa 4 thẻ) —
+         danh sách HTML bên dưới đã bỏ, nhưng vòng trạng thái vẫn cần lọc
+         panel, nên hàm này giữ lại (bỏ nhánh lọc theo tính năng). */
       function sigFilteredTasks() {
         var want = SIG_FILTERS[SIG_FILTER] || SIG_FILTERS.running;
         return (AppState.tasks || []).filter(function (t) {
           if (want.indexOf(t.status) === -1) return false;
-          if (SIG_FEAT_FILTER && t.feature !== SIG_FEAT_FILTER) return false;
           return true;
         });
-      }
-      /* Danh sách nhiệm vụ HTML bên dưới đồ thị: cập nhật DOM tại chỗ theo id
-         (không innerHTML lại) để thanh tiến độ chuyển động bằng CSS transition
-         khi % đổi, và để tiêu đề luôn qua textContent (chống XSS). */
-      function sigEnsureGroup(key) {
-        var g = sigGroupMap[key];
-        if (g) return g;
-        var listEl = document.getElementById("sigList");
-        var wrap = document.createElement("div");
-        wrap.setAttribute("data-sig-group", key);
-        var head = document.createElement("div");
-        head.className = "sig-group";
-        var b = document.createElement("b");
-        b.textContent = SIG_FEATURE_NAMES[key] || key;
-        var sp = document.createElement("span");
-        head.appendChild(b); head.appendChild(sp);
-        var rowsEl = document.createElement("div");
-        wrap.appendChild(head); wrap.appendChild(rowsEl);
-        listEl.appendChild(wrap);
-        g = { wrap: wrap, countEl: sp, rowsEl: rowsEl };
-        sigGroupMap[key] = g;
-        return g;
-      }
-      function sigEnsureRow(t) {
-        var r = sigRowMap[t.id];
-        if (r) return r;
-        var row = document.createElement("button");
-        row.type = "button";
-        row.className = "sig-row";
-        row.setAttribute("data-sig-go", t.feature || "");
-        var main = document.createElement("span");
-        main.className = "sig-row-main";
-        var titleEl = document.createElement("span");
-        titleEl.className = "sig-row-title";
-        var metaEl = document.createElement("span");
-        metaEl.className = "sig-row-meta";
-        main.appendChild(titleEl); main.appendChild(metaEl);
-        var bar = document.createElement("span");
-        bar.className = "bar";
-        var barI = document.createElement("i");
-        bar.appendChild(barI);
-        var tagEl = document.createElement("span");
-        tagEl.className = "tag";
-        row.appendChild(main); row.appendChild(bar); row.appendChild(tagEl);
-        r = { row: row, bar: bar, barI: barI, titleEl: titleEl, metaEl: metaEl, tagEl: tagEl };
-        sigRowMap[t.id] = r;
-        return r;
-      }
-      function renderSigList(shown, total) {
-        var listEl = document.getElementById("sigList");
-        if (!listEl) return;
-        if (!sigEmptyEl) {
-          sigEmptyEl = document.createElement("p");
-          sigEmptyEl.className = "hint";
-          listEl.appendChild(sigEmptyEl);
-        }
-        if (!shown.length) {
-          sigEmptyEl.hidden = false;
-          sigEmptyEl.textContent = (AppState.tasks || []).length ? "Không có nhiệm vụ nào ở trạng thái này." : "Chưa có nhiệm vụ nào — giao việc đầu tiên ở form từng tính năng.";
-          Object.keys(sigGroupMap).forEach(function (k) { sigGroupMap[k].wrap.remove(); delete sigGroupMap[k]; });
-          Object.keys(sigRowMap).forEach(function (id) { sigRowMap[id].row.remove(); delete sigRowMap[id]; });
-          return;
-        }
-        sigEmptyEl.hidden = true;
-        var seenGroups = {};
-        var seenRows = {};
-        SIG_FEATURE_KEYS.forEach(function (key) {
-          var group = shown.filter(function (t) { return t.feature === key; });
-          if (!group.length) return;
-          seenGroups[key] = true;
-          var g = sigEnsureGroup(key);
-          g.countEl.textContent = group.length + " nhiệm vụ";
-          listEl.appendChild(g.wrap); // append lại để giữ đúng thứ tự nhóm
-          group.forEach(function (t) {
-            seenRows[t.id] = true;
-            var r = sigEnsureRow(t);
-            if (r.row.getAttribute("data-sig-go") !== (t.feature || "")) r.row.setAttribute("data-sig-go", t.feature || "");
-            r.titleEl.textContent = t.title || "Không tiêu đề";
-            r.metaEl.textContent = (t.user_name || "") + " · " + sigFmtTime(t.created_at);
-            var lab = sigStatusLabel(t);
-            var pct = Math.max(0, Math.min(100, t.progress || 0));
-            var indet = (t.status === "running" || t.status === "luna") && pct === 0;
-            r.bar.classList.toggle("indet", indet);
-            r.barI.style.width = pct + "%"; // transition .6s ở CSS làm thanh chạy mượt
-            r.tagEl.className = "tag " + lab.cls;
-            r.tagEl.textContent = lab.text;
-            g.rowsEl.appendChild(r.row);
-          });
-        });
-        if (total > SIG_LIST_MAX) {
-          sigEmptyEl.hidden = false;
-          sigEmptyEl.textContent = "Hiển thị " + SIG_LIST_MAX + "/" + total + " nhiệm vụ gần nhất ở trạng thái này.";
-        }
-        Object.keys(sigGroupMap).forEach(function (k) { if (!seenGroups[k]) { sigGroupMap[k].wrap.remove(); delete sigGroupMap[k]; } });
-        /* BUGFIX v2 (QA 16/11): chỉ xóa mục trong map mà không gỡ phần tử khỏi DOM
-           thì hàng cũ ở lại trong nhóm, lần sau sigEnsureRow lại tạo hàng mới → trùng dòng
-           khi đổi bộ lọc. Phải gỡ cả phần tử. */
-        Object.keys(sigRowMap).forEach(function (id) { if (!seenRows[id]) { sigRowMap[id].row.remove(); delete sigRowMap[id]; } });
       }
       function renderSignalBoard(d) {
         var board = document.getElementById("signalBoard");
@@ -5525,7 +5394,6 @@
         mcpBuildLeds(c, fc, sub);
         var items = sigFilteredTasks();
         mcpRenderPanelTasks(items.slice(0, 4), items.length);
-        renderSigList(items.slice(0, SIG_LIST_MAX), items.length);
         mcpUpdatePill();
       }
       function signalMarkOk() {
@@ -5589,27 +5457,25 @@
           if (card) { go(card.getAttribute("data-mcp-go")); return; } // Bấm thẻ nhiệm vụ: mở đúng màn hình tính năng
           var hub = e.target && e.target.closest ? e.target.closest("#mcpHubNode") : null;
           if (hub) { // Bấm vòng chỉ huy: về chế độ xem mặc định
-            SIG_FILTER = "running"; SIG_FEAT_FILTER = null;
+            SIG_FILTER = "running";
             renderSignalBoard();
             return;
           }
           var pill = e.target && e.target.closest ? e.target.closest("#mcpFilterPill") : null;
           if (pill) { // Bấm pill ✕: bỏ lọc
-            SIG_FILTER = "running"; SIG_FEAT_FILTER = null;
+            SIG_FILTER = "running";
             renderSignalBoard();
             return;
           }
           var feat = e.target && e.target.closest ? e.target.closest(".mcp-agent") : null;
-          if (feat) { // Bấm vòng tính năng: lọc thêm theo tính năng (bấm lại để bỏ)
-            var key = feat.getAttribute("data-feature");
-            SIG_FEAT_FILTER = (SIG_FEAT_FILTER === key) ? null : key;
-            renderSignalBoard();
+          if (feat) { // Yêu cầu 44: bấm vòng tính năng mở thẳng màn hình tính năng đó (không lọc nữa)
+            go(feat.getAttribute("data-feature"));
             return;
           }
           var st = e.target && e.target.closest ? e.target.closest(".mcp-status") : null;
-          if (st) { // Bấm vòng trạng thái: lọc theo trạng thái (bấm lại vòng đang chọn để bỏ)
+          if (st) { // Bấm vòng trạng thái: lọc cột AI tạo theo trạng thái (bấm lại vòng đang chọn để bỏ)
             var f = MCP_STATUS_FILTER[st.getAttribute("data-status")] || "running";
-            if (f === SIG_FILTER && !SIG_FEAT_FILTER) SIG_FILTER = "running";
+            if (f === SIG_FILTER) SIG_FILTER = "running";
             else SIG_FILTER = f;
             renderSignalBoard();
             return;
