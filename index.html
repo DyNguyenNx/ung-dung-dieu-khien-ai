@@ -4884,7 +4884,7 @@
       var SIG_FILTER_NAMES = { waiting: "Hàng chờ", running: "Đang chạy", review: "Chờ duyệt", completed: "Hoàn thành", error: "Lỗi" };
       var SIG_FILTER = "running";
       var SIG_FEAT_FILTER = null; // null = mọi tính năng; bấm nút tính năng để lọc thêm
-      var SIG_POLL_MS = 5000;
+      var SIG_POLL_MS = 15000; // Yêu cầu 41: 15 giây/nhịp (trước đây 5 giây) — giảm lag do gọi dữ liệu.
       var SIG_LIST_MAX = 50;
       var sigTimer = null;
       var sigWired = false;
@@ -6842,22 +6842,39 @@
           var li = document.querySelector('[data-task-id="' + task.id + '"]');
           if (li) runSimulation(li, task, task.payload || {}, task.progress || 0);
         }
-        /* ---- Yêu cầu 33: poll tiến độ thật của Thiết kế hình ảnh (Gemini) ----
+        /* ---- Yêu cầu 33 + 41: poll tiến độ thật của Thiết kế hình ảnh ----
            Không có luồng refresh danh sách định kỳ ngoài Dashboard (signal board
-           chỉ poll khi ở màn Dashboard) nên riêng 'anh' cần poller của mình:
-           5 giây/nhịp gọi GET /api/tasks?feature=anh, cập nhật % + thanh tiến
-           độ ngay trên thẻ, nhiệm vụ xong/lỗi thì vẽ lại thẻ (hiện nút tải).
-           Poller chỉ chạy khi còn nhiệm vụ 'anh' đang chạy, tự dừng khi hết. */
+           chỉ poll khi ở màn Dashboard) nên riêng 'anh' cần poller của mình.
+           Yêu cầu 41 (giảm lag do gọi dữ liệu): 15 giây/nhịp (trước đây 5 giây);
+           bỏ qua nhịp khi tab đang ẩn hoặc không còn ở màn hình Thiết kế hình
+           ảnh; chỉ lấy nhiệm vụ đang chạy (?status=running, limit=10) thay vì
+           toàn bộ 100 nhiệm vụ. Nhiệm vụ vừa xong/lỗi (biến mất khỏi danh
+           sách đang chạy) thì lấy riêng 1 nhiệm vụ đó để vẽ lại thẻ (hiện
+           nút tải). Poller chỉ chạy khi còn nhiệm vụ 'anh' đang chạy, tự
+           dừng khi hết. */
         var anhPollTimer = null;
+        var anhPollBusy = false; // Chống 2 nhịp chồng nhau khi mạng chậm.
+        var ANH_POLL_MS = 15000; // Yêu cầu 41: 15 giây/nhịp (trước đây 5 giây).
         function startAnhPolling() {
           if (anhPollTimer) return;
-          anhPollTimer = setInterval(pollAnhTasks, 5000);
+          anhPollTimer = setInterval(pollAnhTasks, ANH_POLL_MS);
           pollAnhTasks();
         }
+        function anhRunningTags() {
+          var list = document.querySelector('[data-tasks="anh"]');
+          if (!list) return [];
+          return Array.prototype.slice.call(list.querySelectorAll(".tag.run"));
+        }
         function pollAnhTasks() {
-          api("/api/tasks?feature=anh&limit=100").then(function (res) {
+          // Yêu cầu 41: không gọi dữ liệu khi tab đang ẩn hoặc đã rời màn hình
+          // Thiết kế hình ảnh — nhịp sau (khi quay lại) sẽ cập nhật tiếp.
+          if (document.hidden || currentScreen !== "anh" || anhPollBusy) return;
+          anhPollBusy = true;
+          api("/api/tasks?feature=anh&status=running&limit=10").then(function (res) {
             var tasks = res.tasks || [];
+            var runningIds = {};
             tasks.forEach(function (t) {
+              runningIds[t.id] = true;
               var li = document.querySelector('[data-task-id="' + t.id + '"]');
               if (!li) return;
               if (t.status === "running") {
@@ -6865,18 +6882,41 @@
                 if (tag) tag.textContent = "Đang chạy · " + (t.progress || 0) + "%";
                 var barFill = li.querySelector(".bar > i");
                 if (barFill) barFill.style.width = (t.progress || 0) + "%";
-              } else if ((t.status === "completed" || t.status === "error") && li.querySelector(".tag.run")) {
-                /* Chỉ vẽ lại thẻ đang chạy vừa đổi trạng thái (tránh vẽ lại
-                   thẻ đã xong/lỗi ở các nhịp sau). */
-                var fresh = renderTaskItem(t);
-                li.replaceWith(fresh);
-                toast(t.status === "completed" ? "Hoàn thành: " + t.title : "Nhiệm vụ lỗi: " + t.title);
-                if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
               }
             });
-            var stillRunning = tasks.some(function (t) { return t.status === "running"; });
-            if (!stillRunning && anhPollTimer) { clearInterval(anhPollTimer); anhPollTimer = null; }
-          }).catch(function () { /* Lỗi mạng 1 nhịp thì nhịp sau thử lại. */ });
+            /* Nhiệm vụ vừa biến mất khỏi danh sách đang chạy = đã xong/lỗi:
+               lấy riêng từng nhiệm vụ đó để vẽ lại thẻ (hiện nút tải). */
+            var pending = [];
+            anhRunningTags().forEach(function (tag) {
+              var li = tag.closest ? tag.closest('[data-task-id]') : null;
+              var id = li && li.getAttribute("data-task-id");
+              if (id && !runningIds[id]) pending.push(id);
+            });
+            if (!pending.length) { finishAnhTick(tasks.length > 0); return; }
+            var settled = 0;
+            pending.forEach(function (id) {
+              api("/api/tasks/" + id).then(function (r) {
+                var t = r.task || null;
+                var li = t && document.querySelector('[data-task-id="' + t.id + '"]');
+                if (t && li && (t.status === "completed" || t.status === "error") && li.querySelector(".tag.run")) {
+                  var fresh = renderTaskItem(t);
+                  li.replaceWith(fresh);
+                  toast(t.status === "completed" ? "Hoàn thành: " + t.title : "Nhiệm vụ lỗi: " + t.title);
+                  if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
+                }
+              }).catch(function () { /* Lấy 1 nhiệm vụ lỗi thì nhịp sau thử lại. */ })
+                .then(function () {
+                  settled++;
+                  if (settled === pending.length) finishAnhTick(tasks.length > 0);
+                });
+            });
+            function finishAnhTick(stillRunning) {
+              anhPollBusy = false;
+              if (!stillRunning && anhRunningTags().length === 0 && anhPollTimer) {
+                clearInterval(anhPollTimer); anhPollTimer = null;
+              }
+            }
+          }).catch(function () { anhPollBusy = false; /* Lỗi mạng 1 nhịp thì nhịp sau thử lại. */ });
         }
         function val(id) { var el = document.getElementById(id); return el ? (el.value || "").trim() : ""; }
         function selText(id) {

@@ -59,9 +59,14 @@ export async function onRequestGet(context) {
     out.pendingCount = await count(`SELECT COUNT(*) AS n FROM users WHERE status = 'pending'`);
     // ---------- Yêu cầu 31: thống kê theo dự án (CHỈ admin) ----------
     // Nguồn 2 — số liệu Luna đẩy từ Muse (bảng project_stats).
+    // Yêu cầu 41: chỉ gửi 8 kỳ gần nhất (giảm tải khi mở Dashboard —
+    // trước đây trả toàn bộ rows từ trước tới giờ). Đủ cho Yêu cầu 40
+    // (10 bài gần nhất: mỗi dự án đăng 2–5 bài/tuần → 8 tuần có 16–40
+    // bài/dự án). Ô chọn tuần chỉ hiện 6 tuần gần nhất nên không thiếu.
+    const PROJECT_STATS_PERIODS = 8;
     const rowsQ = await db.prepare(
-      'SELECT id, project, kind, period, scheduled, posted, links, details, source, created_at, updated_at FROM project_stats ORDER BY period DESC, project ASC',
-    ).all();
+      'SELECT id, project, kind, period, scheduled, posted, links, details, source, created_at, updated_at FROM project_stats WHERE period IN (SELECT DISTINCT period FROM project_stats ORDER BY period DESC LIMIT ?) ORDER BY period DESC, project ASC',
+    ).bind(PROJECT_STATS_PERIODS).all();
     const rows = (rowsQ.results || []).map((r) => {
       let links = [];
       let details = {};
