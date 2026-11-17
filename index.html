@@ -5055,6 +5055,31 @@
          cục bộ, và gọi AppBackend qua window.AppBackend (chẩn đoán QA32 16/11). */
       var SIG_FEATURE_KEYS = ["web", "page", "kenh", "truyen", "anh", "designweb"];
       var SIG_FEATURE_NAMES = { web: "Chăm sóc web", page: "Chăm sóc page", kenh: "Xây dựng kênh", truyen: "Viết truyện", anh: "Thiết kế hình ảnh", designweb: "Design Web" };
+      /* Yêu cầu 46: tiêu đề hiển thị của nhiệm vụ. Nhiệm vụ cũ trong D1 lưu
+         tiêu đề chung chung ("Việc chăm sóc web mới", "Bài đăng page mới",
+         "Video mới", "<loại ảnh> — dự án mới", "Trang chủ khách hàng mới")
+         thì hiện tên tính năng thay thế — dữ liệu gốc KHÔNG viết lại.
+         Nhiệm vụ có tiêu đề riêng giữ nguyên. Gắn lên window để cả 3 block
+         script dùng chung. */
+      var LEGACY_GENERIC_TITLES = {
+        web: ["Việc chăm sóc web mới"],
+        page: ["Bài đăng page mới"],
+        kenh: ["Video mới"],
+        designweb: ["Trang chủ khách hàng mới"]
+      };
+      window.displayTaskTitle = function (t) {
+        if (!t) return "";
+        var title = String(t.title || "").trim();
+        var name = (SIG_FEATURE_NAMES && SIG_FEATURE_NAMES[t.feature]) || t.feature || "";
+        if (!title) return name;
+        var legacy = LEGACY_GENERIC_TITLES[t.feature] || [];
+        if (legacy.indexOf(title) !== -1) return name;
+        /* Thiết kế hình ảnh cũ: "<loại ảnh> — dự án mới" (vd "Thumbnail
+           YouTube — dự án mới"). Tiêu đề "<loại> — <dự án thật>" là tiêu đề
+           riêng nên không chuẩn hoá. */
+        if (t.feature === "anh" && / — dự án mới$/.test(title)) return name;
+        return title;
+      };
       var MCP_FEATURE_COLORS = { web: "#FB923C", page: "#60A5FA", kenh: "#2DD4BF", truyen: "#A78BFA", anh: "#FBBF24", designweb: "#F472B6" };
       var MCP_AGENT_WIRE = { web: "w-agent-web", page: "w-agent-page", kenh: "w-agent-kenh", truyen: "w-agent-truyen", anh: "w-agent-anh", designweb: "w-agent-designweb" };
       var MCP_STATUS_FILTER = { queue: "waiting", sent: "luna", error: "error", creating: "running", done: "completed", returned: "review" };
@@ -5328,7 +5353,7 @@
           return el;
         }
         rect(40, y, 268, 140, 9, "#1A1A3E", "#2E2E63");
-        var lines = mcpWrapTitle(t.title);
+        var lines = mcpWrapTitle(displayTaskTitle(t));
         text(56, y + 37, lines[0], "15", "700", "#F4F4FA");
         if (lines[1]) text(56, y + 59, lines[1], "15", "700", "#F4F4FA");
         var meta = mcpTaskMeta(t);
@@ -6308,7 +6333,7 @@
                 li.setAttribute("data-filter", "");
                 li.innerHTML =
                   '<span class="f-ic">' + FEED_ICON + '</span>' +
-                  '<span class="f-txt"><b>' + escHtml(r.owner) + '</b> · ' + escHtml(FEATURE_NAMES[r.feature] || r.feature) + ' — ' + escHtml(r.title) +
+                  '<span class="f-txt"><b>' + escHtml(r.owner) + '</b> · ' + escHtml(FEATURE_NAMES[r.feature] || r.feature) + ' — ' + escHtml(displayTaskTitle(r)) +
                   (r.meta ? ' · <span class="f-meta">' + escHtml(r.meta) + '</span>' : '') + '</span>' +
                   '<span class="f-time">' + fmtTime(r.created_at) + '</span>';
                 feed.appendChild(li);
@@ -6359,12 +6384,12 @@
             items.push({ kind: "pending", title: "Tài khoản mới chờ duyệt", meta: u.name + " · " + u.email, go: "accounts" });
           });
           (AppState.tasks || []).filter(function (t) { return t.status === "error"; }).forEach(function (t) {
-            items.push({ kind: "error", title: "Nhiệm vụ gặp lỗi", meta: t.title + " · " + (FEATURE_NAMES[t.feature] || t.feature), go: t.feature });
+            items.push({ kind: "error", title: "Nhiệm vụ gặp lỗi", meta: displayTaskTitle(t) + " · " + (FEATURE_NAMES[t.feature] || t.feature), go: t.feature });
           });
           /* Yêu cầu 28: admin thấy chuông khi có bản thiết kế Luna trả về đang chờ duyệt. */
           if (AppState.me && AppState.me.role === "admin") {
             (AppState.tasks || []).filter(function (t) { return t.feature === "designweb" && t.status === "review"; }).forEach(function (t) {
-              items.push({ kind: "pending", title: "Bản thiết kế chờ duyệt", meta: t.title + " · " + (t.user_name || ""), go: "designweb" });
+              items.push({ kind: "pending", title: "Bản thiết kế chờ duyệt", meta: displayTaskTitle(t) + " · " + (t.user_name || ""), go: "designweb" });
             });
           }
           return items;
@@ -6737,11 +6762,11 @@
                 if (isLunaTask) {
                   btn.disabled = true;
                   buildLunaVersions(task).then(function (vers) {
-                    openOverlay({ title: task.title, data: full, versions: vers, apiId: task.id, luna: true });
+                    openOverlay({ title: displayTaskTitle(task), data: full, versions: vers, apiId: task.id, luna: true });
                   }).catch(function (e) { toast(e.message || "Không mở được bản demo."); })
                     .then(function () { btn.disabled = false; });
                 } else {
-                  openOverlay({ title: task.title, data: full, versions: buildVersions(task, full), apiId: task.id });
+                  openOverlay({ title: displayTaskTitle(task), data: full, versions: buildVersions(task, full), apiId: task.id });
                 }
               } else if (kind === "html") {
                 if (isLunaTask) {
@@ -6811,7 +6836,7 @@
                   if (!vers.length) vers = [{ id: res.version || "v1", note: res.note || "", kind: res.kind || "content", doc: "" }];
                   vers[vers.length - 1].doc = res.text || "";
                   vers[vers.length - 1].link = res.link || "";
-                  openOverlay({ title: task.title, data: full, versions: vers, apiId: task.id, luna: true, textMode: true });
+                  openOverlay({ title: displayTaskTitle(task), data: full, versions: vers, apiId: task.id, luna: true, textMode: true });
                 }).catch(function (e) { toast(e.message || "Không mở được kết quả."); })
                   .then(function () { btn.disabled = false; });
               } else {
@@ -6839,7 +6864,7 @@
         function renderTaskItem(task) {
           var full = task.payload || {};
           full.key = task.feature;
-          full.title = task.title;
+          full.title = displayTaskTitle(task);
           var li = document.createElement("li");
           li.className = "task";
           li.setAttribute("data-filter", "");
@@ -6898,7 +6923,7 @@
             }
           }
           li.innerHTML =
-            '<div><div class="t-name">' + esc(task.title) + '</div><div class="t-meta">' + meta + '</div></div>' +
+            '<div><div class="t-name">' + esc(displayTaskTitle(task)) + '</div><div class="t-meta">' + meta + '</div></div>' +
             '<div class="t-side">' + side + '</div>';
           if (task.status === "completed") wireDownloadButtons(li, task, full);
           if (task.status === "completed" && task.feature === "anh") wireImagePreview(li, task);
@@ -6950,7 +6975,7 @@
           var delBtn = li.querySelector("[data-del-task]");
           if (!delBtn) return;
           delBtn.addEventListener("click", function () {
-            if (!confirm("Xoá nhiệm vụ “" + task.title + "”?\nNhiệm vụ đã xoá không khôi phục được.")) return;
+            if (!confirm("Xoá nhiệm vụ “" + displayTaskTitle(task) + "”?\nNhiệm vụ đã xoá không khôi phục được.")) return;
             delBtn.disabled = true;
             api("/api/tasks/" + task.id, { method: "DELETE" })
               .then(function () {
@@ -7098,7 +7123,7 @@
             .catch(function (e) { toast("Không cập nhật được trạng thái nhiệm vụ: " + e.message); });
           var fresh = renderTaskItem(task);
           li.replaceWith(fresh);
-          toast("Hoàn thành: " + task.title);
+          toast("Hoàn thành: " + displayTaskTitle(task));
           if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
         }
         function resumeTask(task) {
@@ -7168,7 +7193,7 @@
                 if (t && li && (t.status === "completed" || t.status === "error") && li.querySelector(".tag.run")) {
                   var fresh = renderTaskItem(t);
                   li.replaceWith(fresh);
-                  toast(t.status === "completed" ? "Hoàn thành: " + t.title : "Nhiệm vụ lỗi: " + t.title);
+                  toast(t.status === "completed" ? "Hoàn thành: " + displayTaskTitle(t) : "Nhiệm vụ lỗi: " + displayTaskTitle(t));
                   if (window.AppBackend && window.AppBackend.afterTaskChange) window.AppBackend.afterTaskChange();
                 }
               }).catch(function () { /* Lấy 1 nhiệm vụ lỗi thì nhịp sau thử lại. */ })
@@ -7213,20 +7238,23 @@
         /* ---- Gom thông tin từ form của từng tính năng ---- */
         function collect(key) {
           var d = { key: key, title: "", meta: "", lines: [] };
+          /* Yêu cầu 46: tên hiển thị của tính năng — tiêu đề mặc định khi
+             không có chủ đề/tiêu đề riêng. */
+          var featName = (window.APP_CONFIG && window.APP_CONFIG.features[key] && window.APP_CONFIG.features[key].name) || key;
           function line(label, value) { if (value) d.lines.push(label + ": " + value); }
           if (key === "web") {
             var topic = val("web-topic");
-            d.title = topic ? "Viết bài SEO “" + topic + "”" : "Việc chăm sóc web mới";
+            d.title = topic ? "Viết bài SEO “" + topic + "”" : featName;
             d.meta = [selText("web-site"), val("web-keyword") ? "Từ khóa: " + val("web-keyword") : ""].filter(Boolean).join(" · ");
             line("Website", selText("web-site")); line("Chủ đề", topic);
             line("Từ khóa chính", val("web-keyword")); line("Số từ mong muốn", val("web-words"));
           } else if (key === "page") {
-            d.title = val("page-topic") || selText("page-type") || "Bài đăng page mới";
+            d.title = val("page-topic") || featName;
             d.meta = [selText("page-name"), selText("page-type"), selText("page-time")].filter(Boolean).join(" · ");
             line("Page", selText("page-name")); line("Loại nội dung", selText("page-type"));
             line("Chủ đề", val("page-topic")); line("Khung giờ đăng", selText("page-time"));
           } else if (key === "kenh") {
-            d.title = val("kenh-topic") || "Video mới";
+            d.title = val("kenh-topic") || featName;
             d.meta = [selText("kenh-platform"), selText("kenh-style"), selText("kenh-length")].filter(Boolean).join(" · ");
             line("Nền tảng", selText("kenh-platform")); line("Chủ đề video", val("kenh-topic"));
             line("Phong cách", selText("kenh-style")); line("Thời lượng", selText("kenh-length"));
@@ -7262,14 +7290,20 @@
             if (type === "Khác (tự nhập)") type = val("anh-type-custom") || type;
             var w = val("anh-size-w"), h = val("anh-size-h");
             d.img = { type: type, w: parseInt(w, 10) || 1200, h: parseInt(h, 10) || 800, style: selText("anh-style"), name: val("anh-name"), desc: val("anh-desc"), count: selText("anh-count") };
-            d.title = d.img.name || ((type || "Hình ảnh") + " — " + (selText("anh-project") || "dự án mới"));
+            d.title = d.img.name || featName;
             d.meta = [type, (w && h) ? w + "×" + h + "px" : "", d.img.style, d.img.count ? d.img.count + " ảnh" : ""].filter(Boolean).join(" · ");
             line("Dự án", selText("anh-project")); line("Loại hình ảnh", type); line("Tên / tiêu đề ảnh", d.img.name);
             line("Kích thước", (w && h) ? w + " × " + h + " px" : ""); line("Phong cách", d.img.style);
             line("Số lượng", d.img.count); line("Mô tả chi tiết", d.img.desc);
           } else if (key === "designweb") {
-            var cust = selText("design-project") || val("np-name-design");
-            d.title = "Trang chủ " + (cust || "khách hàng mới");
+            var cust = selText("design-project");
+            if (cust === "+ Thêm mới...") cust = "";
+            cust = cust || val("np-name-design");
+            /* Yêu cầu 46 (sửa thêm khi QA bằng mắt 17/11): option dự án đã mang
+               sẵn tiền tố loại trang ("Trang chủ ZA Project", "Landing page Dư Dư
+               Beauty Spa") nên dùng nguyên văn làm tiêu đề — code cũ ghép thêm
+               "Trang chủ " thành "Trang chủ Trang chủ ZA Project". */
+            d.title = cust || featName;
             var secs = [];
             var secEls = document.querySelectorAll("#designSections .sec-name");
             for (var i = 0; i < secEls.length; i++) secs.push(secEls[i].textContent.trim());
